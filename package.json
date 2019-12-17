@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "workspaces": [
+    "blogsearch",
+    "blogsearch-cli",
+    "example"
+  ]
+}

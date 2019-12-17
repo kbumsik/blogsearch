@@ -1,0 +1,13 @@
+{
+  "name": "example",
+  "version": "0.0.1",
+  "description": "Set of examples of blogsearch",
+  "main": "index.js",
+  "repository": "https://github.com/kbumsik/blogsearch",
+  "author": "Bumsik Kim <k.bumsik@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "glob": "^7.1.6"
+  }
+}

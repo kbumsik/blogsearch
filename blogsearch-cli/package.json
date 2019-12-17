@@ -1,0 +1,14 @@
+{
+  "name": "blogsearch-cli",
+  "version": "0.0.1",
+  "description": "Command Line tool to build a database for blogsearch",
+  "main": "index.js",
+  "repository": "https://github.com/kbumsik/blogsearch",
+  "author": "Bumsik Kim <k.bumsik@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "puppeteer": "^2.0.0",
+    "sqlite": "^3.0.3"
+  }
+}
