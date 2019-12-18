@@ -7,6 +7,11 @@
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "build:pages": "make",
+    "build:blogsearch": "blogsearch-crawler",
+    "build": "yarn build:pages && yarn build:blogsearch"
+  },
   "dependencies": {
     "@types/node": "^12.12.18",
     "glob": "^7.1.6"

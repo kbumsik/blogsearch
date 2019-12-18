@@ -50,7 +50,7 @@ function isIConfig(config: IConfig | any): config is IConfig {
     return input;
   });
 
-  crawl(config);
+  await crawl(config);
 })().catch((reason) => {
   console.error(`Error! ${reason}`);
   process.exit(1);
