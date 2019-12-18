@@ -2,7 +2,7 @@
   "private": true,
   "workspaces": [
     "blogsearch",
-    "blogsearch-cli",
+    "blogsearch-crawler",
     "example"
   ]
 }

@@ -1,14 +1,22 @@
 {
-  "name": "blogsearch-cli",
+  "name": "blogsearch-crawler",
   "version": "0.0.1",
   "description": "Command Line tool to build a database for blogsearch",
-  "main": "index.js",
+  "main": "./build/index.js",
+  "bin": "./build/bin/blogsearch-crawler.js",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
   "dependencies": {
     "puppeteer": "^2.0.0",
     "sqlite": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/puppeteer-core": "^2.0.0"
   }
 }
