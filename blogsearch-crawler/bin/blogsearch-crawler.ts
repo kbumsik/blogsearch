@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as path from 'path';
 import * as glob from 'glob';
+import * as fs from 'fs';
 import crawl, { Fields, InputConfig, Config } from '../index';
 
 // to use V8's code cache to speed up instantiation time
@@ -44,6 +45,11 @@ function isConfig(config: Config | any): config is Config {
     }, []);
     return input;
   });
+
+  // Override DB file
+  if (fs.existsSync(config.output)) {
+    fs.unlinkSync(config.output);
+  }
 
   await crawl(config);
 })().catch((error) => {

@@ -1,7 +1,6 @@
 import * as puppeteer from 'puppeteer';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as process from 'process';
 // This is an "promisified" version of sqlite3
 import * as sqlite from 'sqlite';
 // This is only need for constants declarations
@@ -50,18 +49,23 @@ function resolveEntry(entry: string): string {
 }
 
 export default async function(config: Config) {
-  // Init a browser and database
-  const browser = await puppeteer.launch({
-    ignoreHTTPSErrors: true,
-  });
-  const db = await sqlite.open(config.output,
-                               { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
   const keys = Object.keys(config.fields);
-  let stmt = await db.run(`CREATE VIRTUAL TABLE blogsearch USING fts5(${keys.join(',')}, detail=full);`);
+  const browser = await puppeteer.launch({ ignoreHTTPSErrors: true });
+  const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
 
-  // The crawler task
-  const crawlerTask = async (input: InputConfig) => {
+  await db.run(`CREATE VIRTUAL TABLE blogsearch USING fts5(${keys.join(',')}, detail=full);`);
+
+  for (const input of config.inputs) {
+    await Promise.all((new Array(4)).fill(crawlerTask(input)));
+  }
+
+  db.close();
+  browser.close();
+  return;
+
+  async function crawlerTask(input: InputConfig) {
     const context = await browser.createIncognitoBrowserContext();
+
     while (input.entries.length !== 0) {
       const originalEntry = input.entries.pop() as string;
       const entry = resolveEntry(originalEntry);
@@ -93,20 +97,12 @@ export default async function(config: Config) {
       // See: https://www.sqlite.org/lang_expr.html
       const parameters = keys.map((key) => `'${ parsedFields[key].replace(/'/g, "''") }'`)
                              .join(',');
-      stmt = await db.run(`INSERT INTO blogsearch VALUES (${parameters});`);
+      await db.run(`INSERT INTO blogsearch VALUES (${parameters});`);
       page.close();
     }
     await context.close();
     return;
-  };
-
-  // Start crawler and finish
-  for (const input of config.inputs) {
-    // TODO: configurable number of tasks
-    await Promise.all((new Array(4)).fill(crawlerTask(input)));
   }
-  db.close();
-  browser.close();
 }
 
 export { Fields, InputConfig, Config };
