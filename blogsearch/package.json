@@ -7,11 +7,16 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
-    "build": "tsc -b .",
-    "watch": "tsc -b -w ."
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@types/emscripten": "^1.38.0",
+    "@types/hogan.js": "^3.0.0"
+  },
   "private": false,
   "license": "MIT",
-  "dependencies": {}
+  "dependencies": {
+    "autocomplete.js": "^0.37.0",
+    "hogan.js": "^3.0.2",
+    "to-factory": "^1.0.0"
+  }
 }
