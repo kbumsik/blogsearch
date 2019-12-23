@@ -10,7 +10,8 @@
   "scripts": {
     "build:pages": "make",
     "build:blogsearch": "blogsearch-crawler",
-    "build": "yarn build:pages && yarn build:blogsearch"
+    "build": "yarn build:pages && yarn build:blogsearch",
+    "start": "webpack-dev-server"
   },
   "dependencies": {
     "@types/node": "^12.12.18",
