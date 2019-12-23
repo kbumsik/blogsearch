@@ -2,10 +2,16 @@
   "name": "blogsearch",
   "version": "0.0.1",
   "description": "In-browser full-text search engine for static websites",
-  "main": "index.js",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
-  "license": "MIT",
+  "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -b .",
+    "watch": "tsc -b -w ."
+  },
+  "devDependencies": {},
   "private": false,
-  "devDependencies": {}
+  "license": "MIT",
+  "dependencies": {}
 }

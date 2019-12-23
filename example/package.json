@@ -16,5 +16,15 @@
   "dependencies": {
     "@types/node": "^12.12.18",
     "glob": "^7.1.6"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.7.7",
+    "@babel/preset-env": "^7.7.7",
+    "@babel/preset-typescript": "^7.7.7",
+    "@babel/register": "^7.7.7",
+    "babel-loader": "^8.0.6",
+    "eslint-loader": "^3.0.3",
+    "webpack": "^4.41.4",
+    "webpack-cli": "^3.3.10"
   }
 }
