@@ -1,5 +1,7 @@
-import SQLite, { Config } from './SQLite';
+// @ts-ignore
+import toFactory from 'to-factory';
+import BlogSearch from './BlogSearch';
 
-export default function blogsearch(config: Config) {
-  return new SQLite(config).load();
-}
+const blogsearch = toFactory(BlogSearch);
+
+export default blogsearch;

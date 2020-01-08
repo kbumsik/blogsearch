@@ -3,9 +3,13 @@ interface Config {
   wasmPath: string;
 }
 
-interface Result {
+interface RawResult {
   columns: string[];
   values: string[][]; // [row][columns]
+}
+
+interface Result {
+  [column: string]: string;
 }
 
 export default class SQLite {
@@ -34,17 +38,24 @@ export default class SQLite {
     });
   }
 
-  public async search(match: string, top: number = 5): Promise<Result> {
+  public async search(match: string, top: number = 5): Promise<Result[]> {
     const query = `SELECT * FROM blogsearch WHERE blogsearch MATCH '${match}' ORDER BY bm25(blogsearch) LIMIT ${top};`;
-    return (await this.run(query))[0];
+    const raw = (await this.run(query))[0];
+    return raw.values.map(row => {
+      const result: Result = {};
+      raw.columns.forEach((column, index) => {
+        result[column] = row[index];
+      });
+      return result;
+    });
   }
 
-  public run(query: string): Promise<Result[]> {
+  public run(query: string): Promise<RawResult[]> {
     return new Promise(resolve => {
       this.sqlWorker.addEventListener(
         'message',
         e => {
-          const results: Result[] = e.data.results;
+          const results: RawResult[] = e.data.results;
           // eslint-disable-next-line no-console
           console.log(results);
           for (let i = 0; i < results.length; i++) {
@@ -67,4 +78,4 @@ export default class SQLite {
 }
 
 // eslint-disable-next-line no-undef
-export { Config };
+export { Config, Result };
