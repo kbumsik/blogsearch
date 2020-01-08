@@ -1,23 +1,173 @@
-SQLITE_VERSION := 3.30.1
-SQLITE_SRC := ./sqlite/build-$(SQLITE_VERSION)/sqlite3.c
+# SQLite syntax from : https://github.com/mandel59/sqlite-wasm (MIT License) Credited in LICENSE
+# To use another version of Sqlite, visit https://www.sqlite.org/download.html and copy the appropriate values here:
+SQLITE_AMALGAMATION := sqlite-amalgamation-3300100
+SQLITE_AMALGAMATION_ZIP_URL := https://www.sqlite.org/2019/$(SQLITE_AMALGAMATION).zip
+SQLITE_AMALGAMATION_ZIP_SHA1 := ff9b4e140fe0764bc7bc802facf5ac164443f517
 
-# Sqlite build
-$(SQLITE_SRC):
-	mkdir -p sqlite
-	cd sqlite && wget https://www.sqlite.org/src/tarball/sqlite.tar.gz?r=version-$(SQLITE_VERSION) -O sqlite.tar.gz
-	cd sqlite && tar xzf sqlite.tar.gz
-	mkdir -p sqlite/build-$(SQLITE_VERSION)
-	cd sqlite/build-$(SQLITE_VERSION) \
-		&& ../sqlite/configure \
-	 		--enable-fts5 \
-	 		--disable-threadsafe \
-			--disable-tcl \
-			--disable-libtool-lock \
-			--disable-largefile
-	make -C sqlite/build-$(SQLITE_VERSION)
-	emmake make -C sqlite/build-$(SQLITE_VERSION) sqlite3.c
+# Emscripten build config
+EMCC := emcc
 
+# See: https://github.com/emscripten-core/emscripten/blob/incoming/src/settings.js
+EMCC_OPTS = \
+	-s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+	-s MALLOC="emmalloc" \
+	-fno-exceptions \
+	--llvm-opts 3 \
+	--llvm-lto 1 \
+	--memory-init-file 0 \
+	-s RESERVED_FUNCTION_POINTERS=64 \
+	-s NODEJS_CATCH_EXIT=0 \
+	-s WASM=1 \
+	-s ALLOW_MEMORY_GROWTH=1 \
+	-s ENVIRONMENT='worker'
+
+# See https://www.sqlite.org/compile.html for more about the compile-time options
+EMCC_SQLITE_FLAGS = \
+	-DSQLITE_ENABLE_FTS5 \
+	-DSQLITE_OMIT_LOAD_EXTENSION \
+	-DSQLITE_DISABLE_LFS \
+	-DLONGDOUBLE_TYPE=double \
+	-DSQLITE_THREADSAFE=0 \
+	-DSQLITE_DQS=0\
+	-DSQLITE_DEFAULT_MEMSTATUS=0 \
+	-DSQLITE_OMIT_DEPRECATED \
+	-DSQLITE_MAX_EXPR_DEPTH=0 \
+	-DSQLITE_OMIT_SHARED_CACHE \
+	-DSQLITE_OMIT_PROGRESS_CALLBACK \
+	-DSQLITE_OMIT_DECLTYPE \
+	$(SQLITE_OWN_OPTIMIZATIONS)
+
+# This reduces the WASM size from 518k (253k gzipped) => 406k (200k gzipped)
+SQLITE_OWN_OPTIMIZATIONS = \
+	-DSQLITE_OMIT_ALTERTABLE \
+	-DSQLITE_OMIT_ANALYZE \
+	-DSQLITE_OMIT_ATTACH \
+	-DSQLITE_OMIT_AUTHORIZATION \
+	-DSQLITE_OMIT_AUTOINCREMENT \
+	-DSQLITE_OMIT_AUTOMATIC_INDEX \
+	-DSQLITE_OMIT_AUTOVACUUM \
+	-DSQLITE_OMIT_BETWEEN_OPTIMIZATION \
+	-DSQLITE_OMIT_BLOB_LITERAL \
+	-DSQLITE_OMIT_BTREECOUNT \
+	-DSQLITE_OMIT_CASE_SENSITIVE_LIKE_PRAGMA \
+	-DSQLITE_OMIT_CAST \
+	-DSQLITE_OMIT_CHECK \
+	-DSQLITE_OMIT_COMPILEOPTION_DIAGS \
+	-DSQLITE_OMIT_COMPLETE \
+	-DSQLITE_OMIT_COMPOUND_SELECT \
+	-DSQLITE_OMIT_DATETIME_FUNCS \
+	-DSQLITE_OMIT_DECLTYPE \
+	-DSQLITE_OMIT_EXPLAIN \
+	-DSQLITE_OMIT_FLAG_PRAGMAS \
+	-DSQLITE_OMIT_FOREIGN_KEY \
+	-DSQLITE_OMIT_GET_TABLE \
+	-DSQLITE_OMIT_INTEGRITY_CHECK \
+	-DSQLITE_OMIT_INTROSPECTION_PRAGMAS \
+	-DSQLITE_OMIT_LIKE_OPTIMIZATION \
+	-DSQLITE_OMIT_LOCALTIME \
+	-DSQLITE_OMIT_LOOKASIDE \
+	-DSQLITE_OMIT_MEMORYDB \
+	-DSQLITE_OMIT_OR_OPTIMIZATION \
+	-DSQLITE_OMIT_PAGER_PRAGMAS \
+	-DSQLITE_OMIT_QUICKBALANCE \
+	-DSQLITE_OMIT_REINDEX \
+	-DSQLITE_OMIT_AUTORESET \
+	-DSQLITE_OMIT_SCHEMA_PRAGMAS \
+	-DSQLITE_OMIT_SCHEMA_VERSION_PRAGMAS \
+	-DSQLITE_OMIT_SUBQUERY \
+	-DSQLITE_OMIT_TCL_VARIABLE \
+	-DSQLITE_OMIT_TEMPDB \
+	-DSQLITE_OMIT_TRACE \
+	-DSQLITE_OMIT_TRUNCATE_OPTIMIZATION \
+	-DSQLITE_OMIT_UTF16 \
+	-DSQLITE_OMIT_VACUUM \
+	-DSQLITE_OMIT_VIEW \
+	-DSQLITE_OMIT_WAL \
+	-DSQLITE_OMIT_XFER_OPT \
+	-DSQLITE_UNTESTABLE
+
+# Error during the compile time
+	# -DSQLITE_OMIT_CTE \
+	# -DSQLITE_OMIT_FLOATING_POINT
+	# -DSQLITE_OMIT_TRIGGER \
+	# -DSQLITE_OMIT_VIRTUALTABLE
+
+# Error in runtime
+# This reduces the WASM size from 518k (253k gzipped) => 398k (196k gzipped)
+	# "missing function: sqlite3Pragma"
+	# -DSQLITE_OMIT_PRAGMA \
+	# "missing function: sqlite3_blob_open"
+	# -DSQLITE_OMIT_INCRBLOB \
+
+
+# Top level build targets
+all: dist/sqlite-next/worker.sql-wasm.js dist/sqlite-next/sql-wasm.wasm
+	# Check .wasm size
+	@echo '.wasm size:'
+	@cat dist/sqlite-next/sql-wasm.wasm | wc -c | numfmt --to=iec
+	@echo 'gzip size:'
+	@gzip -c dist/sqlite-next/sql-wasm.wasm | wc -c | numfmt --to=iec
+
+dist: EMCC_OPTS += -Oz
+dist: all
+
+debug: EMCC_SQLITE_FLAGS += SQLITE_DEBUG
+debug: all
+
+################################################################################
+# Building JS
+################################################################################
+lib/sqlite-next/api.js: lib/sqlite-next/worker.js
+lib/sqlite-next/worker.js: $(shell find src/ -type f -name '*.ts')
+	yarn build:ts
+
+################################################################################
+# Building WASM
+################################################################################
+dist/sqlite-next/worker.sql-wasm.js: dist/sqlite-next/sql-wasm.js lib/sqlite-next/worker.js
+	cat $^ > $@
+
+# These are represented as $(word {line_num}, $^) in the recipe
+WASM_DEPS = \
+	lib/sqlite-next/api.js \
+	sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c \
+	src/sqlite-next/exported_functions.json \
+	src/sqlite-next/exported_runtime_methods.json
+
+dist/sqlite-next/sql-wasm.wasm: dist/sqlite-next/sql-wasm.js 
+dist/sqlite-next/sql-wasm.js: $(WASM_DEPS)
+	mkdir -p $(dir $@)
+	$(EMCC) \
+		$(EMCC_OPTS) \
+		$(EMCC_SQLITE_FLAGS) \
+		--pre-js $(word 1, $^) \
+		$(word 2, $^) \
+		-s EXPORTED_FUNCTIONS=@$(word 3, $^) \
+		-s EXTRA_EXPORTED_RUNTIME_METHODS=@$(word 4, $^) \
+		-o $@
+	mv $@ cache/tmp-raw.js
+	cat src/sqlite-next/shell-pre.js cache/tmp-raw.js  src/sqlite-next/shell-post.js > $@
+	rm cache/tmp-raw.js
+
+################################################################################
+# Building SQLite
+################################################################################
+sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c: cache/$(SQLITE_AMALGAMATION).zip
+	mkdir -p sqlite-src
+	echo '$(SQLITE_AMALGAMATION_ZIP_SHA1)  ./cache/$(SQLITE_AMALGAMATION).zip' > cache/sha_$(SQLITE_AMALGAMATION).txt
+	sha1sum -c cache/sha_$(SQLITE_AMALGAMATION).txt
+	unzip -DD 'cache/$(SQLITE_AMALGAMATION).zip' -d sqlite-src/
+
+cache/$(SQLITE_AMALGAMATION).zip:
+	mkdir -p cache
+	curl -LsSf '$(SQLITE_AMALGAMATION_ZIP_URL)' -o $@
+
+################################################################################
+# Etc.
+################################################################################
 .PHONY: clean
 
 clean:
-	rm -rf ./sqlite
+	-rm -rf dist
+	-rm -rf lib
+	-rm -rf sqlite-src
