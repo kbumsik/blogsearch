@@ -20,6 +20,9 @@ EMCC_OPTS = \
 	-s WASM=1 \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	-s ENVIRONMENT='worker'
+	
+	#  \
+	# -s MODULARIZE=1
 
 # See https://www.sqlite.org/compile.html for more about the compile-time options
 EMCC_SQLITE_FLAGS = \
@@ -102,16 +105,25 @@ SQLITE_OWN_OPTIMIZATIONS = \
 
 # Top level build targets
 all: dist/sqlite-next/worker.sql-wasm.js dist/sqlite-next/sql-wasm.wasm
+	# Check wrapper js size
+	@echo 'Wrapper .js size:'
+	@cat $(word 1, $^) | wc -c | numfmt --to=iec
+	@echo 'Wrapper .js gzipped size:'
+	@gzip -c $(word 1, $^) | wc -c | numfmt --to=iec
 	# Check .wasm size
 	@echo '.wasm size:'
-	@cat dist/sqlite-next/sql-wasm.wasm | wc -c | numfmt --to=iec
-	@echo 'gzip size:'
-	@gzip -c dist/sqlite-next/sql-wasm.wasm | wc -c | numfmt --to=iec
+	@cat $(word 2, $^) | wc -c | numfmt --to=iec
+	@echo '.wasm gzipped size:'
+	@gzip -c $(word 2, $^) | wc -c | numfmt --to=iec
 
+# [TODO] --closure 1 optimization breaks the code
 dist: EMCC_OPTS += -Oz
 dist: all
 
-debug: EMCC_SQLITE_FLAGS += SQLITE_DEBUG
+debug: EMCC_OPTS += -g4 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s STACK_OVERFLOW_CHECK=1
+# [TODO] Fails when enabled. Fix the source in order to make it work.
+# Assertion failed: p->iStructVersion!=0, at: sqlite-src/sqlite-amalgamation-3300100/sqlite3.c,212053,fts5StructureRead
+# debug: EMCC_SQLITE_FLAGS += -DSQLITE_DEBUG
 debug: all
 
 ################################################################################
