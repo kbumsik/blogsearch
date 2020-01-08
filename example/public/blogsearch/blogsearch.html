@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+    <meta charset="utf-8" />
+    <title>BlogSearch playground</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="docsearch.min.css" />
+  </head>
+  
+  <body>
+    <div class="container">
+      <div class="mt-1">
+        <h1>BlogSearch test</h1>
+      </div>
+      <div class="col-md-12">
+        <div class="input-group">
+          <input type="search" placeholder="DocSearch input" class="form-control" id="q">
+        </div>
+      </div>
+    </div>
+    <!-- at the end of the BODY -->
+    <script src="/index.js"></script>
+    <script>
+      // docsearch({
+      //   apiKey: '25626fae796133dc1e734c6bcaaeac3c',
+      //   indexName: 'docsearch',
+      //   inputSelector: '#q',
+      //   handleSelected(input, event, suggestion, datasetNumber, context) {
+      //     console.info(input);
+      //     console.info(event);
+      //     console.info(suggestion);
+      //     console.info(datasetNumber);
+      //     console.info(context);
+      //   },
+      //   debug: true // Set debug to true if you want to inspect the dropdown
+      // });
+
+      // blogsearch({
+      //   dbPath: '/reactjs.org.blogsearch.db.bin',
+      //   wasmPath: 'sql-wasm.wasm',
+      // }).then(sql => {
+      //   // eslint-disable-next-line no-console
+      //   console.log('Ready?', sql);
+      //   // eslint-disable-next-line dot-notation
+      //   // window['blogsearch'] = sql;
+      // });
+
+      blogsearch({
+        dbPath: '/reactjs.org.blogsearch.db.bin',
+        wasmPath: 'sql-wasm.wasm',
+        inputSelector: '#q',
+        // handleSelected(input, event, suggestion, datasetNumber, context) {
+        //   console.info(input);
+        //   console.info(event);
+        //   console.info(suggestion);
+        //   console.info(datasetNumber);
+        //   console.info(context);
+        // },
+        debug: true // Set debug to true if you want to inspect the dropdown
+      });
+      
+
+    </script>
+    <style>
+
+      .container {
+        margin: 10%;
+      }
+
+      .input-group {
+        width: 60%;
+        margin: auto;
+        margin-top: 10%;
+      }
+    </style>
+  </body>
+
+</html>
