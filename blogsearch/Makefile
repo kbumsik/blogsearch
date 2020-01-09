@@ -104,7 +104,7 @@ SQLITE_OWN_OPTIMIZATIONS = \
 
 
 # Top level build targets
-all: dist/sqlite-next/worker.sql-wasm.js dist/sqlite-next/sql-wasm.wasm
+all: dist/sqlite/worker.sql-wasm.js dist/sqlite/sql-wasm.wasm
 	# Check wrapper js size
 	@echo 'Wrapper .js size:'
 	@cat $(word 1, $^) | wc -c | numfmt --to=iec
@@ -121,33 +121,33 @@ dist: EMCC_OPTS += -Oz
 dist: all
 
 debug: EMCC_OPTS += -g4 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s STACK_OVERFLOW_CHECK=1
-# [TODO] Fails when enabled. Fix the source in order to make it work.
-# Assertion failed: p->iStructVersion!=0, at: sqlite-src/sqlite-amalgamation-3300100/sqlite3.c,212053,fts5StructureRead
+##		[TODO] Fails when enabled. Fix the source in order to make it work.
+## 		Assertion failed: p->iStructVersion!=0, at: sqlite-src/sqlite-amalgamation-3300100/sqlite3.c,212053,fts5StructureRead
 # debug: EMCC_SQLITE_FLAGS += -DSQLITE_DEBUG
 debug: all
 
 ################################################################################
 # Building JS
 ################################################################################
-lib/sqlite-next/api.js: lib/sqlite-next/worker.js
-lib/sqlite-next/worker.js: $(shell find src/ -type f -name '*.ts')
+lib/sqlite/api.js: lib/sqlite/worker.js
+lib/sqlite/worker.js: $(shell find src/ -type f -name '*.ts')
 	yarn build:ts
 
 ################################################################################
 # Building WASM
 ################################################################################
-dist/sqlite-next/worker.sql-wasm.js: dist/sqlite-next/sql-wasm.js lib/sqlite-next/worker.js
+dist/sqlite/worker.sql-wasm.js: dist/sqlite/sql-wasm.js lib/sqlite/worker.js
 	cat $^ > $@
 
 # These are represented as $(word {line_num}, $^) in the recipe
 WASM_DEPS = \
-	lib/sqlite-next/api.js \
+	lib/sqlite/api.js \
 	sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c \
-	src/sqlite-next/exported_functions.json \
-	src/sqlite-next/exported_runtime_methods.json
+	src/sqlite/exported_functions.json \
+	src/sqlite/exported_runtime_methods.json
 
-dist/sqlite-next/sql-wasm.wasm: dist/sqlite-next/sql-wasm.js 
-dist/sqlite-next/sql-wasm.js: $(WASM_DEPS)
+dist/sqlite/sql-wasm.wasm: dist/sqlite/sql-wasm.js 
+dist/sqlite/sql-wasm.js: $(WASM_DEPS)
 	mkdir -p $(dir $@)
 	$(EMCC) \
 		$(EMCC_OPTS) \
@@ -158,7 +158,7 @@ dist/sqlite-next/sql-wasm.js: $(WASM_DEPS)
 		-s EXTRA_EXPORTED_RUNTIME_METHODS=@$(word 4, $^) \
 		-o $@
 	mv $@ cache/tmp-raw.js
-	cat src/sqlite-next/shell-pre.js cache/tmp-raw.js  src/sqlite-next/shell-post.js > $@
+	cat src/sqlite/shell-pre.js cache/tmp-raw.js  src/sqlite/shell-post.js > $@
 	rm cache/tmp-raw.js
 
 ################################################################################

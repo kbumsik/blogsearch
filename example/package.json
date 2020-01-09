@@ -12,8 +12,8 @@
     "build:blogsearch": "blogsearch-crawler",
     "build": "yarn build:pages && yarn build:blogsearch",
     "start": "webpack-dev-server",
-    "copy:sqlite-next": "cp ../blogsearch/dist/sqlite-next/{worker.sql-wasm.js,sql-wasm.wasm} public/blogsearch/sqlite-next/ && cp public/blogsearch/sqlite-next/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/",
-    "copy:sqlite": "cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/"
+    "copy:sqlite": "cp ../blogsearch/dist/sqlite/{worker.sql-wasm.js,sql-wasm.wasm} public/blogsearch/sqlite/ && cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/",
+    "copy:sqlite-original": "cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/"
   },
   "dependencies": {
     "@types/node": "^12.12.18",
