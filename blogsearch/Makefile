@@ -17,12 +17,12 @@ EMCC_OPTS = \
 	--memory-init-file 0 \
 	-s RESERVED_FUNCTION_POINTERS=64 \
 	-s NODEJS_CATCH_EXIT=0 \
-	-s WASM=1 \
 	-s ALLOW_MEMORY_GROWTH=1 \
-	-s ENVIRONMENT='worker'
+	-s ENVIRONMENT='worker' \
+	-s MODULARIZE=1 \
+	-s EXPORT_ES6=1 \
+	-s USE_ES6_IMPORT_META=0
 	
-	#  \
-	# -s MODULARIZE=1
 
 # See https://www.sqlite.org/compile.html for more about the compile-time options
 EMCC_SQLITE_FLAGS = \
@@ -104,7 +104,7 @@ SQLITE_OWN_OPTIMIZATIONS = \
 
 
 # Top level build targets
-all: dist/sqlite/worker.sql-wasm.js dist/sqlite/sql-wasm.wasm
+all: dist/blogsearch.umd.js dist/worker.umd.js dist/blogsearch.wasm
 	# Check wrapper js size
 	@echo 'Wrapper .js size:'
 	@cat $(word 1, $^) | wc -c | numfmt --to=iec
@@ -118,9 +118,11 @@ all: dist/sqlite/worker.sql-wasm.js dist/sqlite/sql-wasm.wasm
 
 # [TODO] --closure 1 optimization breaks the code
 dist: EMCC_OPTS += -Oz
+dist: WEBPACK_OPTS += --mode production
 dist: all
 
 debug: EMCC_OPTS += -g4 -s ASSERTIONS=2 -s SAFE_HEAP=1 -s STACK_OVERFLOW_CHECK=1
+debug: WEBPACK_OPTS += --mode development
 ##		[TODO] Fails when enabled. Fix the source in order to make it work.
 ## 		Assertion failed: p->iStructVersion!=0, at: sqlite-src/sqlite-amalgamation-3300100/sqlite3.c,212053,fts5StructureRead
 # debug: EMCC_SQLITE_FLAGS += -DSQLITE_DEBUG
@@ -129,37 +131,57 @@ debug: all
 ################################################################################
 # Building JS
 ################################################################################
-lib/sqlite/api.js: lib/sqlite/worker.js
-lib/sqlite/worker.js: $(shell find src/ -type f -name '*.ts')
+TS_SRC = $(shell find src/ -type f -name '*.ts')
+# Basically: lib/*.js
+JS_SRC = $(filter-out %.d.js, $(patsubst src/%, lib/%, $(TS_SRC:%.ts=%.js)))
+JS_SRC += lib/sqlite/sqlite3-emscripten.js
+
+lib/%.js: src/%.ts
 	yarn build:ts
+
+#### UMD
+# API
+dist/blogsearch.umd.js: $(filter-out lib/sqlite/%, $(JS_SRC))
+	echo $^
+	yarn run webpack --config webpack.config.js \
+						$(WEBPACK_OPTS) \
+						-o $@
+# Worker - files under lib/sqlite
+# Remove .wasm before using webpack. Otherwise webpack tries to bundle .wasm
+# files and throw error.
+dist/worker.umd.js: $(filter lib/sqlite/%, $(JS_SRC)) lib/sqlite/blogsearch.wasm
+	mv lib/sqlite/blogsearch.wasm cache/blogsearch.wasm
+	yarn run webpack --config webpack.worker.config.js \
+						$(WEBPACK_OPTS) \
+						-o $@
+	mv cache/blogsearch.wasm lib/sqlite/blogsearch.wasm
 
 ################################################################################
 # Building WASM
 ################################################################################
-dist/sqlite/worker.sql-wasm.js: dist/sqlite/sql-wasm.js lib/sqlite/worker.js
-	cat $^ > $@
+dist/blogsearch.wasm: lib/sqlite/blogsearch.wasm
+	mkdir -p $(dir $@)
+	cp $^ $@
 
 # These are represented as $(word {line_num}, $^) in the recipe
 WASM_DEPS = \
-	lib/sqlite/api.js \
+	src/sqlite/sqlite3-emscripten-post-js.js \
 	sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c \
 	src/sqlite/exported_functions.json \
 	src/sqlite/exported_runtime_methods.json
 
-dist/sqlite/sql-wasm.wasm: dist/sqlite/sql-wasm.js 
-dist/sqlite/sql-wasm.js: $(WASM_DEPS)
+lib/sqlite/sqlite3-emscripten.js: lib/sqlite/blogsearch.wasm
+lib/sqlite/blogsearch.wasm: $(WASM_DEPS)
 	mkdir -p $(dir $@)
 	$(EMCC) \
 		$(EMCC_OPTS) \
 		$(EMCC_SQLITE_FLAGS) \
-		--pre-js $(word 1, $^) \
+		--post-js $(word 1, $^) \
 		$(word 2, $^) \
 		-s EXPORTED_FUNCTIONS=@$(word 3, $^) \
 		-s EXTRA_EXPORTED_RUNTIME_METHODS=@$(word 4, $^) \
-		-o $@
-	mv $@ cache/tmp-raw.js
-	cat src/sqlite/shell-pre.js cache/tmp-raw.js  src/sqlite/shell-post.js > $@
-	rm cache/tmp-raw.js
+		-o $(@:.wasm=.js)
+	mv $(@:.wasm=.js) lib/sqlite/sqlite3-emscripten.js
 
 ################################################################################
 # Building SQLite

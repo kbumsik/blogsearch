@@ -3,11 +3,8 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "lib",
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "strictNullChecks": true,
-    "noUnusedParameters": true,
-    "lib": ["es2015", "dom"]
+    "lib": ["ESNext", "WebWorker", "DOM"],
+    "target": "es6",
   },
   "include": ["src/**/*.ts"],
   "exclude": []

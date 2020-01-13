@@ -1,32 +1,42 @@
-interface Config {
-  dbPath: string;
-  wasmPath: string;
-}
+import type { Config, WorkerMessage } from './sqlite/worker';
+import type { QueryResult, SQLResultColumns } from './sqlite/api';
 
-interface RawResult {
-  columns: string[];
-  values: string[][]; // [row][columns]
-}
+export type SearchResult = {
+  [field in keyof SQLResultColumns]: string;
+};
 
-interface Result {
-  [column: string]: string;
+interface Worker {
+  addEventListener(
+    type: 'message',
+    handler: (e: { data: WorkerMessage.Response }) => any,
+    option: { once: true }
+  ): void;
+  postMessage(message: WorkerMessage.Command, transfer?: Transferable[]): void;
 }
 
 export default class SQLite {
-  private config: Config;
+  private dbPath: string;
+  private wasmPath?: string;
   private sqlWorker: Worker;
 
-  public constructor(config: Config) {
-    this.config = config;
-    this.sqlWorker = new Worker('worker.sql-wasm.js');
+  public constructor({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
+    this.dbPath = dbPath;
+    this.wasmPath = wasmPath;
+    this.sqlWorker = worker;
   }
 
-  public async load(): Promise<SQLite> {
-    const dbFile = await fetch(this.config.dbPath).then(r => r.arrayBuffer());
-    return new Promise((resolve, _reject) => {
+  public load(): Promise<SQLite> {
+    return new Promise((resolve, reject) => {
       this.sqlWorker.addEventListener(
         'message',
-        () => {
+        (e) => {
+          if (e.data.respondTo !== 'open') {
+            reject(Error('Internal Error: response is not open'));
+            return;
+          } else if (!e.data.success) {
+            reject(Error('Internal Error: open failed'));
+            return;
+          }
           // eslint-disable-next-line no-console
           console.log('db loaded!');
           // Execute "SELECT `name`, `sql`  FROM `sqlite_master`  WHERE type='table';"?
@@ -34,28 +44,34 @@ export default class SQLite {
         },
         { once: true }
       );
-      this.sqlWorker.postMessage({ action: 'open', buffer: dbFile }, [dbFile]);
+      console.log('posting message...');
+      this.sqlWorker.postMessage({ command: 'open', dbPath: this.dbPath, wasmPath: this.wasmPath });
     });
   }
 
-  public async search(match: string, top: number = 5): Promise<Result[]> {
+  public async search(match: string, top: number = 5): Promise<SearchResult[]> {
     const query = `SELECT * FROM blogsearch WHERE blogsearch MATCH '${match}' ORDER BY bm25(blogsearch) LIMIT ${top};`;
     const raw = (await this.run(query))[0];
     return raw.values.map(row => {
-      const result: Result = {};
-      raw.columns.forEach((column, index) => {
-        result[column] = row[index];
-      });
-      return result;
+      return raw.columns.reduce((result, columnName, columnIndex) => {
+        // [TODO] Make sure typing are strings
+        // eslint-disable-next-line no-param-reassign
+        result[columnName] = row[columnIndex] as string;
+        return result;
+      }, {} as SearchResult);
     });
   }
 
-  public run(query: string): Promise<RawResult[]> {
-    return new Promise(resolve => {
+  public run(query: string): Promise<QueryResult[]> {
+    return new Promise((resolve, reject) => {
       this.sqlWorker.addEventListener(
         'message',
         e => {
-          const results: RawResult[] = e.data.results;
+          if (e.data.respondTo !== 'exec') {
+            reject(Error('Internal Error: response is not exec'));
+            return;
+          }
+          const { results } = e.data;
           // eslint-disable-next-line no-console
           console.log(results);
           for (let i = 0; i < results.length; i++) {
@@ -70,12 +86,11 @@ export default class SQLite {
         { once: true }
       );
       this.sqlWorker.postMessage({
-        action: 'exec',
+        command: 'exec',
         sql: query,
       });
     });
   }
 }
 
-// eslint-disable-next-line no-undef
-export { Config, Result };
+export { Config };

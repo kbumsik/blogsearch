@@ -1,9 +1,6 @@
-/**
- * We cloud import '@types/emscripten'; instead, however, tsc does not remove
- * import statement so that it will confuse standard ES module resolvers.
- */
-// eslint-disable-next-line @typescript-eslint/triple-slash-reference, spaced-comment
-/// <reference path="../../../node_modules/@types/emscripten/index.d.ts" />
+import { SQLite3Module, Pointer } from './sqlite3-emscripten';
+
+/* Related to SQL */
 type TypedArray =
   | Int8Array
   | Uint8Array
@@ -14,65 +11,18 @@ type TypedArray =
   | Uint8ClampedArray
   | Float32Array
   | Float64Array;
-type AnyArray = TypedArray | number[];
-type Pointer = number;
-declare enum Allocator {
-  ALLOC_NORMAL,
-  ALLOC_STACK,
-  ALLOC_STATIC,
-  ALLOC_DYNAMIC,
-  ALLOC_NONE,
-}
-declare const ALLOC_NORMAL: typeof Allocator.ALLOC_NORMAL;
-declare const ALLOC_STACK: typeof Allocator.ALLOC_STACK;
-declare const ALLOC_STATIC: typeof Allocator.ALLOC_STATIC;
-declare const ALLOC_DYNAMIC: typeof Allocator.ALLOC_DYNAMIC;
-declare const ALLOC_NONE: typeof Allocator.ALLOC_NONE;
-type CIntType = 'i1' | 'i8' | 'i16' | 'i32' | 'i64';
-type CFloatType = 'float' | 'double';
-type CPointerType = 'i8*' | 'i16*' | 'i32*' | 'i64*' | 'float*' | 'double*' | '*';
-type CType = CIntType | CFloatType | CPointerType;
-// USE_TYPED_ARRAYS == 1
-declare const HEAP: Int32Array;
-declare const IHEAP: Int32Array;
-declare const FHEAP: Float64Array;
-
-// USE_TYPED_ARRAYS == 2
-declare const HEAP8: Int8Array;
-declare const HEAP16: Int16Array;
-declare const HEAP32: Int32Array;
-declare const HEAPU8: Uint8Array;
-declare const HEAPU16: Uint16Array;
-declare const HEAPU32: Uint32Array;
-declare const HEAPF32: Float32Array;
-declare const HEAPF64: Float64Array;
-
-/* eslint-disable prettier/prettier */
-declare function stackAlloc(size: number): Pointer;
-declare function stackSave(): Pointer;
-declare function stackRestore(ptr: Pointer): void;
-declare function allocate(slab: AnyArray | number, types: CIntType | CIntType[], allocator: Allocator, ptr?: Pointer): Pointer;
-declare function allocateUTF8OnStack(str: string): Pointer;
-declare function getValue(ptr: number, type: CType, noSafe?: boolean): number;
-declare function setValue(ptr: number, value: any, type: CType, noSafe?: boolean): void;
-declare function addFunction(func: Function, signature?: string): Pointer;
-declare function removeFunction(funcPtr: Pointer): void;
-declare function intArrayFromString(str: string, dontAddNull?: boolean, length?: number): Uint8Array;
-declare function _free(ptr: number): void;
-/* eslint-enable prettier/prettier */
-
-/* Related to SQL */
-type SQLParameter = string | number | boolean | AnyArray | null;
-type SQLParameterMap = { [paramName: string]: SQLParameter };
+type NumberArray = TypedArray | number[];
+type SQLParameter = string | number | boolean | NumberArray | null;
+type SQLParameterFields = Record<string, SQLParameter>;
 type SQLParameterArray = SQLParameter[];
 type SQLResult = number | string | Uint8Array | null;
-type SQLResultMap = { [columnName: string]: SQLResult };
+type SQLResultColumns = Record<string, SQLResult>;
 type QueryResult = {
   columns: string[];
   values: SQLResult[][];
 };
-
 // [TODO] Add SQLite Object Index type?
+
 enum SQLite {
   OK = 0,
   ERROR = 1,
@@ -115,746 +65,689 @@ enum SQLite {
 
   UTF8 = 1,
 }
-const NULL = 0;
 
-// Wait for preRun to run, and then finish our initialization
-// eslint-disable-next-line prettier/prettier
-Module.onRuntimeInitialized = (function() {
-  /* eslint-disable prettier/prettier */
-  /* eslint-disable @typescript-eslint/camelcase */
-  const sqlite3_open = Module.cwrap('sqlite3_open', 'number', ['string', 'number']);
-  const sqlite3_close_v2 = Module.cwrap('sqlite3_close_v2', 'number', ['number']);
-  const sqlite3_exec = Module.cwrap('sqlite3_exec', 'number', ['number', 'string', 'number', 'number', 'number']);
+/* Represents a prepared statement.
+
+Prepared statements allow you to have a template sql string,
+that you can execute multiple times with different parameters.
+
+You can't instantiate this class directly, you have to use a [Database](Database.html)
+object in order to create a statement.
+
+**Warning**: When you close a database (using db.close()), all its statements are
+closed too and become unusable.
+
+@see Database.html#prepare-dynamic
+@see https://en.wikipedia.org/wiki/Prepared_statement
+  */
+class Statement {
+  private wasm: SQLite3Module;
+  private stmt: Pointer;
+  private db: Database;
   // @ts-ignore
-  const sqlite3_free = Module.cwrap('sqlite3_free', null, ['number']);
-  const sqlite3_changes = Module.cwrap('sqlite3_changes', 'number', ['number']);
-  const sqlite3_prepare_v2 = Module.cwrap('sqlite3_prepare_v2', 'number', ['number', 'string', 'number', 'number', 'number']);
-  const sqlite3_prepare_v2_sqlptr = Module.cwrap('sqlite3_prepare_v2', 'number', ['number', 'number', 'number', 'number', 'number']);
-  const sqlite3_bind_text = Module.cwrap('sqlite3_bind_text', 'number', ['number', 'number', 'number', 'number', 'number']);
-  const sqlite3_bind_blob = Module.cwrap('sqlite3_bind_blob', 'number', ['number', 'number', 'number', 'number', 'number']);
-  const sqlite3_bind_double = Module.cwrap('sqlite3_bind_double', 'number', ['number', 'number', 'number']);
-  const sqlite3_bind_int = Module.cwrap('sqlite3_bind_int', 'number', ['number', 'number', 'number']);
-  const sqlite3_bind_parameter_index = Module.cwrap('sqlite3_bind_parameter_index', 'number', ['number', 'string']);
-  const sqlite3_step = Module.cwrap('sqlite3_step', 'number', ['number']);
-  const sqlite3_errmsg = Module.cwrap('sqlite3_errmsg', 'string', ['number']);
-  const sqlite3_data_count = Module.cwrap('sqlite3_data_count', 'number', ['number']);
-  const sqlite3_column_double = Module.cwrap('sqlite3_column_double', 'number', ['number', 'number']);
-  const sqlite3_column_text = Module.cwrap('sqlite3_column_text', 'string', ['number', 'number']);
-  const sqlite3_column_blob = Module.cwrap('sqlite3_column_blob', 'number', ['number', 'number']);
-  const sqlite3_column_bytes = Module.cwrap('sqlite3_column_bytes', 'number', ['number', 'number']);
-  const sqlite3_column_type = Module.cwrap('sqlite3_column_type', 'number', ['number', 'number']);
-  const sqlite3_column_name = Module.cwrap('sqlite3_column_name', 'string', ['number', 'number']);
-  const sqlite3_reset = Module.cwrap('sqlite3_reset', 'number', ['number']);
-  const sqlite3_clear_bindings = Module.cwrap('sqlite3_clear_bindings', 'number', ['number']);
-  const sqlite3_finalize = Module.cwrap('sqlite3_finalize', 'number', ['number']);
-  const sqlite3_create_function_v2 = Module.cwrap('sqlite3_create_function_v2', 'number', ['number', 'string', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
-  const sqlite3_value_type = Module.cwrap('sqlite3_value_type', 'number', ['number']);
-  const sqlite3_value_bytes = Module.cwrap('sqlite3_value_bytes', 'number', ['number']);
-  const sqlite3_value_text = Module.cwrap('sqlite3_value_text', 'string', ['number']);
-  // @ts-ignore
-  const sqlite3_value_int = Module.cwrap('sqlite3_value_int', 'number', ['number']);
-  const sqlite3_value_blob = Module.cwrap('sqlite3_value_blob', 'number', ['number']);
-  const sqlite3_value_double = Module.cwrap('sqlite3_value_double', 'number', ['number']);
-  const sqlite3_result_double = Module.cwrap('sqlite3_result_double', null, ['number', 'number']);
-  const sqlite3_result_null = Module.cwrap('sqlite3_result_null', null, ['number']);
-  const sqlite3_result_text = Module.cwrap('sqlite3_result_text', null, ['number', 'string', 'number', 'number']);
-  const sqlite3_result_blob = Module.cwrap('sqlite3_result_blob', null, ['number', 'number', 'number', 'number']);
-  const sqlite3_result_int = Module.cwrap('sqlite3_result_int', null, ['number', 'number']);
-  // @ts-ignore
-  const sqlite3_result_int64 = Module.cwrap('sqlite3_result_int64', null, ['number', 'number']);
-  const sqlite3_result_error = Module.cwrap('sqlite3_result_error', null, ['number', 'string', 'number']);
-  // const RegisterExtensionFunctions = Module.cwrap('RegisterExtensionFunctions', 'number', ['number']);
-  /* eslint-enable @typescript-eslint/camelcase */
-  /* eslint-enable prettier/prettier */
+  private pos: number;
+  private allocatedmem: Pointer[];
 
-  const apiTemp = stackAlloc(4);
-  /* Represents a prepared statement.
+  public constructor(stmt: Pointer, db: Database) {
+    this.wasm = db.wasm;
+    this.stmt = stmt;
+    this.db = db;
+    this.pos = 1;
+    this.allocatedmem = [];
+  }
+  /* Bind values to the parameters, after having reseted the statement
 
-  Prepared statements allow you to have a template sql string,
-  that you can execute multiple times with different parameters.
+  SQL statements can have parameters, named *'?', '?NNN', ':VVV', '@VVV', '$VVV'*,
+  where NNN is a number and VVV a string.
+  This function binds these parameters to the given values.
 
-  You can't instantiate this class directly, you have to use a [Database](Database.html)
-  object in order to create a statement.
+  *Warning*: ':', '@', and '$' are included in the parameters names
 
-  **Warning**: When you close a database (using db.close()), all its statements are
-  closed too and become unusable.
+  ## Binding values to named parameters
+  @example Bind values to named parameters
+      var stmt = db.prepare("UPDATE test SET a=@newval WHERE id BETWEEN $mini AND $maxi");
+      stmt.bind({$mini:10, $maxi:20, '@newval':5});
+  - Create a statement that contains parameters like '$VVV', ':VVV', '@VVV'
+  - Call Statement.bind with an object as parameter
 
-  @see Database.html#prepare-dynamic
-  @see https://en.wikipedia.org/wiki/Prepared_statement
-   */
-  class Statement {
-    private stmt: Pointer;
-    private db: Database;
-    // @ts-ignore
-    private pos: number;
-    private allocatedmem: Pointer[];
+  ## Binding values to parameters
+  @example Bind values to anonymous parameters
+      var stmt = db.prepare("UPDATE test SET a=? WHERE id BETWEEN ? AND ?");
+      stmt.bind([5, 10, 20]);
+    - Create a statement that contains parameters like '?', '?NNN'
+    - Call Statement.bind with an array as parameter
 
-    public constructor(stmt: Pointer, db: Database) {
-      this.stmt = stmt;
-      this.db = db;
-      this.pos = 1;
-      this.allocatedmem = [];
-    }
-    /* Bind values to the parameters, after having reseted the statement
+  ## Value types
+  Javascript type   | SQLite type
+  ---               | ---
+  number            | REAL, INTEGER
+  boolean           | INTEGER
+  string            | TEXT
+  Array, Uint8Array | BLOB
+  null              | NULL
+  @see http://www.sqlite.org/datatype3.html
 
-    SQL statements can have parameters, named *'?', '?NNN', ':VVV', '@VVV', '$VVV'*,
-    where NNN is a number and VVV a string.
-    This function binds these parameters to the given values.
-
-    *Warning*: ':', '@', and '$' are included in the parameters names
-
-    ## Binding values to named parameters
-    @example Bind values to named parameters
-        var stmt = db.prepare("UPDATE test SET a=@newval WHERE id BETWEEN $mini AND $maxi");
-        stmt.bind({$mini:10, $maxi:20, '@newval':5});
-    - Create a statement that contains parameters like '$VVV', ':VVV', '@VVV'
-    - Call Statement.bind with an object as parameter
-
-    ## Binding values to parameters
-    @example Bind values to anonymous parameters
-        var stmt = db.prepare("UPDATE test SET a=? WHERE id BETWEEN ? AND ?");
-        stmt.bind([5, 10, 20]);
-     - Create a statement that contains parameters like '?', '?NNN'
-     - Call Statement.bind with an array as parameter
-
-    ## Value types
-    Javascript type   | SQLite type
-    ---               | ---
-    number            | REAL, INTEGER
-    boolean           | INTEGER
-    string            | TEXT
-    Array, Uint8Array | BLOB
-    null              | NULL
-    @see http://www.sqlite.org/datatype3.html
-  
-    @see http://www.sqlite.org/lang_expr.html#varparam
-    @param values [Array,Object] The values to bind
-    @throw [String] SQLite Error
-     */
-    public bind(values: SQLParameterArray | SQLParameterMap): void {
-      // Nested functions
-      const bindValue = (val: SQLParameter, pos: number = this.pos++): void => {
-        // Deeper nested functions
-        /* eslint-disable no-shadow */
-        const bindString = (str: string, pos: number = this.pos++): void => {
-          const bytes = intArrayFromString(str);
-          const strPtr = allocate(bytes, 'i8', ALLOC_NORMAL);
-          this.allocatedmem.push(strPtr);
-          this.db.handleError(sqlite3_bind_text(this.stmt, pos, strPtr, bytes.length - 1, 0));
-        };
-
-        const bindBlob = (array: AnyArray, pos: number = this.pos++): void => {
-          const blobPtr = allocate(array, 'i8', ALLOC_NORMAL);
-          this.allocatedmem.push(blobPtr);
-          this.db.handleError(sqlite3_bind_blob(this.stmt, pos, blobPtr, array.length, 0));
-        };
-
-        const bindNumber = (num: number, pos: number = this.pos++): void => {
-          // eslint-disable-next-line no-bitwise, @typescript-eslint/camelcase
-          const bindfunc = num === (num | 0) ? sqlite3_bind_int : sqlite3_bind_double;
-          this.db.handleError(bindfunc(this.stmt, pos, num));
-        };
-
-        const bindNull = (pos: number = this.pos++): void => {
-          this.db.handleError(sqlite3_bind_blob(this.stmt, pos, 0, 0, 0));
-        };
-        /* eslint-enable no-shadow */
-
-        // Code
-        switch (typeof val) {
-          case 'string':
-            bindString(val, pos);
-            break;
-          case 'number':
-          case 'boolean':
-            bindNumber((val as number) + 0, pos);
-            break;
-          case 'object':
-            if (val === null) {
-              bindNull(pos);
-            } else if (Array.isArray(val)) {
-              bindBlob(val, pos);
-            } else {
-              throw new Error(`Wrong API use : tried to bind a value of an unknown type (${val}).`);
-            }
-            break;
-          default:
-            throw new Error(`Wrong API use : tried to bind a value of an unknown type (${val}).`);
-        }
-        return;
-      };
-
-      // eslint-disable-next-line no-shadow
-      const bindFromArray = (values: SQLParameterArray): void => {
-        values.forEach((value, i) => {
-          bindValue(value, i + 1);
-        });
-      };
-
-      const bindFromObject = (valuesObj: SQLParameterMap): void => {
-        for (const [name, value] of Object.entries(valuesObj)) {
-          const num = sqlite3_bind_parameter_index(this.stmt, name);
-          if (num !== 0) {
-            bindValue(value, num);
-          }
-        }
-      };
-
-      // Code
-      if (!this.stmt) {
-        throw new Error('Statement closed');
-      }
-      this.reset();
-      if (Array.isArray(values)) {
-        bindFromArray(values);
-      } else {
-        bindFromObject(values);
-      }
-      return;
-    }
-
-    /* Execute the statement, fetching the the next line of result,
-    that can be retrieved with [Statement.get()](#get-dynamic) .
-    
-    @return [Boolean] true if a row of result available
-    @throw [String] SQLite Error
-     */
-    public step(): boolean {
-      if (!this.stmt) {
-        throw new Error('Statement closed');
-      }
-      this.pos = 1;
-      const ret = sqlite3_step(this.stmt);
-      switch (ret) {
-        case SQLite.ROW:
-          return true;
-        case SQLite.DONE:
-          return false;
-        default:
-          this.db.handleError(ret);
-          return false;
-      }
-    }
-
-    /* Get one row of results of a statement.
-    If the first parameter is not provided, step must have been called before get.
-    @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
-    @return [Array<String,Number,Uint8Array,null>] One row of result
-    
-    @example Print all the rows of the table test to the console
-    
-        var stmt = db.prepare("SELECT * FROM test");
-        while (stmt.step()) console.log(stmt.get());
-     */
-    public get(params?: SQLParameterArray | SQLParameterMap): SQLResult[] {
-      const getNumber = (pos: number = this.pos++): number => {
-        return sqlite3_column_double(this.stmt, pos);
-      };
-
-      const getString = (pos: number = this.pos++): string => {
-        // [TODO] What does it return, pointer or string?
-        return sqlite3_column_text(this.stmt, pos);
-      };
-
-      const getBlob = (pos: number = this.pos++): Uint8Array => {
-        const ptr: Pointer = sqlite3_column_blob(this.stmt, pos);
-        const size: number = sqlite3_column_bytes(this.stmt, pos);
-        return HEAPU8.subarray(ptr, ptr + size);
-      };
-
-      if (typeof params !== 'undefined') {
-        this.bind(params);
-        this.step();
-      }
-      const results: SQLResult[] = [];
-      const colSize = sqlite3_data_count(this.stmt);
-      for (let col = 0; col < colSize; col++) {
-        switch (sqlite3_column_type(this.stmt, col)) {
-          case SQLite.INTEGER:
-          case SQLite.FLOAT:
-            results.push(getNumber(col));
-            break;
-          case SQLite.TEXT:
-            results.push(getString(col));
-            break;
-          case SQLite.BLOB:
-            results.push(getBlob(col));
-            break;
-          default:
-            results.push(null);
-            break;
-        }
-      }
-      return results;
-    }
-
-    /* Get the list of column names of a row of result of a statement.
-    @return [Array<String>] The names of the columns
-    @example
-    
-        var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
-        stmt.step(); // Execute the statement
-        console.log(stmt.getColumnNames()); // Will print ['nbr','data','null_value']
-     */
-    public getColumnNames(): string[] {
-      const results: string[] = [];
-      const colSize = sqlite3_data_count(this.stmt);
-      for (let col = 0; col < colSize; col++) {
-        results.push(sqlite3_column_name(this.stmt, col));
-      }
-      return results;
-    }
-
-    /* Get one row of result as a javascript object, associating column names with
-    their value in the current row.
-    @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
-    @return [Object] The row of result
-    @see [Statement.get](#get-dynamic)
-    
-    @example
-    
-        var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
-        stmt.step(); // Execute the statement
-        console.log(stmt.getAsObject()); // Will print {nbr:5, data: Uint8Array([1,2,3]), null_value:null}
-     */
-    public getAsObject(params?: SQLParameterArray | SQLParameterMap): SQLResultMap {
-      const values = this.get(params);
-      const names = this.getColumnNames();
-      const rowObject: SQLResultMap = {};
-      names.forEach((name, i) => {
-        rowObject[name] = values[i];
+  @see http://www.sqlite.org/lang_expr.html#varparam
+  @param values [Array,Object] The values to bind
+  @throw [String] SQLite Error
+    */
+  public bind(values: SQLParameterArray | SQLParameterFields): void {
+    // eslint-disable-next-line no-shadow
+    const bindFromArray = (values: SQLParameterArray): void => {
+      values.forEach((value, i) => {
+        this.bindValue(value, i + 1);
       });
-      return rowObject;
-    }
+    };
 
-    /* Shorthand for bind + step + reset
-    Bind the values, execute the statement, ignoring the rows it returns, and resets it
-    @param [Array,Object] Value to bind to the statement
-     */
-    public run(values?: SQLParameterArray | SQLParameterMap) {
-      if (typeof values !== 'undefined') {
-        this.bind(values);
+    const bindFromObject = (valuesObj: SQLParameterFields): void => {
+      for (const [name, value] of Object.entries(valuesObj)) {
+        const num = this.wasm.sqlite3_bind_parameter_index(this.stmt, name);
+        if (num !== 0) {
+          this.bindValue(value, num);
+        }
       }
-      this.step();
-      return this.reset();
-    }
+    };
 
-    /* Reset a statement, so that it's parameters can be bound to new values
-    It also clears all previous bindings, freeing the memory used by bound parameters.
-     */
-    public reset(): boolean {
-      this.freemem();
-      return (
-        sqlite3_clear_bindings(this.stmt) === SQLite.OK && sqlite3_reset(this.stmt) === SQLite.OK
-      );
+    // Code
+    if (!this.stmt) {
+      throw new Error('Statement closed');
     }
-
-    /* Free the memory allocated during parameter binding
-     */
-    private freemem() {
-      let mem;
-      while ((mem = this.allocatedmem.pop())) {
-        _free(mem);
-      }
-      return null;
+    this.reset();
+    if (Array.isArray(values)) {
+      bindFromArray(values);
+    } else {
+      bindFromObject(values);
     }
+    return;
+  }
 
-    /* Free the memory used by the statement
-    @return [Boolean] true in case of success
-     */
-    public free(): boolean {
-      this.freemem();
-      const res = sqlite3_finalize(this.stmt) === SQLite.OK;
-      delete this.db.statements[this.stmt];
-      this.stmt = NULL;
-      return res;
+  private bindValue(val: SQLParameter, pos: number = this.pos++): void {
+    // Nested functions
+    /* eslint-disable no-shadow */
+    const bindString = (str: string, pos: number = this.pos++): void => {
+      const bytes = this.wasm.intArrayFromString(str);
+      const strPtr = this.wasm.allocate(bytes, 'i8', this.wasm.ALLOC_NORMAL);
+      this.allocatedmem.push(strPtr);
+      this.db.handleError(this.wasm.sqlite3_bind_text(this.stmt, pos, strPtr, bytes.length - 1, 0));
+    };
+
+    const bindBlob = (array: NumberArray, pos: number = this.pos++): void => {
+      const blobPtr = this.wasm.allocate(array, 'i8', this.wasm.ALLOC_NORMAL);
+      this.allocatedmem.push(blobPtr);
+      this.db.handleError(this.wasm.sqlite3_bind_blob(this.stmt, pos, blobPtr, array.length, 0));
+    };
+
+    const bindNumber = (num: number, pos: number = this.pos++): void => {
+      // eslint-disable-next-line no-bitwise
+      const bindfunc = num === (num | 0) ? this.wasm.sqlite3_bind_int : this.wasm.sqlite3_bind_double;
+      this.db.handleError(bindfunc(this.stmt, pos, num));
+    };
+
+    const bindNull = (pos: number = this.pos++): void => {
+      this.db.handleError(this.wasm.sqlite3_bind_blob(this.stmt, pos, 0, 0, 0));
+    };
+    /* eslint-enable no-shadow */
+
+    // Code
+    switch (typeof val) {
+      case 'string':
+        bindString(val, pos);
+        break;
+      case 'number':
+      case 'boolean':
+        bindNumber((val as number) + 0, pos);
+        break;
+      case 'object':
+        if (val === null) {
+          bindNull(pos);
+        } else if (Array.isArray(val)) {
+          bindBlob(val, pos);
+        } else {
+          throw new Error(`Wrong API use : tried to bind a value of an unknown type (${val}).`);
+        }
+        break;
+      default:
+        throw new Error(`Wrong API use : tried to bind a value of an unknown type (${val}).`);
+    }
+    return;
+  }
+
+  /* Execute the statement, fetching the the next line of result,
+  that can be retrieved with [Statement.get()](#get-dynamic) .
+  
+  @return [Boolean] true if a row of result available
+  @throw [String] SQLite Error
+    */
+  public step(): boolean {
+    if (!this.stmt) {
+      throw new Error('Statement closed');
+    }
+    this.pos = 1;
+    const ret = this.wasm.sqlite3_step(this.stmt);
+    switch (ret) {
+      case SQLite.ROW:
+        return true;
+      case SQLite.DONE:
+        return false;
+      default:
+        this.db.handleError(ret);
+        return false;
     }
   }
 
-  class Database {
-    private filename: string;
-    private dbPtr: Pointer;
-    public statements: {
-      [stmtPtr: number]: Statement;
-    };
-    private functions: {
-      [functionPtrName: string]: Pointer;
+  /* Get one row of results of a statement.
+  If the first parameter is not provided, step must have been called before get.
+  @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
+  @return [Array<String,Number,Uint8Array,null>] One row of result
+  
+  @example Print all the rows of the table test to the console
+  
+      var stmt = db.prepare("SELECT * FROM test");
+      while (stmt.step()) console.log(stmt.get());
+    */
+  public get(params?: SQLParameterArray | SQLParameterFields): SQLResult[] {
+    const getNumber = (pos: number = this.pos++): number => {
+      return this.wasm.sqlite3_column_double(this.stmt, pos);
     };
 
-    /**
-     * @param data  Raw data buffer of the SQLite Database. If not provided,
-     *              a new Database is created.
-     */
-    public constructor(data?: ArrayBuffer) {
-      // eslint-disable-next-line no-bitwise
-      this.filename = `dbfile_${(0xffffffff * Math.random()) >>> 0}`;
-      if (typeof data !== undefined) {
-        // @ts-ignore
-        FS.createDataFile('/', this.filename, data, true, true);
-      }
-      this.handleError(sqlite3_open(this.filename, apiTemp));
-      this.dbPtr = getValue(apiTemp, '*');
-      // RegisterExtensionFunctions(this.db);
-      this.statements = {};
-      this.functions = {};
+    const getString = (pos: number = this.pos++): string => {
+      // [TODO] What does it return, pointer or string?
+      return this.wasm.sqlite3_column_text(this.stmt, pos);
+    };
+
+    const getBlob = (pos: number = this.pos++): Uint8Array => {
+      const ptr: Pointer = this.wasm.sqlite3_column_blob(this.stmt, pos);
+      const size: number = this.wasm.sqlite3_column_bytes(this.stmt, pos);
+      return this.wasm.HEAPU8.subarray(ptr, ptr + size);
+    };
+
+    if (typeof params !== 'undefined') {
+      this.bind(params);
+      this.step();
     }
-
-    /* Execute an SQL query, ignoring the rows it returns.
-
-    @param sql [String] a string containing some SQL text to execute
-    @param params [Array] (*optional*) When the SQL statement contains placeholders, you can pass them in here. They will be bound to the statement before it is executed.
-
-    If you use the params argument, you **cannot** provide an sql string that contains several
-    queries (separated by ';')
-
-    @example Insert values in a table
-        db.run("INSERT INTO test VALUES (:age, :name)", {':age':18, ':name':'John'});
-
-    @return [Database] The database object (useful for method chaining)
-     */
-    public run(sql: string, params?: SQLParameterArray | SQLParameterMap) {
-      if (!this.dbPtr) {
-        throw new Error('Database closed');
+    const results: SQLResult[] = [];
+    const colSize = this.wasm.sqlite3_data_count(this.stmt);
+    for (let col = 0; col < colSize; col++) {
+      switch (this.wasm.sqlite3_column_type(this.stmt, col)) {
+        case SQLite.INTEGER:
+        case SQLite.FLOAT:
+          results.push(getNumber(col));
+          break;
+        case SQLite.TEXT:
+          results.push(getString(col));
+          break;
+        case SQLite.BLOB:
+          results.push(getBlob(col));
+          break;
+        default:
+          results.push(null);
+          break;
       }
-      if (params) {
-        const stmt = this.prepare(sql, params);
+    }
+    return results;
+  }
+
+  /* Get the list of column names of a row of result of a statement.
+  @return [Array<String>] The names of the columns
+  @example
+  
+      var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
+      stmt.step(); // Execute the statement
+      console.log(stmt.getColumnNames()); // Will print ['nbr','data','null_value']
+    */
+  public getColumnNames(): string[] {
+    const results: string[] = [];
+    const colSize = this.wasm.sqlite3_data_count(this.stmt);
+    for (let col = 0; col < colSize; col++) {
+      results.push(this.wasm.sqlite3_column_name(this.stmt, col));
+    }
+    return results;
+  }
+
+  /* Get one row of result as a javascript object, associating column names with
+  their value in the current row.
+  @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
+  @return [Object] The row of result
+  @see [Statement.get](#get-dynamic)
+  
+  @example
+  
+      var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
+      stmt.step(); // Execute the statement
+      console.log(stmt.getAsObject()); // Will print {nbr:5, data: Uint8Array([1,2,3]), null_value:null}
+    */
+  public getAsObject(params?: SQLParameterArray | SQLParameterFields): SQLResultColumns {
+    const values = this.get(params);
+    const names = this.getColumnNames();
+    const rowObject: SQLResultColumns = {};
+    names.forEach((name, i) => {
+      rowObject[name] = values[i];
+    });
+    return rowObject;
+  }
+
+  /* Shorthand for bind + step + reset
+  Bind the values, execute the statement, ignoring the rows it returns, and resets it
+  @param [Array,Object] Value to bind to the statement
+    */
+  public run(values?: SQLParameterArray | SQLParameterFields) {
+    if (typeof values !== 'undefined') {
+      this.bind(values);
+    }
+    this.step();
+    return this.reset();
+  }
+
+  /* Reset a statement, so that it's parameters can be bound to new values
+  It also clears all previous bindings, freeing the memory used by bound parameters.
+    */
+  public reset(): boolean {
+    this.freemem();
+    return (
+      this.wasm.sqlite3_clear_bindings(this.stmt) === SQLite.OK &&
+      this.wasm.sqlite3_reset(this.stmt) === SQLite.OK
+    );
+  }
+
+  /* Free the memory allocated during parameter binding
+   */
+  private freemem() {
+    let mem;
+    while ((mem = this.allocatedmem.pop())) {
+      this.wasm._free(mem);
+    }
+    return null;
+  }
+
+  /* Free the memory used by the statement
+  @return [Boolean] true in case of success
+    */
+  public free(): boolean {
+    this.freemem();
+    const res = this.wasm.sqlite3_finalize(this.stmt) === SQLite.OK;
+    delete this.db.statements[this.stmt];
+    this.stmt = this.wasm.NULL;
+    return res;
+  }
+}
+
+class Database {
+  public wasm: SQLite3Module;
+  private filename: string;
+  private dbPtr: Pointer;
+  public statements: {
+    [stmtPtr: number]: Statement;
+  };
+  private functions: {
+    [functionPtrName: string]: Pointer;
+  };
+
+  /**
+   * @param data  Raw data buffer of the SQLite Database. If not provided,
+   *              a new Database is created.
+   */
+  public constructor(wasm: SQLite3Module, data?: ArrayBufferView) {
+    this.wasm = wasm;
+    console.log(wasm)
+    // eslint-disable-next-line no-bitwise
+    this.filename = `dbfile_${(0xffffffff * Math.random()) >>> 0}`;
+    if (typeof data !== 'undefined') {
+      this.wasm.FS.createDataFile('/', this.filename, data, true, true);
+      console.log(this.filename, 'created');
+      console.log(this.wasm.FS.stat(this.filename));
+    }
+    this.handleError(this.wasm.sqlite3_open(`${this.filename}`, this.wasm.tempInt32));
+    this.dbPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
+    console.log(this.wasm.FS.stat(this.filename));
+    // RegisterExtensionFunctions(this.db);
+    this.statements = {};
+    this.functions = {};
+  }
+
+  /* Execute an SQL query, ignoring the rows it returns.
+
+  @param sql [String] a string containing some SQL text to execute
+  @param params [Array] (*optional*) When the SQL statement contains placeholders, you can pass them in here. They will be bound to the statement before it is executed.
+
+  If you use the params argument, you **cannot** provide an sql string that contains several
+  queries (separated by ';')
+
+  @example Insert values in a table
+      db.run("INSERT INTO test VALUES (:age, :name)", {':age':18, ':name':'John'});
+
+  @return [Database] The database object (useful for method chaining)
+    */
+  public run(sql: string, params?: SQLParameterArray | SQLParameterFields) {
+    if (!this.dbPtr) {
+      throw new Error('Database closed');
+    }
+    if (params) {
+      const stmt = this.prepare(sql, params);
+      try {
+        stmt.step();
+      } finally {
+        stmt.free();
+      }
+    } else {
+      this.handleError(this.wasm.sqlite3_exec(this.dbPtr, sql, 0, 0, this.wasm.tempInt32));
+    }
+    return this;
+  }
+
+  /* Execute an SQL query, and returns the result.
+
+  This is a wrapper against Database.prepare, Statement.step, Statement.get,
+  and Statement.free.
+
+  The result is an array of result elements. There are as many result elements
+  as the number of statements in your sql string (statements are separated by a semicolon)
+
+  Each result element is an object with two properties:
+      'columns' : the name of the columns of the result (as returned by Statement.getColumnNames())
+      'values' : an array of rows. Each row is itself an array of values
+
+  ## Example use
+  We have the following table, named *test* :
+
+  | id | age |  name  |
+  |:--:|:---:|:------:|
+  | 1  |  1  | Ling   |
+  | 2  |  18 | Paul   |
+  | 3  |  3  | Markus |
+
+
+  We query it like that:
+  ```javascript
+  var db = new SQL.Database();
+  var res = db.exec("SELECT id FROM test; SELECT age,name FROM test;");
+  ```
+
+  `res` is now :
+  ```javascript
+      [
+          {columns: ['id'], values:[[1],[2],[3]]},
+          {columns: ['age','name'], values:[[1,'Ling'],[18,'Paul'],[3,'Markus']]}
+      ]
+  ```
+    
+  @param sql [String] a string containing some SQL text to execute
+  @return [Array<QueryResults>] An array of results.
+    */
+  public exec(sql: string): QueryResult[] {
+    // [TODO] Verify how it works
+    if (!this.dbPtr) {
+      throw new Error('Database closed');
+    }
+    const stack = this.wasm.stackSave();
+    try {
+      let nextSqlPtr = this.wasm.allocateUTF8OnStack(sql);
+      const pzTail = this.wasm.stackAlloc(4);
+      const results: QueryResult[] = [];
+      while (this.wasm.getValue(nextSqlPtr, 'i8') !== this.wasm.NULL) {
+        this.wasm.setValue(this.wasm.tempInt32, 0, '*');
+        this.wasm.setValue(pzTail, 0, '*');
+        this.handleError(this.wasm.sqlite3_prepare_v2_sqlptr(this.dbPtr, nextSqlPtr, -1, this.wasm.tempInt32, pzTail));
+        const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
+        nextSqlPtr = this.wasm.getValue(pzTail, '*');
+        if (stmtPtr === this.wasm.NULL) {
+          break;
+        }
+        const stmt = new Statement(stmtPtr, this);
         try {
-          stmt.step();
+          let inserted = false;
+          while (stmt.step()) {
+            // eslint-disable-next-line max-depth
+            if (!inserted) {
+              inserted = true;
+              results.push({
+                columns: stmt.getColumnNames(),
+                values: [],
+              });
+            }
+            results[results.length - 1].values.push(stmt.get());
+          }
         } finally {
           stmt.free();
         }
-      } else {
-        this.handleError(sqlite3_exec(this.dbPtr, sql, 0, 0, apiTemp));
       }
+      return results;
+    } finally {
+      this.wasm.stackRestore(stack);
+    }
+  }
+
+  /* Execute an sql statement, and call a callback for each row of result.
+
+  **Currently** this method is synchronous, it will not return until the callback has
+  been called on every row of the result. But this might change.
+
+  @param sql [String] A string of SQL text. Can contain placeholders that will be
+  bound to the parameters given as the second argument
+  @param params [Array<String,Number,null,Uint8Array>] (*optional*) Parameters to bind
+  to the query
+  @param callback [Function(Object)] A function that will be called on each row of result
+  @param done [Function] A function that will be called when all rows have been retrieved
+
+  @return [Database] The database object. Useful for method chaining
+
+  @example Read values from a table
+      db.each("SELECT name,age FROM users WHERE age >= $majority",
+                      {$majority:18},
+                      function(row){console.log(row.name + " is a grown-up.")}
+                  );
+    */
+  /* eslint-disable prettier/prettier */
+  public each(sql: string, callback: (row: SQLResultColumns) => void): this;
+  public each(sql: string, callback: (row: SQLResultColumns) => void, done: () => any): ReturnType<typeof done>;
+  public each(sql: string, params: SQLParameterArray | SQLParameterFields, callback: (row: SQLResultColumns) => void): this;
+  public each(sql: string, params: SQLParameterArray | SQLParameterFields, callback: (row: SQLResultColumns) => void, done: () => any): ReturnType<typeof done>;
+  /* eslint-enable prettier/prettier */
+  public each(sql: string, ...args: any[]) {
+    let stmt: Statement;
+    let doneCallback: () => any;
+    let rowCallback: (row: SQLResultColumns) => void;
+    if (typeof args[0] === 'function') {
+      stmt = this.prepare(sql);
+      rowCallback = args[0];
+      doneCallback = args[1];
+    } else {
+      stmt = this.prepare(sql, args[0]);
+      rowCallback = args[1];
+      doneCallback = args[2];
+    }
+    if (typeof rowCallback !== 'function') {
+      throw new Error('No callback passed');
+    }
+    try {
+      while (stmt.step()) {
+        rowCallback(stmt.getAsObject());
+      }
+    } finally {
+      stmt.free();
+    }
+    if (typeof doneCallback === 'function') {
+      return doneCallback();
+    } else {
       return this;
     }
+  }
 
-    /* Execute an SQL query, and returns the result.
+  /* Prepare an SQL statement
+  @param sql [String] a string of SQL, that can contain placeholders ('?', ':VVV', ':AAA', '@AAA')
+  @param params [Array] (*optional*) values to bind to placeholders
+  @return [Statement] the resulting statement
+  @throw [String] SQLite error
+    */
+  public prepare(sql: string, params?: SQLParameterArray | SQLParameterFields): Statement {
+    this.wasm.setValue(this.wasm.tempInt32, 0, '*');
+    this.handleError(this.wasm.sqlite3_prepare_v2(this.dbPtr, sql, -1, this.wasm.tempInt32, this.wasm.NULL));
+    const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
+    if (stmtPtr === this.wasm.NULL) {
+      throw new Error('Nothing to prepare. Check your SQL statement.');
+    }
+    const stmt = new Statement(stmtPtr, this);
+    if (typeof params !== 'undefined') {
+      stmt.bind(params);
+    }
+    this.statements[stmtPtr] = stmt;
+    return stmt;
+  }
 
-    This is a wrapper against Database.prepare, Statement.step, Statement.get,
-    and Statement.free.
+  /**
+   * Close DB, but not delete the DB file
+   */
+  private _close(): void {
+    for (const [, stmt] of Object.entries(this.statements)) {
+      stmt.free();
+    }
+    this.statements = {};
+    for (const [, func] of Object.entries(this.functions)) {
+      this.wasm.removeFunction(func);
+    }
+    this.functions = {};
+    this.handleError(this.wasm.sqlite3_close_v2(this.dbPtr));
+  }
 
-    The result is an array of result elements. There are as many result elements
-    as the number of statements in your sql string (statements are separated by a semicolon)
+  /* Exports the contents of the database to a binary array
+    * Also frees all statements and memory, meaning it essentially reopens the DB.
+  @return [Uint8Array] An array of bytes of the SQLite3 database file
+    */
+  public export(): Uint8Array {
+    this._close();
+    const binaryDb: Uint8Array = this.wasm.FS.readFile(this.filename, { encoding: 'binary' });
+    this.handleError(this.wasm.sqlite3_open(this.filename, this.wasm.tempInt32));
+    this.dbPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
+    return binaryDb;
+  }
 
-    Each result element is an object with two properties:
-        'columns' : the name of the columns of the result (as returned by Statement.getColumnNames())
-        'values' : an array of rows. Each row is itself an array of values
+  /* Close the database, and all associated prepared statements.
 
-    ## Example use
-    We have the following table, named *test* :
+  The memory associated to the database and all associated statements
+  will be freed.
 
-    | id | age |  name  |
-    |:--:|:---:|:------:|
-    | 1  |  1  | Ling   |
-    | 2  |  18 | Paul   |
-    | 3  |  3  | Markus |
+  **Warning**: A statement belonging to a database that has been closed cannot
+  be used anymore.
 
+  Databases **must** be closed, when you're finished with them, or the
+  memory consumption will grow forever
+    */
+  public close() {
+    this._close();
+    this.wasm.FS.unlink(`/${this.filename}`);
+    this.filename = '';
+    this.dbPtr = this.wasm.NULL;
+  }
 
-    We query it like that:
-    ```javascript
-    var db = new SQL.Database();
-    var res = db.exec("SELECT id FROM test; SELECT age,name FROM test;");
-    ```
+  /* Analyze a result code, return true if no error occured, and throw
+  an error with a descriptive message otherwise
+  @nodoc
+    */
+  public handleError(returnCode: SQLite) {
+    if (returnCode === SQLite.OK) {
+      return true;
+    } else {
+      throw new Error(this.wasm.sqlite3_errmsg(this.dbPtr));
+    }
+  }
 
-    `res` is now :
-    ```javascript
-        [
-            {columns: ['id'], values:[[1],[2],[3]]},
-            {columns: ['age','name'], values:[[1,'Ling'],[18,'Paul'],[3,'Markus']]}
-        ]
-    ```
-      
-    @param sql [String] a string containing some SQL text to execute
-    @return [Array<QueryResults>] An array of results.
-     */
-    public exec(sql: string): QueryResult[] {
-      // [TODO] Verify how it works
-      if (!this.dbPtr) {
-        throw new Error('Database closed');
-      }
-      const stack = stackSave();
-      try {
-        let nextSqlPtr = allocateUTF8OnStack(sql);
-        const pzTail = stackAlloc(4);
-        const results: QueryResult[] = [];
-        while (getValue(nextSqlPtr, 'i8') !== NULL) {
-          setValue(apiTemp, 0, '*');
-          setValue(pzTail, 0, '*');
-          this.handleError(sqlite3_prepare_v2_sqlptr(this.dbPtr, nextSqlPtr, -1, apiTemp, pzTail));
-          const stmtPtr = getValue(apiTemp, '*');
-          nextSqlPtr = getValue(pzTail, '*');
-          if (stmtPtr === NULL) {
-            break;
+  /* Returns the number of rows modified, inserted or deleted by the
+  most recently completed INSERT, UPDATE or DELETE statement on the
+  database Executing any other type of SQL statement does not modify
+  the value returned by this function.
+
+  @return [Number] the number of rows modified
+    */
+  public getRowsModified() {
+    return this.wasm.sqlite3_changes(this.dbPtr);
+  }
+
+  /* Register a custom function with SQLite
+  @example Register a simple function
+      db.create_function("addOne", function(x) {return x+1;})
+      db.exec("SELECT addOne(1)") // = 2
+
+  @param name [String] the name of the function as referenced in SQL statements.
+  @param func [Function] the actual function to be executed.
+    */
+  public create_function = function(name: string, func: Function) {
+    const wrappedFunc = (sqlite3ContextPtr: Pointer, argc: number, argvPtr: Pointer) => {
+      const args = [];
+      for (let i = 0; i < argc; i++) {
+        const valuePtr = this.wasm.getValue(argvPtr + 4 * i, '*');
+        const valueType = this.wasm.sqlite3_value_type(valuePtr);
+        const dataFunc = (() => {
+          switch (false) {
+            case valueType !== 1:
+              return this.wasm.sqlite3_value_double;
+            case valueType !== 2:
+              return this.wasm.sqlite3_value_double;
+            case valueType !== 3:
+              return this.wasm.sqlite3_value_text;
+            case valueType !== 4:
+              return function(ptr: Pointer) {
+                const size = this.wasm.sqlite3_value_bytes(ptr);
+                const blobPtr = this.wasm.sqlite3_value_blob(ptr);
+                const blobArg = new Uint8Array(size);
+                for (let j = 0; j < size; j++) {
+                  blobArg[j] = this.wasm.HEAP8[blobPtr + j];
+                }
+                return blobArg;
+              };
+            default:
+              return function(_: Pointer) {
+                return null;
+              };
           }
-          const stmt = new Statement(stmtPtr, this);
-          try {
-            let inserted = false;
-            while (stmt.step()) {
-              // eslint-disable-next-line max-depth
-              if (!inserted) {
-                inserted = true;
-                results.push({
-                  columns: stmt.getColumnNames(),
-                  values: [],
-                });
-              }
-              results[results.length - 1].values.push(stmt.get());
-            }
-          } finally {
-            stmt.free();
-          }
-        }
-        return results;
-      } finally {
-        stackRestore(stack);
+        })();
+        args.push(dataFunc(valuePtr));
       }
-    }
-
-    /* Execute an sql statement, and call a callback for each row of result.
-
-    **Currently** this method is synchronous, it will not return until the callback has
-    been called on every row of the result. But this might change.
-
-    @param sql [String] A string of SQL text. Can contain placeholders that will be
-    bound to the parameters given as the second argument
-    @param params [Array<String,Number,null,Uint8Array>] (*optional*) Parameters to bind
-    to the query
-    @param callback [Function(Object)] A function that will be called on each row of result
-    @param done [Function] A function that will be called when all rows have been retrieved
-
-    @return [Database] The database object. Useful for method chaining
-
-    @example Read values from a table
-        db.each("SELECT name,age FROM users WHERE age >= $majority",
-                        {$majority:18},
-                        function(row){console.log(row.name + " is a grown-up.")}
-                    );
-     */
-    /* eslint-disable prettier/prettier */
-    public each(sql: string, callback: (row: SQLResultMap) => void): this;
-    public each(sql: string, callback: (row: SQLResultMap) => void, done: () => any): ReturnType<typeof done>;
-    public each(sql: string, params: SQLParameterArray | SQLParameterMap, callback: (row: SQLResultMap) => void): this;
-    public each(sql: string, params: SQLParameterArray | SQLParameterMap, callback: (row: SQLResultMap) => void, done: () => any): ReturnType<typeof done>;
-    /* eslint-enable prettier/prettier */
-    public each(sql: string, ...args: any[]) {
-      let stmt: Statement;
-      let doneCallback: () => any;
-      let rowCallback: (row: SQLResultMap) => void;
-      if (typeof args[0] === 'function') {
-        stmt = this.prepare(sql);
-        rowCallback = args[0];
-        doneCallback = args[1];
-      } else {
-        stmt = this.prepare(sql, args[0]);
-        rowCallback = args[1];
-        doneCallback = args[2];
-      }
-      if (typeof rowCallback !== 'function') {
-        throw new Error('No callback passed');
-      }
+      let result;
       try {
-        while (stmt.step()) {
-          rowCallback(stmt.getAsObject());
-        }
-      } finally {
-        stmt.free();
+        result = func(...args);
+      } catch (error) {
+        this.wasm.sqlite3_result_error(sqlite3ContextPtr, error, -1);
+        return;
       }
-      if (typeof doneCallback === 'function') {
-        return doneCallback();
-      } else {
-        return this;
+      switch (typeof result) {
+        case 'boolean':
+          this.wasm.sqlite3_result_int(sqlite3ContextPtr, result ? 1 : 0);
+          break;
+        case 'number':
+          this.wasm.sqlite3_result_double(sqlite3ContextPtr, result);
+          break;
+        case 'string':
+          this.wasm.sqlite3_result_text(sqlite3ContextPtr, result, -1, -1);
+          break;
+        case 'object':
+          if (result === null) {
+            this.wasm.sqlite3_result_null(sqlite3ContextPtr);
+          } else if (Array.isArray(result)) {
+            const blobPtr = this.wasm.allocate(result, 'i8', this.wasm.ALLOC_NORMAL);
+            this.wasm.sqlite3_result_blob(sqlite3ContextPtr, blobPtr, result.length, -1);
+            this.wasm._free(blobPtr);
+          } else {
+            this.wasm.sqlite3_result_error(
+              sqlite3ContextPtr,
+              `Wrong API use : tried to return a value of an unknown type (${result}).`,
+              -1
+            );
+          }
+          break;
+        default:
+          this.wasm.sqlite3_result_null(sqlite3ContextPtr);
       }
-    }
-
-    /* Prepare an SQL statement
-    @param sql [String] a string of SQL, that can contain placeholders ('?', ':VVV', ':AAA', '@AAA')
-    @param params [Array] (*optional*) values to bind to placeholders
-    @return [Statement] the resulting statement
-    @throw [String] SQLite error
-     */
-    public prepare(sql: string, params?: SQLParameterArray | SQLParameterMap): Statement {
-      setValue(apiTemp, 0, '*');
-      this.handleError(sqlite3_prepare_v2(this.dbPtr, sql, -1, apiTemp, NULL));
-      const stmtPtr = getValue(apiTemp, '*');
-      if (stmtPtr === NULL) {
-        throw new Error('Nothing to prepare. Check your SQL statement.');
-      }
-      const stmt = new Statement(stmtPtr, this);
-      if (typeof params !== 'undefined') {
-        stmt.bind(params);
-      }
-      this.statements[stmtPtr] = stmt;
-      return stmt;
-    }
-
-    /**
-     * Close DB, but not delete the DB file
-     */
-    private _close(): void {
-      for (const [, stmt] of Object.entries(this.statements)) {
-        stmt.free();
-      }
-      this.statements = {};
-      for (const [, func] of Object.entries(this.functions)) {
-        removeFunction(func);
-      }
-      this.functions = {};
-      this.handleError(sqlite3_close_v2(this.dbPtr));
-    }
-
-    /* Exports the contents of the database to a binary array
-     * Also frees all statements and memory, meaning it essentially reopens the DB.
-    @return [Uint8Array] An array of bytes of the SQLite3 database file
-     */
-    public export(): Uint8Array {
-      this._close();
-      const binaryDb: Uint8Array = FS.readFile(this.filename, { encoding: 'binary' });
-      this.handleError(sqlite3_open(this.filename, apiTemp));
-      this.dbPtr = getValue(apiTemp, '*');
-      return binaryDb;
-    }
-
-    /* Close the database, and all associated prepared statements.
-
-    The memory associated to the database and all associated statements
-    will be freed.
-
-    **Warning**: A statement belonging to a database that has been closed cannot
-    be used anymore.
-
-    Databases **must** be closed, when you're finished with them, or the
-    memory consumption will grow forever
-     */
-    public close() {
-      this._close();
-      FS.unlink(`/${this.filename}`);
-      this.filename = '';
-      this.dbPtr = NULL;
-    }
-
-    /* Analyze a result code, return true if no error occured, and throw
-    an error with a descriptive message otherwise
-    @nodoc
-     */
-    public handleError(returnCode: SQLite) {
-      if (returnCode === SQLite.OK) {
-        return true;
-      } else {
-        throw new Error(sqlite3_errmsg(this.dbPtr));
-      }
-    }
-
-    /* Returns the number of rows modified, inserted or deleted by the
-    most recently completed INSERT, UPDATE or DELETE statement on the
-    database Executing any other type of SQL statement does not modify
-    the value returned by this function.
-
-    @return [Number] the number of rows modified
-     */
-    public getRowsModified() {
-      return sqlite3_changes(this.dbPtr);
-    }
-
-    /* Register a custom function with SQLite
-    @example Register a simple function
-        db.create_function("addOne", function(x) {return x+1;})
-        db.exec("SELECT addOne(1)") // = 2
-
-    @param name [String] the name of the function as referenced in SQL statements.
-    @param func [Function] the actual function to be executed.
-     */
-    public create_function = function(name: string, func: Function) {
-      const wrappedFunc = (sqlite3ContextPtr: Pointer, argc: number, argvPtr: Pointer) => {
-        const args = [];
-        for (let i = 0; i < argc; i++) {
-          const valuePtr = getValue(argvPtr + 4 * i, '*');
-          const valueType = sqlite3_value_type(valuePtr);
-          /* eslint-disable @typescript-eslint/camelcase */
-          const dataFunc = (() => {
-            switch (false) {
-              case valueType !== 1:
-                return sqlite3_value_double;
-              case valueType !== 2:
-                return sqlite3_value_double;
-              case valueType !== 3:
-                return sqlite3_value_text;
-              case valueType !== 4:
-                return function(ptr: Pointer) {
-                  const size = sqlite3_value_bytes(ptr);
-                  const blobPtr = sqlite3_value_blob(ptr);
-                  const blobArg = new Uint8Array(size);
-                  for (let j = 0; j < size; j++) {
-                    blobArg[j] = HEAP8[blobPtr + j];
-                  }
-                  return blobArg;
-                };
-              default:
-                return function(_: Pointer) {
-                  return null;
-                };
-            }
-          })();
-          /* eslint-enable @typescript-eslint/camelcase */
-          args.push(dataFunc(valuePtr));
-        }
-        let result;
-        try {
-          result = func(...args);
-        } catch (error) {
-          sqlite3_result_error(sqlite3ContextPtr, error, -1);
-          return;
-        }
-        switch (typeof result) {
-          case 'boolean':
-            sqlite3_result_int(sqlite3ContextPtr, result ? 1 : 0);
-            break;
-          case 'number':
-            sqlite3_result_double(sqlite3ContextPtr, result);
-            break;
-          case 'string':
-            sqlite3_result_text(sqlite3ContextPtr, result, -1, -1);
-            break;
-          case 'object':
-            if (result === null) {
-              sqlite3_result_null(sqlite3ContextPtr);
-            } else if (Array.isArray(result)) {
-              const blobPtr = allocate(result, 'i8', ALLOC_NORMAL);
-              sqlite3_result_blob(sqlite3ContextPtr, blobPtr, result.length, -1);
-              _free(blobPtr);
-            } else {
-              sqlite3_result_error(
-                sqlite3ContextPtr,
-                `Wrong API use : tried to return a value of an unknown type (${result}).`,
-                -1
-              );
-            }
-            break;
-          default:
-            sqlite3_result_null(sqlite3ContextPtr);
-        }
-      };
-      if (name in this.functions) {
-        removeFunction(this.functions[name]);
-        delete this.functions[name];
-      }
-      const funcPtr = addFunction(wrappedFunc);
-      this.functions[name] = funcPtr;
-      this.handleError(
-        sqlite3_create_function_v2(this.db, name, func.length, SQLite.UTF8, 0, funcPtr, 0, 0, 0)
-      );
-      return this;
     };
-  }
-
-  this.SQL = {
-    Database,
+    if (name in this.functions) {
+      this.wasm.removeFunction(this.functions[name]);
+      delete this.functions[name];
+    }
+    const funcPtr = this.wasm.addFunction(wrappedFunc);
+    this.functions[name] = funcPtr;
+    this.handleError(
+      this.wasm.sqlite3_create_function_v2(this.db, name, func.length, SQLite.UTF8, 0, funcPtr, 0, 0, 0)
+    );
+    return this;
   };
+}
 
-  // eslint-disable-next-line guard-for-in
-  for (const i in this.SQL) {
-    // @ts-ignore
-    Module[i] = this.SQL[i];
-  }
-  // eslint-disable-next-line prettier/prettier
-}).bind(this);
+export { Database, QueryResult, SQLResultColumns, SQLParameterArray, SQLParameterFields };

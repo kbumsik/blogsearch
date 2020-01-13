@@ -2,13 +2,12 @@ import Hogan from 'hogan.js';
 // import algoliasearch from 'algoliasearch/lite';
 // @ts-ignore
 import autocomplete from 'autocomplete.js';
-import SQLite, {
-  Config as SQLiteConfig,
-  Result as SQLiteResult,
-} from './SQLite';
+import type { Config as SQLiteConfig } from './sqlite/worker';
+import SQLite, { SearchResult as SQLiteResult } from './SQLite';
 import templates from './templates';
 import utils from './utils';
 import $ from './zepto';
+
 type JQueryElement = any; // This is a temporary type to use with zepto.
 
 interface Suggestion {
@@ -57,9 +56,7 @@ interface Hit {
     };
     hierarchy_camel: Array<
       {
-        [lvl in keyof Partial<
-          Hit['_highlightResult']['hierarchy']
-        >]: HighlightResult;
+        [lvl in keyof Partial<Hit['_highlightResult']['hierarchy']>]: HighlightResult;
       }
     >;
   };
@@ -103,16 +100,15 @@ interface HighlightResult extends SnippetResult {
  * @return {Object}
  */
 const usage = `Usage:
-  documentationSearch({
-  apiKey,
-  indexName,
-  inputSelector,
-  [ appId ],
-  [ algoliaOptions.{hitsPerPage} ]
-  [ autocompleteOptions.{hint,debug} ]
+  blogsearch({
+    workerFactory: Function,
+    wasmPath: string,
+    dbPath: string,
+    inputSelector: string (CSS selector),
 })`;
 
 interface Config {
+  workerFactory?: () => Worker;
   inputSelector: string;
   debug: boolean;
   autocompleteOptions: {
@@ -135,9 +131,11 @@ class BlogSearch {
   private autocompleteOptions: Config['autocompleteOptions'];
   private autocomplete: any; // [TODO] A return type of autocomplete()
   private sqlite: SQLite;
+  private workerFactory: () => Worker;
 
   public constructor({
-    wasmPath = '',
+    workerFactory,
+    wasmPath,
     dbPath = '',
     inputSelector = '',
     debug = false,
@@ -151,6 +149,7 @@ class BlogSearch {
     layout = 'columns',
   }: Args) {
     BlogSearch.checkArguments({
+      workerFactory,
       wasmPath,
       dbPath,
       inputSelector,
@@ -159,29 +158,50 @@ class BlogSearch {
       layout,
     });
 
-    this.input = BlogSearch.getInputFromSelector(inputSelector);
-    const autocompleteOptionsDebug =
-      autocompleteOptions && autocompleteOptions.debug
-        ? autocompleteOptions.debug
-        : false;
-    // eslint-disable-next-line no-param-reassign
-    autocompleteOptions.debug = debug || autocompleteOptionsDebug;
-    this.autocompleteOptions = autocompleteOptions;
-    this.autocompleteOptions.cssClasses =
-      this.autocompleteOptions.cssClasses || {};
-    this.autocompleteOptions.cssClasses.prefix =
-      this.autocompleteOptions.cssClasses.prefix || 'ds';
-    const inputAriaLabel =
-      this.input &&
-      typeof this.input.attr === 'function' &&
-      this.input.attr('aria-label');
-    this.autocompleteOptions.ariaLabel =
-      this.autocompleteOptions.ariaLabel || inputAriaLabel || 'search input';
-
-    new SQLite({ wasmPath, dbPath }).load().then(sqlite => {
+    // Set worker and then inittialize.
+    this.workerFactory = (() => {
+      if (typeof workerFactory !== 'undefined') {
+        return workerFactory;
+      }
+      // Get current directory for worker
+      let workerDir = '';
+      if (document.currentScript) {
+        workerDir = (document.currentScript as HTMLScriptElement).src;
+      } else if (self.location) {
+        workerDir = self.location.href;
+      }
+      workerDir = `${workerDir.substr(0, workerDir.lastIndexOf('/'))}/worker.umd.js`;
+      // 'blogsearch' object will be available when imported by UMD using
+      // <script> tag. blogsearch.worker is also imported by its own UMD.
+      // In this case, make it blob to get URL.
+      // @ts-ignore
+      if (typeof window?.blogsearch?.worker === 'function') {
+        // @ts-ignore
+        workerDir = URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
+      }
+      return () => new Worker(workerDir);
+    })();
+    new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load().then(sqlite => {
+      // eslint-disable-next-line no-console
+      console.log('SQLite loaded!');
       this.sqlite = sqlite;
     });
 
+    // autocomplete.js configuration
+    this.input = BlogSearch.getInputFromSelector(inputSelector);
+    const autocompleteOptionsDebug =
+      autocompleteOptions && autocompleteOptions.debug ? autocompleteOptions.debug : false;
+    // eslint-disable-next-line no-param-reassign
+    autocompleteOptions.debug = debug || autocompleteOptionsDebug;
+    this.autocompleteOptions = autocompleteOptions;
+    this.autocompleteOptions.cssClasses = this.autocompleteOptions.cssClasses || {};
+    this.autocompleteOptions.cssClasses.prefix = this.autocompleteOptions.cssClasses.prefix || 'ds';
+    const inputAriaLabel =
+      this.input && typeof this.input.attr === 'function' && this.input.attr('aria-label');
+    this.autocompleteOptions.ariaLabel =
+      this.autocompleteOptions.ariaLabel || inputAriaLabel || 'search input';
+
+    // Initialize autocomplete.js
     this.autocomplete = autocomplete(this.input, autocompleteOptions, [
       {
         source: this.getAutocompleteSource(),
@@ -192,16 +212,11 @@ class BlogSearch {
         },
       },
     ]);
-
     this.autocomplete.on(
       'autocomplete:selected',
       this.handleSelected.bind(null, this.autocomplete.autocomplete)
     );
-
-    this.autocomplete.on(
-      'autocomplete:shown',
-      this.handleShown.bind(null, this.input)
-    );
+    this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
   }
 
   /**
@@ -213,18 +228,16 @@ class BlogSearch {
   private static checkArguments(args: Args) {
     if (
       /* eslint-disable prettier/prettier */
-      typeof args.wasmPath !== 'string' || !args.wasmPath ||
       typeof args.dbPath !== 'string' || !args.dbPath ||
-      typeof args.inputSelector !== 'string' || !args.inputSelector
+      typeof args.inputSelector !== 'string' || !args.inputSelector ||
+      (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
       /* eslint-enable prettier/prettier */
     ) {
       throw new Error(usage);
     }
 
     if (!BlogSearch.getInputFromSelector(args.inputSelector)) {
-      throw new Error(
-        `Error: No input element in the page matches ${args.inputSelector}`
-      );
+      throw new Error(`Error: No input element in the page matches ${args.inputSelector}`);
     }
   }
 

@@ -11,6 +11,12 @@
     "declarationMap": true,
     "target": "es5",
     "module": "commonjs",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "strictFunctionTypes": true
   }
 }

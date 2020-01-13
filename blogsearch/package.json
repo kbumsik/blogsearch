@@ -13,11 +13,23 @@
     "build:ts": "tsc -b .",
     "watch": "tsc -b -w .",
     "clean": "make clean",
-    "deploy": "make dist"
+    "deploy": "make dist",
+    "lint": "eslint --ext .js,.ts,.tsx ./src"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.0",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/polyfill": "^7.8.3",
+    "@babel/preset-env": "^7.8.0",
+    "@babel/preset-typescript": "^7.8.0",
+    "@babel/runtime-corejs3": "^7.8.3",
     "@types/emscripten": "^1.38.0",
-    "@types/hogan.js": "^3.0.0"
+    "@types/hogan.js": "^3.0.0",
+    "babel-loader": "^8.0.6",
+    "core-js": "3",
+    "eslint-loader": "^3.0.3",
+    "typescript": "^3.8.0-beta",
+    "wrapper-webpack-plugin": "^2.1.0"
   },
   "private": false,
   "license": "MIT",
