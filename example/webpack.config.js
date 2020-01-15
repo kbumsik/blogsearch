@@ -1,6 +1,8 @@
-import { join } from 'path';
+// eslint-disable-next-line eslint-comments/disable-enable-pair
+/* eslint-disable import/no-commonjs */
+const join = require('path').join;
 
-export default {
+module.exports = {
   entry: './index.ts',
   devtool: 'source-map',
   mode: 'development',
@@ -16,6 +18,11 @@ export default {
         test: /\.(js|jsx|ts|tsx|mjs)$/,
         exclude: [/node_modules/, /blogsearch/],
         use: 'eslint-loader',
+      },
+      {
+        test: /\.wasm$/,
+        type: 'javascript/auto',
+        loader: 'file-loader',
       },
       {
         test: /\.(js|jsx|ts|tsx|mjs)$/,

@@ -1,10 +1,14 @@
+// eslint-disable-next-line import/no-extraneous-dependencies
 import blogsearch from 'blogsearch';
+import SearchWorker from 'worker-loader!blogsearch/lib/sqlite/worker';
+import SearchWasm from 'blogsearch/lib/sqlite/blogsearch.wasm';
 
-window['blogsearch'] = blogsearch;
+// eslint-disable-next-line dot-notation
 
-window['blogsearch']({
-  dbPath: 'reactjs.org.blogsearch.db.bin',
-  wasmPath: 'sql-wasm.wasm',
-}).then( _ => console.log('Ready'));
-
-// window['blogsearch'].load();
+blogsearch({
+  workerFactory: () => new SearchWorker(),
+  dbPath: '/reactjs.org.blogsearch.db.bin',
+  wasmPath: SearchWasm,
+  inputSelector: '#q',
+  debug: true, // Set debug to true if you want to inspect the dropdown
+});

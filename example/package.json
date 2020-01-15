@@ -12,7 +12,7 @@
     "build:blogsearch": "blogsearch-crawler",
     "build": "yarn build:pages && yarn build:blogsearch",
     "start": "webpack-dev-server",
-    "copy:sqlite": "cp ../blogsearch/dist/sqlite/{worker.sql-wasm.js,sql-wasm.wasm} public/blogsearch/sqlite/ && cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/",
+    "copy:sqlite": "cp ../blogsearch/dist/* public/",
     "copy:sqlite-original": "cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/"
   },
   "dependencies": {
@@ -26,7 +26,9 @@
     "@babel/register": "^7.7.7",
     "babel-loader": "^8.0.6",
     "eslint-loader": "^3.0.3",
+    "file-loader": "^5.0.2",
     "webpack": "^4.41.4",
-    "webpack-cli": "^3.3.10"
+    "webpack-cli": "^3.3.10",
+    "worker-loader": "^2.0.0"
   }
 }

@@ -20,8 +20,25 @@
       </div>
     </div>
     <!-- at the end of the BODY -->
-    <script src="/index.js"></script>
+    <!-- <script src="/index.js"></script> -->
+    <script src="/blogsearch.umd.js"></script>
+    <script src="/worker.umd.js"></script>
     <script>
+      blogsearch({
+        // [TODO] remove URL
+        dbPath: 'https://192.168.50.2:9000/reactjs.org.blogsearch.db.bin',
+        wasmPath: 'https://192.168.50.2:9000/blogsearch.wasm',
+        inputSelector: '#q',
+        // handleSelected(input, event, suggestion, datasetNumber, context) {
+        //   console.info(input);
+        //   console.info(event);
+        //   console.info(suggestion);
+        //   console.info(datasetNumber);
+        //   console.info(context);
+        // },
+        debug: true // Set debug to true if you want to inspect the dropdown
+      });
+
       // docsearch({
       //   apiKey: '25626fae796133dc1e734c6bcaaeac3c',
       //   indexName: 'docsearch',
@@ -46,19 +63,6 @@
       //   // window['blogsearch'] = sql;
       // });
 
-      blogsearch({
-        dbPath: '/reactjs.org.blogsearch.db.bin',
-        wasmPath: 'sql-wasm.wasm',
-        inputSelector: '#q',
-        // handleSelected(input, event, suggestion, datasetNumber, context) {
-        //   console.info(input);
-        //   console.info(event);
-        //   console.info(suggestion);
-        //   console.info(datasetNumber);
-        //   console.info(context);
-        // },
-        debug: true // Set debug to true if you want to inspect the dropdown
-      });
       
 
     </script>
