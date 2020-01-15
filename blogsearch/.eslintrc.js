@@ -1,8 +1,17 @@
 module.exports = {
   ignorePatterns: [
-    'dist/'
+    'dist/*',
+    'lib/*',
   ],
   extends: [
     '../.eslintrc.base.js'
-  ]
+  ],
+  overrides: [
+    {
+      files: ['./src/sqlite/*'],
+      rules: {
+        'dot-notation': ['off']
+      }
+    }
+  ],
 };
