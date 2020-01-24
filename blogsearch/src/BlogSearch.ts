@@ -5,7 +5,6 @@ import autocomplete from 'autocomplete.js';
 import type { Config as SQLiteConfig } from './sqlite/worker';
 import SQLite, { SearchResult as SQLiteResult } from './SQLite';
 import templates from './templates';
-import utils from './utils';
 import $ from './zepto';
 
 type JQueryElement = any; // This is a temporary type to use with zepto.
@@ -23,67 +22,6 @@ interface Suggestion {
   title: string;
   text: string | null;
   url: string;
-}
-
-interface SearchResult {
-  hits: Array<Hit | HitWithContent>;
-  nbHits: number;
-  page: number;
-  nbPages: number;
-  hitsPerPage: number;
-  exhaustiveNbHits: boolean;
-  query: string; // Input query
-  params: string; // HTTP GET parameters
-  index: string; // Index of the database [TODO] Not used
-  processingTimeMS: number;
-}
-
-type Level = 'lvl0' | 'lvl1' | 'lvl2' | 'lvl3' | 'lvl4' | 'lvl5' | 'lvl6';
-
-type Hierarchy<T> = Partial<Record<Level, T>>;
-
-interface Hit {
-  anchor: string; // This will bee added to the URL with '#'
-  content: string | null; // Content of result
-  hierarchy: Hierarchy<string | null>;
-  url: string;
-  objectID: string;
-  _highlightResult: {
-    [lvl in keyof Hit['hierarchy']]?: HighlightResult;
-  } & {
-    hierarchy?: {
-      [lvl in keyof Hit['hierarchy']]: HighlightResult;
-    };
-    hierarchy_camel: Array<
-      {
-        [lvl in keyof Partial<Hit['_highlightResult']['hierarchy']>]: HighlightResult;
-      }
-    >;
-  };
-  // Will be added later during processing
-  isSubCategoryHeader?: boolean;
-  isCategoryHeader?: boolean;
-}
-
-interface HitWithContent extends Hit {
-  content: string;
-  _snippetResult: {
-    // Usually only 'content' property
-    [key in keyof Partial<Hit>]: SnippetResult;
-  };
-  _highlightResult: Hit['_highlightResult'] & {
-    content: HighlightResult; // Exists if Hit['content'] is not null
-  };
-}
-
-interface SnippetResult {
-  value: string;
-  matchLevel: 'full' | 'none';
-}
-
-interface HighlightResult extends SnippetResult {
-  fullyHighlighted?: boolean; // Exists when matchLevel === 'full'
-  matchedWords: string[];
 }
 
 /**
@@ -291,88 +229,6 @@ class BlogSearch {
         );
       }
     };
-  }
-
-  // Given a list of hits returned by the API, will reformat them to be used in
-  // a Hogan template
-  // @ts-ignore
-  private static formatHits(receivedHits: SearchResult['hits']): Suggestion[] {
-    const clonedHits = utils.deepClone(receivedHits);
-    const hits = clonedHits.map(hit => {
-      return utils.mergeKeyWithParent(hit, 'hierarchy');
-    });
-
-    // Group hits by category / subcategory
-    let groupedHits: any = utils.groupBy(hits, 'lvl0');
-    // Add lvl
-    $.each(groupedHits, (level: Level, collection: typeof hits) => {
-      const groupedHitsByLvl1 = utils.groupBy(collection, 'lvl1');
-      const flattenedHits = utils.flattenAndFlagFirst(
-        groupedHitsByLvl1,
-        'isSubCategoryHeader'
-      );
-      groupedHits[level] = flattenedHits;
-    });
-    groupedHits = utils.flattenAndFlagFirst(groupedHits, 'isCategoryHeader');
-    // Translate hits into smaller objects to be send to the template
-    return groupedHits.map((hit: Hit | HitWithContent) => {
-      const url = BlogSearch.formatURL(hit);
-      const category = utils.getHighlightedValue(hit, 'lvl0');
-      const subcategory = utils.getHighlightedValue(hit, 'lvl1') || category;
-      const displayTitle = utils
-        .compact([
-          utils.getHighlightedValue(hit, 'lvl2') || subcategory,
-          utils.getHighlightedValue(hit, 'lvl3'),
-          utils.getHighlightedValue(hit, 'lvl4'),
-          utils.getHighlightedValue(hit, 'lvl5'),
-          utils.getHighlightedValue(hit, 'lvl6'),
-        ])
-        .join(
-          '<span class="aa-suggestion-title-separator" aria-hidden="true"> › </span>'
-        );
-      const text = utils.getSnippetedValue(hit, 'content');
-      const isTextOrSubcategoryNonEmpty =
-        (subcategory && subcategory !== '') ||
-        (displayTitle && displayTitle !== '');
-      const isLvl1EmptyOrDuplicate =
-        !subcategory || subcategory === '' || subcategory === category;
-      const isLvl2 =
-        displayTitle && displayTitle !== '' && displayTitle !== subcategory;
-      const isLvl1 =
-        !isLvl2 &&
-        subcategory &&
-        subcategory !== '' &&
-        subcategory !== category;
-      const isLvl0 = !isLvl1 && !isLvl2;
-
-      return {
-        isLvl0,
-        isLvl1,
-        isLvl2,
-        isLvl1EmptyOrDuplicate,
-        isCategoryHeader: hit.isCategoryHeader,
-        isSubCategoryHeader: hit.isSubCategoryHeader,
-        isTextOrSubcategoryNonEmpty,
-        category,
-        subcategory,
-        title: displayTitle,
-        text,
-        url,
-      };
-    });
-  }
-
-  private static formatURL(hit: Hit | HitWithContent) {
-    const { url, anchor } = hit;
-    if (url) {
-      const containsAnchor = url.indexOf('#') !== -1;
-      if (containsAnchor) return url;
-      else if (anchor) return `${hit.url}#${hit.anchor}`;
-      return url;
-    } else if (anchor) return `#${hit.anchor}`;
-    // eslint-disable-next-line no-console
-    console.warn('no anchor nor url for : ', JSON.stringify(hit));
-    return null;
   }
 
   private static getEmptyTemplate() {
