@@ -97,28 +97,7 @@ class BlogSearch {
     });
 
     // Set worker and then inittialize.
-    this.workerFactory = (() => {
-      if (typeof workerFactory !== 'undefined') {
-        return workerFactory;
-      }
-      // Get current directory for worker
-      let workerDir = '';
-      if (document.currentScript) {
-        workerDir = (document.currentScript as HTMLScriptElement).src;
-      } else if (self.location) {
-        workerDir = self.location.href;
-      }
-      workerDir = `${workerDir.substr(0, workerDir.lastIndexOf('/'))}/worker.umd.js`;
-      // 'blogsearch' object will be available when imported by UMD using
-      // <script> tag. blogsearch.worker is also imported by its own UMD.
-      // In this case, make it blob to get URL.
-      // @ts-ignore
-      if (typeof window?.blogsearch?.worker === 'function') {
-        // @ts-ignore
-        workerDir = URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
-      }
-      return () => new Worker(workerDir);
-    })();
+    this.workerFactory = getWorkerFactory();
     new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load().then(sqlite => {
       // eslint-disable-next-line no-console
       console.log('SQLite loaded!');
@@ -155,6 +134,30 @@ class BlogSearch {
       this.handleSelected.bind(null, this.autocomplete.autocomplete)
     );
     this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
+    return;
+
+    function getWorkerFactory() {
+      if (typeof workerFactory !== 'undefined') {
+        return workerFactory;
+      }
+      // Get current directory for worker
+      let workerDir = '';
+      if (document.currentScript) {
+        workerDir = (document.currentScript as HTMLScriptElement).src;
+      } else if (self.location) {
+        workerDir = self.location.href;
+      }
+      workerDir = `${workerDir.substr(0, workerDir.lastIndexOf('/'))}/worker.umd.js`;
+      // 'blogsearch' object will be available when imported by UMD using
+      // <script> tag. blogsearch.worker is also imported by its own UMD.
+      // In this case, make it blob to get URL.
+      // @ts-ignore
+      if (typeof window?.blogsearch?.worker === 'function') {
+        // @ts-ignore
+        workerDir = URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
+      }
+      return () => new Worker(workerDir);
+    }
   }
 
   /**
