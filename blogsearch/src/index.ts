@@ -1,7 +1,6 @@
-// @ts-ignore
-import toFactory from 'to-factory';
 import BlogSearch from './BlogSearch';
 
-const blogsearch = toFactory(BlogSearch);
-
-export default blogsearch;
+export default function(args: ConstructorParameters<typeof BlogSearch>[0]): Promise<BlogSearch> {
+  const blogsearch = new BlogSearch(args);
+  return blogsearch.load();
+}

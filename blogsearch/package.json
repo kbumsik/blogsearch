@@ -35,7 +35,6 @@
   "license": "MIT",
   "dependencies": {
     "autocomplete.js": "^0.37.0",
-    "hogan.js": "^3.0.2",
-    "to-factory": "^1.0.0"
+    "hogan.js": "^3.0.2"
   }
 }

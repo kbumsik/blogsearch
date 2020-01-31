@@ -69,6 +69,7 @@ class BlogSearch {
   private autocompleteOptions: Config['autocompleteOptions'];
   private autocomplete: any; // [TODO] A return type of autocomplete()
   private sqlite: SQLite;
+  private sqlitePromise: Promise<SQLite>;
   private workerFactory: () => Worker;
 
   public constructor({
@@ -98,11 +99,7 @@ class BlogSearch {
 
     // Set worker and then inittialize.
     this.workerFactory = getWorkerFactory();
-    new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load().then(sqlite => {
-      // eslint-disable-next-line no-console
-      console.log('SQLite loaded!');
-      this.sqlite = sqlite;
-    });
+    this.sqlitePromise = new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load();
 
     // autocomplete.js configuration
     this.input = BlogSearch.getInputFromSelector(inputSelector);
@@ -158,6 +155,12 @@ class BlogSearch {
       }
       return () => new Worker(workerDir);
     }
+  }
+
+  public async load(): Promise<BlogSearch>{
+    this.sqlite = await this.sqlitePromise;
+    const meta = this.sqlite.run("SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';")
+    return this;
   }
 
   /**
