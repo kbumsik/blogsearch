@@ -48,8 +48,8 @@ const usage = `Usage:
 interface Config {
   workerFactory?: () => Worker;
   inputSelector: string;
-  debug: boolean;
-  autocompleteOptions: {
+  debug?: boolean;
+  autocompleteOptions?: {
     debug: boolean;
     hint: boolean;
     autoselect: boolean;
@@ -58,7 +58,7 @@ interface Config {
     };
     ariaLabel?: string;
   };
-  layout: 'columns' | 'simple';
+  layout?: 'columns' | 'simple';
 }
 
 type Args = Config & SQLiteConfig;
