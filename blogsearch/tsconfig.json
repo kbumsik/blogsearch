@@ -7,5 +7,5 @@
     "target": "es6",
   },
   "include": ["src/**/*.ts"],
-  "exclude": []
+  "exclude": ["**/__tests__/*"]
 }
