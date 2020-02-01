@@ -217,5 +217,95 @@ describe('BlogSearch', () => {
       expect(mockAutoCompleteOn.mock.calls[0][0]).toBe('autocomplete:selected');
     });
   });
+
+  describe('checkArguments', () => {
+    ///@ts-ignore
+    let checkArguments: typeof BlogSearch.checkArguments;
+    let defaultArgs: ConstructorParameters<typeof BlogSearch>[0];
+
+    beforeEach(() => {
+      ///@ts-ignore
+      checkArguments = BlogSearch.checkArguments;
+      defaultArgs = {
+        workerFactory: (() => {}) as any,
+        dbPath: 'test.db.bin',
+        wasmPath: 'test.wasm',
+        inputSelector: '#input',
+      };
+    });
+
+    it('should throw an error if no dbPath defined', () => {
+      // Given
+      const options = defaultArgs;
+      delete options.dbPath;
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Usage:/);
+    });
+    it('should throw an error if dbPath is empty string', () => {
+      // Given
+      const options = { ...defaultArgs, dbPath: '' };
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Usage:/);
+    });
+    it('should throw an error if no wasmPath defined', () => {
+      // Given
+      const options = defaultArgs;
+      delete options.wasmPath;
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Usage:/);
+    });
+    it('should throw an error if wasmPath is empty string', () => {
+      // Given
+      const options = { ...defaultArgs, wasmPath: '' };
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Usage:/);
+    });
+    it('should pass if no workerFactory defined', () => {
+      // Given
+      const options = defaultArgs;
+      delete options.workerFactory;
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).not.toThrow(/^Usage:/);
+    });
+    it('should throw an error if workerFactory is not function', () => {
+      // Given
+      const options = { ...defaultArgs, workerFactory: {} as any };
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Usage:/);
+    });
+    it('should throw an error if no selector matches', () => {
+      // Given
+      const options = defaultArgs;
+      const getInputFromSelector = jest.spyOn(
+        BlogSearch,
+        'getInputFromSelector'
+      ) as jest.SpyInstance;
+      getInputFromSelector.mockImplementation(() => false);
+
+      // When
+      expect(() => {
+        checkArguments(options);
+      }).toThrow(/^Error:/);
+      getInputFromSelector.mockRestore();
+    });
+  });
 });
 /* eslint-enable no-new, spaced-comment */
