@@ -1,9 +1,10 @@
 /* eslint-disable no-new, spaced-comment */
 import $ from '../zepto';
 import { QueryResult } from '../sqlite/api';
-import BlogSearch from '../BlogSearch';
+import Hogan from 'hogan.js';
 // @ts-ignore
 import autocomplete from 'autocomplete.js';
+import BlogSearch from '../BlogSearch';
 
 jest.mock('../SQLite');
 //@ts-ignore
@@ -25,6 +26,20 @@ import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../SQLi
 // Catch any error inside of promise
 process.on('unhandledRejection', err => {
   fail(err);
+});
+
+/**
+ * Mocks for Hogan and template
+ */
+jest.mock('../templates', () => ({
+  suggestion: '<div></div>',
+}));
+
+const mockHoganRender = jest.fn();
+jest.mock('hogan.js', () => {
+  return {
+    compile: jest.fn(() => ({ render: mockHoganRender })),
+  };
 });
 
 /**
@@ -82,12 +97,16 @@ describe('BlogSearch', () => {
 
     ((autocomplete as unknown) as jest.Mock).mockClear();
     mockAutoCompleteOn.mockClear();
+
+    ((Hogan.compile as unknown) as jest.Mock).mockClear();
+    mockHoganRender.mockClear();
   });
 
   describe('constructor', () => {
     let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
-    const emptyWorker = {};
-    const mockWorkerFactory = jest.fn(() => emptyWorker);
+    const mockWorkerFactory = jest.fn(() => {
+      return {};
+    });
     const getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
     const checkArguments = jest.spyOn(BlogSearch, 'checkArguments') as jest.SpyInstance;
 
@@ -132,7 +151,7 @@ describe('BlogSearch', () => {
       expect(SQLite).toHaveBeenLastCalledWith({
         wasmPath: 'test.wasm',
         dbPath: 'test.db.bin',
-        worker: emptyWorker,
+        worker: {},
       });
       expect(mockWorkerFactory).toBeCalledTimes(1);
     });
@@ -305,6 +324,155 @@ describe('BlogSearch', () => {
         checkArguments(options);
       }).toThrow(/^Error:/);
       getInputFromSelector.mockRestore();
+    });
+  });
+
+  describe('getInputFromSelector', () => {
+    ///@ts-ignore
+    let getInputFromSelector: typeof BlogSearch.getInputFromSelector;
+
+    beforeEach(() => {
+      ///@ts-ignore
+      getInputFromSelector = BlogSearch.getInputFromSelector;
+    });
+
+    it('should return null if no element matches the selector', () => {
+      // Given
+      const selector = '.i-do-not-exist > at #all';
+
+      // When
+      const actual = getInputFromSelector(selector);
+
+      // Then
+      expect(actual).toEqual(null);
+    });
+    it('should return null if the matched element is not an input', () => {
+      // Given
+      const selector = '.i-am-a-span';
+
+      // When
+      const actual = getInputFromSelector(selector);
+
+      // Then
+      expect(actual).toEqual(null);
+    });
+    it('should return a Zepto wrapped element if it matches', () => {
+      // Given
+      const selector = '#input';
+
+      // When
+      const actual = getInputFromSelector(selector);
+
+      // Then
+      ///@ts-ignore
+      expect($.zepto.isZ(actual)).toBe(true);
+    });
+  });
+
+
+  describe('handleSelected', () => {
+    let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
+    const mockAssign = (jest.spyOn(
+      window.location,
+      'assign'
+    ) as jest.SpyInstance).mockImplementation();
+
+    afterAll(() => {
+      mockAssign.mockRestore();
+    });
+
+    beforeEach(() => {
+      defaultOptions = {
+        dbPath: 'test.db.bin',
+        wasmPath: 'test.wasm',
+        inputSelector: '#input',
+      };
+    });
+
+    afterEach(() => {
+      mockAssign.mockClear();
+    });
+
+    describe('default handleSelected', () => {
+      it('enterKey: should change the page', () => {
+        const options = defaultOptions;
+        const mockSetVal = jest.fn();
+        const mockInput = { setVal: mockSetVal };
+        const mockSuggestion = { url: 'www.example.com' };
+        const mockContext = { selectionMethod: 'enterKey' };
+
+        (new BlogSearch(options) as any).handleSelected(
+          mockInput,
+          undefined, // Event
+          mockSuggestion,
+          undefined, // Dataset
+          mockContext
+        );
+
+        return new Promise(resolve => {
+          expect(mockSetVal).toHaveBeenCalledWith('');
+          expect(window.location.assign).toHaveBeenCalledWith('www.example.com');
+          resolve();
+        });
+      });
+      it('click: should not change the page', () => {
+        const options = defaultOptions;
+        const mockSetVal = jest.fn();
+        const mockInput = { setVal: mockSetVal };
+        const mockContext = { selectionMethod: 'click' };
+
+        (new BlogSearch(options) as any).handleSelected(
+          mockInput,
+          undefined, // Event
+          undefined, // Suggestion
+          undefined, // Dataset
+          mockContext
+        );
+
+        return new Promise(resolve => {
+          expect(mockSetVal).not.toHaveBeenCalled();
+          expect(window.location.assign).not.toHaveBeenCalled();
+          resolve();
+        });
+      });
+    });
+  });
+
+  describe('getSuggestionTemplate', () => {
+    it('should return a function', () => {
+      // Given
+
+      // When
+      ///@ts-ignore
+      const actual = BlogSearch.getSuggestionTemplate();
+
+      // Then
+      expect(actual).toBeInstanceOf(Function);
+    });
+    describe('returned function', () => {
+      it('should compile the suggestion template', () => {
+        // Given
+
+        // When
+        ///@ts-ignore
+        BlogSearch.getSuggestionTemplate();
+
+        // Then
+        expect(Hogan.compile).toBeCalledTimes(1);
+        expect(Hogan.compile).toHaveBeenLastCalledWith('<div></div>');
+      });
+      it('should call render on a Hogan template', () => {
+        // Given
+        ///@ts-ignore
+        const actual = BlogSearch.getSuggestionTemplate();
+
+        // When
+        actual({ foo: 'bar' });
+
+        // Then
+        expect(mockHoganRender).toBeCalledTimes(1);
+        expect(mockHoganRender.mock.calls[0][0].foo).toBe('bar');
+      });
     });
   });
 });
