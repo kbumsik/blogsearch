@@ -62,14 +62,9 @@ export default class SQLite {
     if (raw.length === 0) {
       return [];
     }
-    const searchResult = raw[0];
-    return searchResult.values.map(row => {
-      return searchResult.columns.reduce((result, columnName, columnIndex) => {
-        // [TODO] Make sure typing are strings
-        // eslint-disable-next-line no-param-reassign
-        result[columnName] = row[columnIndex] as string;
-        return result;
-      }, {} as SearchResult);
+    const { columns, values } = raw[0];
+    return values.map(rowValues => {
+      return Object.fromEntries(zip(columns, rowValues));
     });
   }
 
@@ -101,6 +96,22 @@ export default class SQLite {
         sql: query,
       });
     });
+  }
+}
+
+/**
+ * The same as python's built-in zip function.
+ * @param arrays arrays of arrays of the same size.
+ */
+function* zip(...arrays: any[]) {
+  const numOfArrays = arrays.length;
+  const arrayLength = arrays[0].length;
+  for (let i = 0; i < arrayLength; i++) {
+    const row = [];
+    for (let j = 0; j < numOfArrays; j++) {
+      row.push(arrays[j][i]);
+    }
+    yield row;
   }
 }
 
