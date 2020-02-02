@@ -1,4 +1,4 @@
-/* eslint-disable no-new, spaced-comment */
+/* eslint-disable no-new, spaced-comment, max-len */
 import $ from '../zepto';
 import { QueryResult } from '../sqlite/api';
 import Hogan from 'hogan.js';
@@ -456,74 +456,8 @@ describe('BlogSearch', () => {
       });
     });
 
-  });
 
-  describe('handleSelected', () => {
-    let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
-    const mockAssign = (jest.spyOn(
-      window.location,
-      'assign'
-    ) as jest.SpyInstance).mockImplementation();
 
-    afterAll(() => {
-      mockAssign.mockRestore();
-    });
-
-    beforeEach(() => {
-      defaultOptions = {
-        dbPath: 'test.db.bin',
-        wasmPath: 'test.wasm',
-        inputSelector: '#input',
-      };
-    });
-
-    afterEach(() => {
-      mockAssign.mockClear();
-    });
-
-    describe('default handleSelected', () => {
-      it('enterKey: should change the page', () => {
-        const options = defaultOptions;
-        const mockSetVal = jest.fn();
-        const mockInput = { setVal: mockSetVal };
-        const mockSuggestion = { url: 'www.example.com' };
-        const mockContext = { selectionMethod: 'enterKey' };
-
-        (new BlogSearch(options) as any).handleSelected(
-          mockInput,
-          undefined, // Event
-          mockSuggestion,
-          undefined, // Dataset
-          mockContext
-        );
-
-        return new Promise(resolve => {
-          expect(mockSetVal).toHaveBeenCalledWith('');
-          expect(window.location.assign).toHaveBeenCalledWith('www.example.com');
-          resolve();
-        });
-      });
-      it('click: should not change the page', () => {
-        const options = defaultOptions;
-        const mockSetVal = jest.fn();
-        const mockInput = { setVal: mockSetVal };
-        const mockContext = { selectionMethod: 'click' };
-
-        (new BlogSearch(options) as any).handleSelected(
-          mockInput,
-          undefined, // Event
-          undefined, // Suggestion
-          undefined, // Dataset
-          mockContext
-        );
-
-        return new Promise(resolve => {
-          expect(mockSetVal).not.toHaveBeenCalled();
-          expect(window.location.assign).not.toHaveBeenCalled();
-          resolve();
-        });
-      });
-    });
   });
 
   describe('getSuggestionTemplate', () => {
@@ -564,4 +498,4 @@ describe('BlogSearch', () => {
     });
   });
 });
-/* eslint-enable no-new, spaced-comment */
+/* eslint-enable no-new, spaced-comment, max-len */
