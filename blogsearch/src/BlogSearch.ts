@@ -216,10 +216,11 @@ class BlogSearch {
       if (typeof this.sqlite === 'undefined') {
         throw new Error('Error: Search engine is not loaded.');
       }
-      const data = await this.sqlite.search(query, 5);
+      const searchResult = await this.sqlite.search(query, 5);
       // eslint-disable-next-line no-console
-      console.log(data);
-      callback(formatSuggestions(data));
+      if (searchResult.length > 0) {
+        callback(formatSuggestions(searchResult));
+      }
       return;
 
       function formatSuggestions(results: SQLiteResult[]): Suggestion[] {

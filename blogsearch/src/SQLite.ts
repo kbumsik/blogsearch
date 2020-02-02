@@ -49,11 +49,22 @@ export default class SQLite {
     });
   }
 
-  public async search(match: string, top: number = 5): Promise<SearchResult[]> {
-    const query = `SELECT * FROM blogsearch WHERE blogsearch MATCH '${match}' ORDER BY bm25(blogsearch) LIMIT ${top};`;
-    const raw = (await this.run(query))[0];
-    return raw.values.map(row => {
-      return raw.columns.reduce((result, columnName, columnIndex) => {
+  public async search(match: string, top: number): Promise<SearchResult[]> {
+    const query = `
+      SELECT *
+      FROM blogsearch
+      WHERE blogsearch 
+        MATCH '${match}'
+      ORDER BY bm25(blogsearch)
+      LIMIT ${top};
+    `;
+    const raw = await this.run(query);
+    if (raw.length === 0) {
+      return [];
+    }
+    const searchResult = raw[0];
+    return searchResult.values.map(row => {
+      return searchResult.columns.reduce((result, columnName, columnIndex) => {
         // [TODO] Make sure typing are strings
         // eslint-disable-next-line no-param-reassign
         result[columnName] = row[columnIndex] as string;
