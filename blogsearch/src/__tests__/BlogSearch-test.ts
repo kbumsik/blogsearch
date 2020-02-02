@@ -107,7 +107,9 @@ describe('BlogSearch', () => {
     const mockWorkerFactory = jest.fn(() => {
       return {};
     });
+    ///@ts-ignore
     const getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
+    ///@ts-ignore
     const checkArguments = jest.spyOn(BlogSearch, 'checkArguments') as jest.SpyInstance;
 
     afterAll(() => {
@@ -224,12 +226,62 @@ describe('BlogSearch', () => {
         ariaLabel: 'search input',
       } as any);
     });
-    it('should listen to the selected and shown event of autocomplete', () => {
+    it('should not initialize this.sqlite object', () => {
+      // Given
+      const options = defaultOptions;
+
+      // When
+      const blogsearch = new BlogSearch(options);
+
+      // Then
+      ///@ts-ignore
+      expect(typeof blogsearch.sqlite).toBe('undefined');
+    });
+  });
+
+  describe('load', () => {
+    let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
+
+    beforeEach(() => {
+      defaultOptions = {
+        dbPath: 'test.db.bin',
+        wasmPath: 'test.wasm',
+        inputSelector: '#input',
+      };
+    });
+
+    it('should initialize this.sqlite object', async () => {
+      // Given
+      const options = defaultOptions;
+
+      // When
+      const blogsearch = new BlogSearch(options);
+      await blogsearch.load();
+
+      // Then
+      ///@ts-ignore
+      expect(typeof blogsearch.sqlite).toBe('object');
+    });
+    it('should look up sqlite_master table to fetch metadata', async () => {
+      // Given
+      const options = defaultOptions;
+
+      // When
+      const blogsearch = new BlogSearch(options);
+      await blogsearch.load();
+
+      // Then
+      ///@ts-ignore
+      expect(mockSQLiteRun).toBeCalledTimes(1);
+      expect(mockSQLiteRun.mock.calls[0][0]).toMatch(/sqlite_master/);
+    });
+    it('should listen to the selected and shown event of autocomplete', async () => {
       // Given
       const options = { ...defaultOptions, handleSelected() {} };
 
       // When
-      new BlogSearch(options);
+      const blogsearch = new BlogSearch(options);
+      await blogsearch.load();
 
       // Then
       expect(mockAutoCompleteOn).toBeCalledTimes(2);
@@ -313,10 +365,8 @@ describe('BlogSearch', () => {
     it('should throw an error if no selector matches', () => {
       // Given
       const options = defaultArgs;
-      const getInputFromSelector = jest.spyOn(
-        BlogSearch,
-        'getInputFromSelector'
-      ) as jest.SpyInstance;
+      ///@ts-ignore
+      const getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
       getInputFromSelector.mockImplementation(() => false);
 
       // When
@@ -369,6 +419,44 @@ describe('BlogSearch', () => {
     });
   });
 
+  describe('getAutocompleteSource', () => {
+    let blogsearch: BlogSearch;
+    beforeEach(async () => {
+      blogsearch = new BlogSearch({
+        dbPath: 'test.db.bin',
+        wasmPath: 'test.wasm',
+        inputSelector: '#input',
+      });
+      await blogsearch.load();
+    });
+
+    it('returns a function', () => {
+      // Given
+      ///@ts-ignore
+      const actual = blogsearch.getAutocompleteSource();
+
+      // When
+
+      // Then
+      expect(actual).toBeInstanceOf(Function);
+    });
+
+    describe('the returned function', () => {
+      it('calls the sqlite client with the correct parameters', () => {
+        // Given
+        ///@ts-ignore
+        const actual = blogsearch.getAutocompleteSource();
+
+        // When
+        actual('query', () => {});
+
+        // Then
+        expect(mockSQLiteSearch).toBeCalledTimes(1);
+        expect(mockSQLiteSearch).toHaveBeenLastCalledWith('query', 5);
+      });
+    });
+
+  });
 
   describe('handleSelected', () => {
     let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
