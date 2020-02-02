@@ -126,11 +126,6 @@ class BlogSearch {
         },
       },
     ]);
-    this.autocomplete.on(
-      'autocomplete:selected',
-      this.handleSelected.bind(null, this.autocomplete.autocomplete)
-    );
-    this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
     return;
 
     function getWorkerFactory() {
@@ -159,7 +154,16 @@ class BlogSearch {
 
   public async load(): Promise<BlogSearch>{
     this.sqlite = await this.sqlitePromise;
-    const meta = this.sqlite.run("SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';")
+    const meta = await this.sqlite.run("SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';")
+    
+    this.autocomplete.on(
+      'autocomplete:selected',
+      this.handleSelected.bind(null, this.autocomplete.autocomplete)
+    );
+    this.autocomplete.on(
+      'autocomplete:shown',
+      this.handleShown.bind(null, this.input)
+    );
     return this;
   }
 
@@ -209,10 +213,14 @@ class BlogSearch {
       query: string,
       callback: (suggestion: Suggestion[]) => void
     ) => {
-      const data = await this.sqlite.search(query);
+      if (typeof this.sqlite === 'undefined') {
+        throw new Error('Error: Search engine is not loaded.');
+      }
+      const data = await this.sqlite.search(query, 5);
       // eslint-disable-next-line no-console
       console.log(data);
       callback(formatSuggestions(data));
+      return;
 
       function formatSuggestions(results: SQLiteResult[]): Suggestion[] {
         return results.map(
