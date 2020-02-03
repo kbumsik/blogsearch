@@ -246,7 +246,7 @@ class BlogSearch {
               category: row.title,
               subcategory: row.title,
               title: row.title,
-              text: 'row.body',
+              text: row.body,
               url: row.url,
             };
           }

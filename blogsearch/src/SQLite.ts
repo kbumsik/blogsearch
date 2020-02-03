@@ -66,8 +66,12 @@ export default class SQLite {
   }
 
   public async search(match: string, top: number): Promise<SearchResult[]> {
+    // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
-      SELECT *
+      SELECT
+        title,
+        snippet(blogsearch, 1, '{{%%%', '%%%}}', '', 10) as body,
+        url 
       FROM blogsearch
       WHERE blogsearch 
         MATCH '${match}'
@@ -79,9 +83,16 @@ export default class SQLite {
       return [];
     }
     const { columns, values } = raw[0];
-    return values.map(rowValues => {
-      return Object.fromEntries(zip(columns, rowValues));
-    });
+    return values
+      .filter(row => row[0])  // Filter empty title
+      .map(row => {
+        // filter body string
+        // eslint-disable-next-line no-param-reassign
+        row[1] = escapeXMLCharacters(row[1] as string)
+          .replace(/{{%%%/g, `<span class="algolia-docsearch-suggestion--highlight">`)
+          .replace(/%%%}}/g, `</span>`);
+        return Object.fromEntries(zip(columns, row))
+      });
   }
 
   public run(query: string): Promise<QueryResult[]> {
@@ -129,6 +140,22 @@ function* zip(...arrays: any[]) {
     }
     yield row;
   }
+}
+
+/**
+ * Escape XML tag characters, from the W3C recommendation.
+ * https://www.w3.org/International/questions/qa-escapes#use
+ * @param input unsafe string
+ */
+function escapeXMLCharacters(input: string) {
+  return input.replace(/[<>&]/g, c => {
+    switch (c) {
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      default: throw new Error('Error: XML escape Error.');
+    }
+  });
 }
 
 export { Config };
