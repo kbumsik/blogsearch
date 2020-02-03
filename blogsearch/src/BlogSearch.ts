@@ -186,6 +186,7 @@ class BlogSearch {
     if (
       /* eslint-disable prettier/prettier */
       typeof args.dbPath !== 'string' || !args.dbPath ||
+      typeof args.wasmPath !== 'string' || !args.wasmPath ||
       typeof args.inputSelector !== 'string' || !args.inputSelector ||
       (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
       /* eslint-enable prettier/prettier */
