@@ -1,8 +1,7 @@
 import Hogan from 'hogan.js';
-// import algoliasearch from 'algoliasearch/lite';
 // @ts-ignore
 import autocomplete from 'autocomplete.js';
-import type { Config as SQLiteConfig } from './sqlite/worker';
+import { SQLiteConfig } from './sqlite/worker-interface';
 import SQLite, { SearchResult as SQLiteResult } from './SQLite';
 import templates from './templates';
 import $ from './zepto';
@@ -13,7 +12,7 @@ declare global {
     blogsearch: BlogSearch & {
       // blogsearch.worker is also imported by its own UMD.
       // In this case, you can it blob to get URL to use with Woker().
-      worker?: Worker
+      worker?: Worker;
     };
   }
 }

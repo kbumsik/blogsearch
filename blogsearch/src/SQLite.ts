@@ -1,13 +1,24 @@
-import type { Config, WorkerMessage } from './sqlite/worker';
-import type { QueryResult, SQLResultColumns } from './sqlite/api';
+import {
+  SQLiteConfig,
+  WorkerMessage,
+  QueryResult,
+  SQLResultColumns,
+} from './sqlite/worker-interface';
 
 declare global {
   interface Worker {
+    /**
+     * Override addEventListener to narrow its usage to handle WorkerMessage.Response.
+     */
     addEventListener(
       type: 'message',
       handler: (e: { data: WorkerMessage.Response }) => any,
       option: { once: true }
     ): void;
+    /**
+     * Override postMessage to narrow its usage
+     * from (message: any) to (message: WorkerMessage.Command).
+     */
     postMessage(message: WorkerMessage.Command, transfer?: Transferable[]): void;
   }
 }
@@ -21,7 +32,7 @@ export default class SQLite {
   private wasmPath?: string;
   private sqlWorker: Worker;
 
-  public constructor({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
+  public constructor({ dbPath, wasmPath, worker }: SQLiteConfig & { worker: Worker }) {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;

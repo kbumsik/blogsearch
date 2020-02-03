@@ -2,7 +2,7 @@
  * Mocks for SQLite
  */
 import { SearchResult } from '../SQLite';
-import { QueryResult } from '../sqlite/api';
+import { QueryResult } from '../sqlite/worker-interface';
 
 export const mockSQLiteLoad = jest.fn(function() {
   return Promise.resolve(this);

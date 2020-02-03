@@ -1,6 +1,5 @@
 /* eslint-disable no-new, spaced-comment, max-len */
 import $ from '../zepto';
-import { QueryResult } from '../sqlite/api';
 import Hogan from 'hogan.js';
 // @ts-ignore
 import autocomplete from 'autocomplete.js';

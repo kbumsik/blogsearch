@@ -1,89 +1,25 @@
-import type {
-  QueryResult,
-  SQLResultColumns,
-  SQLParameterArray,
-  SQLParameterFields,
-} from './api';
+// [WARNING] The top-level imports must be type imports only.
+//   Importing actual motule will hoist outside of initWorker() function,
+//   making it difficult to wrap around it for UMD Web Worker function.
 import type { SQLite3Module } from './sqlite3-emscripten';
+import type { SQLResultColumns, Database } from './sqlite3';
+import type { WorkerMessage } from './worker-interface';
 
-export interface Config {
-  dbPath: string;
-  wasmPath?: string;
+declare global {
+  /**
+   * Override postMessage to narrow its usage
+   * from (message: any) to (message: WorkerMessage.Response).
+   */
+  // eslint-disable-next-line no-implicit-globals, no-redeclare
+  function postMessage(message: WorkerMessage.Response, transfer?: Transferable[]): void;
 }
-
-export interface Query {
-  sql: string;
-  params?: SQLParameterArray | SQLParameterFields;
-}
-
-export namespace WorkerMessage {
-  export type Command =
-    | OpenCommand
-    | ExecCommand
-    | EachCommand
-    | ExportCommand
-    | CloseCommand;
-  export type Response =
-    | OpenResponse
-    | ExecResponse
-    | EachResponse
-    | ExportResponse
-    | CloseResponse;
-
-  interface OpenCommand extends Config {
-    command: 'open';
-  }
-  interface OpenResponse {
-    respondTo: OpenCommand['command'];
-    success: boolean;
-  }
-
-  interface ExecCommand extends Query {
-    command: 'exec';
-  }
-  interface ExecResponse {
-    respondTo: ExecCommand['command'];
-    results: QueryResult[];
-  }
-
-  interface EachCommand extends Required<Query> {
-    command: 'each';
-  }
-  interface EachResponse {
-    respondTo: EachCommand['command'];
-    row: SQLResultColumns;
-    end: boolean;
-  }
-
-  interface ExportCommand {
-    command: 'export';
-  }
-  interface ExportResponse {
-    respondTo: ExportCommand['command'];
-    buffer: ArrayBuffer;
-  }
-
-  interface CloseCommand {
-    command: 'close';
-  }
-  interface CloseResponse {
-    respondTo: CloseCommand['command'];
-    success: boolean;
-  }
-}
-
-/**
- * Override postMessage to narrow its usage
- * from (message: any) to (message: WorkerMessage.Response).
- */
-declare function postMessage(message: WorkerMessage.Response, transfer?: Transferable[]): void;
 
 export default async function initWorker() {
-  const sqlite3 = (await import('./sqlite3-emscripten')).default;
-  const { Database } = await import('./api');
-  const loadWasm = wasmLoader(sqlite3 as EmscriptenModule);
+  const sqlite3Module = (await import('./sqlite3-emscripten')).default;
+  const sqlit3API = await import('./sqlite3');
+  const loadWasm = wasmLoader(sqlite3Module as EmscriptenModule);
   /** @type {Database} I import Database dynamically as value so I cannot use typeof Database. */
-  let db: any;
+  let db: Database;
 
   onmessage = async function(e: { data: WorkerMessage.Command }) {
     console.log(e);
@@ -96,7 +32,7 @@ export default async function initWorker() {
         const dbBuffer = fetch(data.dbPath).then(r => r.arrayBuffer());
         // sqlite = (await loadWasm(data.wasmPath)) as EmscriptenModule;
         const sqliteModule = (await loadWasm(data.wasmPath)) as SQLite3Module;
-        db = new Database(sqliteModule, new Uint8Array(await dbBuffer));
+        db = new sqlit3API.Database(sqliteModule, new Uint8Array(await dbBuffer));
         postMessage({ respondTo: 'open', success: true });
         break;
       }
