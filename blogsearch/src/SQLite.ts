@@ -25,6 +25,20 @@ export default class SQLite {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;
+    this.sqlWorker.onerror = (error) => {
+      const message = (() => {
+        if (error instanceof ErrorEvent) {
+          return [
+            `FileName: ${  error.filename}`,
+            `LineNumber: ${  error.lineno}`,
+            `Message: ${  error.message}`
+          ].join(' - ');
+        } else {
+          return error;
+        }
+      })();
+      console.error(message);
+    }
   }
 
   public load(): Promise<SQLite> {
