@@ -388,18 +388,14 @@ class Database {
    */
   public constructor(wasm: SQLite3Module, data?: ArrayBufferView) {
     this.wasm = wasm;
-    console.log(wasm)
     // eslint-disable-next-line no-bitwise
     this.filename = `dbfile_${(0xffffffff * Math.random()) >>> 0}`;
     if (typeof data !== 'undefined') {
       this.wasm.FS.createDataFile('/', this.filename, data, true, true);
-      console.log(this.filename, 'created');
-      console.log(this.wasm.FS.stat(this.filename));
     }
     this.handleError(this.wasm.sqlite3_open(`${this.filename}`, this.wasm.tempInt32));
     this.dbPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
-    console.log(this.wasm.FS.stat(this.filename));
-    // RegisterExtensionFunctions(this.db);
+    // [TODO] Look into RegisterExtensionFunctions(this.db);
     this.statements = {};
     this.functions = {};
   }
