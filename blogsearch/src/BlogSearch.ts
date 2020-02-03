@@ -7,6 +7,17 @@ import SQLite, { SearchResult as SQLiteResult } from './SQLite';
 import templates from './templates';
 import $ from './zepto';
 
+declare global {
+  interface Window {
+    // 'blogsearch' object will be available when imported by UMD using <script> tag. 
+    blogsearch: BlogSearch & {
+      // blogsearch.worker is also imported by its own UMD.
+      // In this case, you can it blob to get URL to use with Woker().
+      worker?: Worker
+    };
+  }
+}
+
 type JQueryElement = any; // This is a temporary type to use with zepto.
 
 interface Suggestion {
@@ -133,21 +144,19 @@ class BlogSearch {
         return workerFactory;
       }
       // Get current directory for worker
-      let workerDir = '';
-      if (document.currentScript) {
-        workerDir = (document.currentScript as HTMLScriptElement).src;
-      } else if (self.location) {
-        workerDir = self.location.href;
-      }
-      workerDir = `${workerDir.substr(0, workerDir.lastIndexOf('/'))}/worker.umd.js`;
-      // 'blogsearch' object will be available when imported by UMD using
-      // <script> tag. blogsearch.worker is also imported by its own UMD.
-      // In this case, make it blob to get URL.
-      // @ts-ignore
-      if (typeof window?.blogsearch?.worker === 'function') {
-        // @ts-ignore
-        workerDir = URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
-      }
+      const workerDir = (() => {
+        if (typeof window?.blogsearch?.worker === 'function') {
+          // See the global delcaration in the top of this file
+          return URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
+        } else {
+          const curDir =
+            document.currentScript ? (document.currentScript as HTMLScriptElement).src :
+            self.location ? self.location.href :
+            '';
+          // This assumes that worker.umd.js is available in the NPM package.
+          return `${curDir.substr(0, curDir.lastIndexOf('/'))}/worker.umd.js`;
+        }
+      })();
       return () => new Worker(workerDir);
     }
   }
