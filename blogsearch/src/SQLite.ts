@@ -1,18 +1,20 @@
 import type { Config, WorkerMessage } from './sqlite/worker';
 import type { QueryResult, SQLResultColumns } from './sqlite/api';
 
+declare global {
+  interface Worker {
+    addEventListener(
+      type: 'message',
+      handler: (e: { data: WorkerMessage.Response }) => any,
+      option: { once: true }
+    ): void;
+    postMessage(message: WorkerMessage.Command, transfer?: Transferable[]): void;
+  }
+}
+
 export type SearchResult = {
   [field in keyof SQLResultColumns]: string;
 };
-
-interface Worker {
-  addEventListener(
-    type: 'message',
-    handler: (e: { data: WorkerMessage.Response }) => any,
-    option: { once: true }
-  ): void;
-  postMessage(message: WorkerMessage.Command, transfer?: Transferable[]): void;
-}
 
 export default class SQLite {
   private dbPath: string;
