@@ -8,14 +8,6 @@ import {
 declare global {
   interface Worker {
     /**
-     * Override addEventListener to narrow its usage to handle WorkerMessage.Response.
-     */
-    addEventListener(
-      type: 'message',
-      handler: (e: { data: WorkerMessage.Response }) => any,
-      option: { once: true }
-    ): void;
-    /**
      * Override postMessage to narrow its usage
      * from (message: any) to (message: WorkerMessage.Command).
      */
@@ -36,42 +28,35 @@ export default class SQLite {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;
-    this.sqlWorker.onerror = (error) => {
+    this.sqlWorker.onerror = error => {
       const message = (() => {
         if (error instanceof ErrorEvent) {
           return [
-            `FileName: ${  error.filename}`,
-            `LineNumber: ${  error.lineno}`,
-            `Message: ${  error.message}`
+            `FileName: ${error.filename}`,
+            `LineNumber: ${error.lineno}`,
+            `Message: ${error.message}`,
           ].join(' - ');
         } else {
           return error;
         }
       })();
+      // eslint-disable-next-line no-console
       console.error(message);
-    }
+    };
   }
 
   public load(): Promise<SQLite> {
     return new Promise((resolve, reject) => {
-      this.sqlWorker.addEventListener(
-        'message',
-        (e) => {
-          if (e.data.respondTo !== 'open') {
-            reject(Error('Internal Error: response is not open'));
-            return;
-          } else if (!e.data.success) {
-            reject(Error('Internal Error: open failed'));
-            return;
-          }
-          // eslint-disable-next-line no-console
-          console.log('db loaded!');
-          // Execute "SELECT `name`, `sql`  FROM `sqlite_master`  WHERE type='table';"?
-          resolve(this);
-        },
-        { once: true }
-      );
-      console.log('posting message...');
+      this.handleMessageFromWorker(response => {
+        if (response.respondTo !== 'open') {
+          reject(new Error('Internal Error: response is not open'));
+          return;
+        } else if (!response.success) {
+          reject(new Error('Internal Error: open failed'));
+          return;
+        }
+        resolve(this);
+      });
       this.sqlWorker.postMessage({ command: 'open', dbPath: this.dbPath, wasmPath: this.wasmPath });
     });
   }
@@ -95,45 +80,45 @@ export default class SQLite {
     }
     const { columns, values } = raw[0];
     return values
-      .filter(row => row[0])  // Filter empty title
+      .filter(row => row[0]) // Filter empty title
       .map(row => {
         // filter body string
         // eslint-disable-next-line no-param-reassign
         row[1] = escapeXMLCharacters(row[1] as string)
           .replace(/{{%%%/g, `<span class="algolia-docsearch-suggestion--highlight">`)
           .replace(/%%%}}/g, `</span>`);
-        return Object.fromEntries(zip(columns, row))
+        return Object.fromEntries(zip(columns, row));
       });
   }
 
   public run(query: string): Promise<QueryResult[]> {
     return new Promise((resolve, reject) => {
-      this.sqlWorker.addEventListener(
-        'message',
-        e => {
-          if (e.data.respondTo !== 'exec') {
-            reject(Error('Internal Error: response is not exec'));
-            return;
-          }
-          const { results } = e.data;
-          // eslint-disable-next-line no-console
-          console.log(results);
-          for (let i = 0; i < results.length; i++) {
-            const record = results[i];
-            // eslint-disable-next-line no-console
-            console.log(record.columns);
-            // eslint-disable-next-line no-console
-            console.log(record.values);
-          }
-          resolve(results);
-        },
-        { once: true }
-      );
+      this.handleMessageFromWorker(response => {
+        if (response.respondTo !== 'exec') {
+          reject(new Error('Internal Error: response is not exec'));
+          return;
+        }
+        resolve(response.results);
+      });
       this.sqlWorker.postMessage({
         command: 'exec',
         sql: query,
       });
     });
+  }
+
+  /**
+   * Wrapper for to narrow usage of worker handler.
+   * @param handler Handler for worker response
+   */
+  private handleMessageFromWorker(handler: (response: WorkerMessage.Response) => any) {
+    this.sqlWorker.addEventListener(
+      'message',
+      e => {
+        handler(e.data);
+      },
+      { once: true }
+    );
   }
 }
 
@@ -161,12 +146,14 @@ function* zip(...arrays: any[]) {
 function escapeXMLCharacters(input: string) {
   return input.replace(/[<>&]/g, c => {
     switch (c) {
-      case '&': return '&amp;';
-      case '<': return '&lt;';
-      case '>': return '&gt;';
-      default: throw new Error('Error: XML escape Error.');
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      default:
+        throw new Error('Error: XML escape Error.');
     }
   });
 }
-
-export { Config };
