@@ -131,7 +131,7 @@ debug: all
 ################################################################################
 # Building JS
 ################################################################################
-TS_SRC = $(shell find src/ -type f -name '*.ts')
+TS_SRC = $(shell find src/ -type f -name '*.ts' -not -path "src/__mocks__/*" -not -path "src/__tests__/*")
 # Basically: lib/*.js
 JS_SRC = $(filter-out %.d.js, $(patsubst src/%, lib/%, $(TS_SRC:%.ts=%.js)))
 JS_SRC += lib/sqlite/sqlite3-emscripten.js
