@@ -1,8 +1,8 @@
 /**
  * Mocks for SQLite
  */
-import { SearchResult } from '../SQLite';
-import { QueryResult } from '../sqlite/worker-interface';
+// eslint-disable-next-line prettier/prettier
+import type { SearchResult, QueryResult } from '../';
 
 export const mockSQLiteLoad = jest.fn(function() {
   return Promise.resolve(this);

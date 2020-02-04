@@ -4,8 +4,7 @@ import autocomplete, {
   AutocompleteElement,
   AutocompleteOptions,
 } from './autocomplete.js';
-import { SQLiteConfig } from './sqlite/worker-interface';
-import SQLite, { SearchResult as SQLiteResult } from './SQLite';
+import SQLite, { SearchResult as SQLiteResult, SQLiteConfig } from './sqlite';
 import templates from './templates';
 import $ from './zepto';
 

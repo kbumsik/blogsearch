@@ -1,8 +1,8 @@
 import blogsearch from '../index';
 import BlogSearch from '../BlogSearch';
 
-jest.mock('../SQLite');
-import SQLite from '../SQLite';
+jest.mock('../sqlite');
+import SQLite from '../sqlite';
 
 // Catch any error inside of promise
 process.on('unhandledRejection', err => {

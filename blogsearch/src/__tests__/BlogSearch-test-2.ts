@@ -7,9 +7,9 @@ import $ from '../zepto';
 import Hogan from 'hogan.js';
 import BlogSearch from '../BlogSearch';
 
-jest.mock('../SQLite');
-//@ts-ignore
-import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../SQLite';
+jest.mock('../sqlite');
+// @ts-ignore
+import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../sqlite';
 
 // Catch any error inside of promise
 process.on('unhandledRejection', err => {

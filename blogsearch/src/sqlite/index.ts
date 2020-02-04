@@ -1,9 +1,5 @@
-import {
-  SQLiteConfig,
-  WorkerMessage,
-  QueryResult,
-  SQLResultColumns,
-} from './sqlite/worker-interface';
+import { SQLiteConfig, WorkerMessage, QueryResult, SQLResultColumns } from './worker-interface';
+export { SQLiteConfig, QueryResult, SQLResultColumns } from './worker-interface';
 
 declare global {
   interface Worker {
