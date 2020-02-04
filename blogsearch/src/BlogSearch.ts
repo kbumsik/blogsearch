@@ -1,6 +1,9 @@
 import Hogan from 'hogan.js';
-// @ts-ignore
-import autocomplete from 'autocomplete.js';
+import autocomplete, {
+  Suggestion,
+  AutocompleteElement,
+  AutocompleteOptions,
+} from './autocomplete.js';
 import { SQLiteConfig } from './sqlite/worker-interface';
 import SQLite, { SearchResult as SQLiteResult } from './SQLite';
 import templates from './templates';
@@ -15,21 +18,6 @@ declare global {
       worker?: Worker;
     };
   }
-}
-
-interface Suggestion {
-  isLvl0: boolean;
-  isLvl1: boolean;
-  isLvl2: boolean;
-  isLvl1EmptyOrDuplicate: boolean;
-  isCategoryHeader: boolean;
-  isSubCategoryHeader: boolean;
-  isTextOrSubcategoryNonEmpty: boolean;
-  category: string;
-  subcategory: string;
-  title: string;
-  text: string | null;
-  url: string;
 }
 
 /**
@@ -57,15 +45,7 @@ interface Config {
   workerFactory?: () => Worker;
   inputSelector: string;
   debug?: boolean;
-  autocompleteOptions?: {
-    debug: boolean;
-    hint: boolean;
-    autoselect: boolean;
-    cssClasses: {
-      prefix?: string;
-    };
-    ariaLabel?: string;
-  };
+  autocompleteOptions?: AutocompleteOptions;
   layout?: 'columns' | 'simple';
 }
 
@@ -74,8 +54,8 @@ type Args = Config & SQLiteConfig;
 class BlogSearch {
   // private indexName: Config['indexName'];
   private input: JQuery<HTMLElement>;
-  private autocompleteOptions: Config['autocompleteOptions'];
-  private autocomplete: any; // [TODO] A return type of autocomplete()
+  private autocompleteOptions: AutocompleteOptions;
+  private autocomplete: AutocompleteElement;
   private sqlite: SQLite;
   private sqlitePromise: Promise<SQLite>;
   private workerFactory: () => Worker;

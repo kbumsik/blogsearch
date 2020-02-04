@@ -1,13 +1,12 @@
 /* eslint-disable no-new, spaced-comment, max-len */
 import $ from '../zepto';
 import Hogan from 'hogan.js';
-// @ts-ignore
-import autocomplete from 'autocomplete.js';
+import autocomplete from '../autocomplete.js';
 import BlogSearch from '../BlogSearch';
 
-jest.mock('../SQLite');
-//@ts-ignore
-import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../SQLite';
+jest.mock('../sqlite');
+// @ts-ignore
+import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../sqlite';
 
 /**
  * [TODO] Really?
