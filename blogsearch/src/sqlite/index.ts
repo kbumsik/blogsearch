@@ -1,5 +1,8 @@
-import { SQLiteConfig, WorkerMessage, QueryResult, SQLResultColumns } from './worker-interface';
-export { SQLiteConfig, QueryResult, SQLResultColumns } from './worker-interface';
+import { Config, WorkerMessage } from './worker-interfaces';
+import { QueryResult, ReturnMap } from './sqlite3-types';
+
+export { Config } from './worker-interfaces';
+export { QueryResult, ReturnMap } from './sqlite3-types';
 
 declare global {
   interface Worker {
@@ -12,7 +15,7 @@ declare global {
 }
 
 export type SearchResult = {
-  [field in keyof SQLResultColumns]: string;
+  [field in keyof ReturnMap]: string;
 };
 
 export default class SQLite {
@@ -20,7 +23,7 @@ export default class SQLite {
   private wasmPath?: string;
   private sqlWorker: Worker;
 
-  public constructor({ dbPath, wasmPath, worker }: SQLiteConfig & { worker: Worker }) {
+  public constructor({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;

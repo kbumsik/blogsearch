@@ -1,24 +1,19 @@
+// eslint-disable-next-line prettier/prettier
 import type {
   QueryResult,
-  SQLResultColumns,
-  SQLParameterArray,
-  SQLParameterFields,
-} from './sqlite3';
+  ReturnMap,
+  ParameterArray,
+  ParameterMap,
+} from './sqlite3-types';
 
-// Export again from sqlite3, for use in other modules
-export {
-  QueryResult,
-  SQLResultColumns,
-} from './sqlite3';
-
-export interface SQLiteConfig {
+export interface Config {
   dbPath: string;
   wasmPath?: string;
 }
 
 export interface Query {
   sql: string;
-  params?: SQLParameterArray | SQLParameterFields;
+  params?: ParameterArray | ParameterMap;
 }
 
 export namespace WorkerMessage {
@@ -35,7 +30,7 @@ export namespace WorkerMessage {
     | ExportResponse
     | CloseResponse;
 
-  interface OpenCommand extends SQLiteConfig {
+  interface OpenCommand extends Config {
     command: 'open';
   }
   interface OpenResponse {
@@ -56,7 +51,7 @@ export namespace WorkerMessage {
   }
   interface EachResponse {
     respondTo: EachCommand['command'];
-    row: SQLResultColumns;
+    row: ReturnMap;
     end: boolean;
   }
 

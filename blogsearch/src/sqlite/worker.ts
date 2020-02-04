@@ -1,9 +1,11 @@
 // [WARNING] The top-level imports must be type imports only.
 //   Importing actual motule will hoist outside of initWorker() function,
 //   making it difficult to wrap around it for UMD Web Worker function.
+// eslint-disable-next-line prettier/prettier
 import type { SQLite3Module } from './sqlite3-emscripten';
-import type { SQLResultColumns, Database } from './sqlite3';
-import type { WorkerMessage } from './worker-interface';
+import type { Database } from './sqlite3';
+import type { ReturnMap } from './sqlite3-types'
+import type { WorkerMessage } from './worker-interfaces';
 
 declare global {
   /**
@@ -59,7 +61,7 @@ export default async function initWorker() {
         db.each(
           data.sql,
           data.params,
-          (row: SQLResultColumns) => postMessage({ respondTo: 'each', row, end: false }),
+          (row: ReturnMap) => postMessage({ respondTo: 'each', row, end: false }),
           () => postMessage({ respondTo: 'each', row: {}, end: true })
         );
         break;

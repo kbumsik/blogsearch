@@ -1,70 +1,14 @@
 import { SQLite3Module, Pointer } from './sqlite3-emscripten';
-
-/* Related to SQL */
-type TypedArray =
-  | Int8Array
-  | Uint8Array
-  | Int16Array
-  | Uint16Array
-  | Int32Array
-  | Uint32Array
-  | Uint8ClampedArray
-  | Float32Array
-  | Float64Array;
-type NumberArray = TypedArray | number[];
-type SQLParameter = string | number | boolean | NumberArray | null;
-type SQLParameterFields = Record<string, SQLParameter>;
-type SQLParameterArray = SQLParameter[];
-type SQLResult = number | string | Uint8Array | null;
-type SQLResultColumns = Record<string, SQLResult>;
-type QueryResult = {
-  columns: string[];
-  values: SQLResult[][];
-};
-// [TODO] Add SQLite Object Index type?
-
-enum SQLite {
-  OK = 0,
-  ERROR = 1,
-  INTERNAL = 2,
-  PERM = 3,
-  ABORT = 4,
-  BUSY = 5,
-  LOCKED = 6,
-  NOMEM = 7,
-  READONLY = 8,
-  INTERRUPT = 9,
-  IOERR = 10,
-  CORRUPT = 11,
-  NOTFOUND = 12,
-  FULL = 13,
-  CANTOPEN = 14,
-  PROTOCOL = 15,
-  EMPTY = 16,
-  SCHEMA = 17,
-  TOOBIG = 18,
-  CONSTRAINT = 19,
-  MISMATCH = 20,
-  MISUSE = 21,
-  NOLFS = 22,
-  AUTH = 23,
-  FORMAT = 24,
-  RANGE = 25,
-  NOTADB = 26,
-  NOTICE = 27,
-  WARNING = 28,
-
-  ROW = 100,
-  DONE = 101,
-
-  INTEGER = 1,
-  FLOAT = 2,
-  TEXT = 3,
-  BLOB = 4,
-  NULL = 5,
-
-  UTF8 = 1,
-}
+import {
+  NumberedArray,
+  SQLParameterType,
+  ParameterArray,
+  ParameterMap,
+  SQLReturnType,
+  ReturnMap,
+  QueryResult,
+  ReturnCode,
+} from './sqlite3-types';
 
 /* Represents a prepared statement.
 
@@ -84,7 +28,6 @@ class Statement {
   private wasm: SQLite3Module;
   private stmt: Pointer;
   private db: Database;
-  // @ts-ignore
   private pos: number;
   private allocatedmem: Pointer[];
 
@@ -131,15 +74,15 @@ class Statement {
   @param values [Array,Object] The values to bind
   @throw [String] SQLite Error
     */
-  public bind(values: SQLParameterArray | SQLParameterFields): void {
+  public bind(values: ParameterArray | ParameterMap): void {
     // eslint-disable-next-line no-shadow
-    const bindFromArray = (values: SQLParameterArray): void => {
+    const bindFromArray = (values: ParameterArray): void => {
       values.forEach((value, i) => {
         this.bindValue(value, i + 1);
       });
     };
 
-    const bindFromObject = (valuesObj: SQLParameterFields): void => {
+    const bindFromObject = (valuesObj: ParameterMap): void => {
       for (const [name, value] of Object.entries(valuesObj)) {
         const num = this.wasm.sqlite3_bind_parameter_index(this.stmt, name);
         if (num !== 0) {
@@ -161,7 +104,7 @@ class Statement {
     return;
   }
 
-  private bindValue(val: SQLParameter, pos: number = this.pos++): void {
+  private bindValue(val: SQLParameterType, pos: number = this.pos++): void {
     // Nested functions
     /* eslint-disable no-shadow */
     const bindString = (str: string, pos: number = this.pos++): void => {
@@ -171,7 +114,7 @@ class Statement {
       this.db.handleError(this.wasm.sqlite3_bind_text(this.stmt, pos, strPtr, bytes.length - 1, 0));
     };
 
-    const bindBlob = (array: NumberArray, pos: number = this.pos++): void => {
+    const bindBlob = (array: NumberedArray, pos: number = this.pos++): void => {
       const blobPtr = this.wasm.allocate(array, 'i8', this.wasm.ALLOC_NORMAL);
       this.allocatedmem.push(blobPtr);
       this.db.handleError(this.wasm.sqlite3_bind_blob(this.stmt, pos, blobPtr, array.length, 0));
@@ -225,9 +168,9 @@ class Statement {
     this.pos = 1;
     const ret = this.wasm.sqlite3_step(this.stmt);
     switch (ret) {
-      case SQLite.ROW:
+      case ReturnCode.ROW:
         return true;
-      case SQLite.DONE:
+      case ReturnCode.DONE:
         return false;
       default:
         this.db.handleError(ret);
@@ -245,7 +188,7 @@ class Statement {
       var stmt = db.prepare("SELECT * FROM test");
       while (stmt.step()) console.log(stmt.get());
     */
-  public get(params?: SQLParameterArray | SQLParameterFields): SQLResult[] {
+  public get(params?: ParameterArray | ParameterMap): SQLReturnType[] {
     const getNumber = (pos: number = this.pos++): number => {
       return this.wasm.sqlite3_column_double(this.stmt, pos);
     };
@@ -265,18 +208,18 @@ class Statement {
       this.bind(params);
       this.step();
     }
-    const results: SQLResult[] = [];
+    const results: SQLReturnType[] = [];
     const colSize = this.wasm.sqlite3_data_count(this.stmt);
     for (let col = 0; col < colSize; col++) {
       switch (this.wasm.sqlite3_column_type(this.stmt, col)) {
-        case SQLite.INTEGER:
-        case SQLite.FLOAT:
+        case ReturnCode.INTEGER:
+        case ReturnCode.FLOAT:
           results.push(getNumber(col));
           break;
-        case SQLite.TEXT:
+        case ReturnCode.TEXT:
           results.push(getString(col));
           break;
-        case SQLite.BLOB:
+        case ReturnCode.BLOB:
           results.push(getBlob(col));
           break;
         default:
@@ -316,10 +259,10 @@ class Statement {
       stmt.step(); // Execute the statement
       console.log(stmt.getAsObject()); // Will print {nbr:5, data: Uint8Array([1,2,3]), null_value:null}
     */
-  public getAsObject(params?: SQLParameterArray | SQLParameterFields): SQLResultColumns {
+  public getAsObject(params?: ParameterArray | ParameterMap): ReturnMap {
     const values = this.get(params);
     const names = this.getColumnNames();
-    const rowObject: SQLResultColumns = {};
+    const rowObject: ReturnMap = {};
     names.forEach((name, i) => {
       rowObject[name] = values[i];
     });
@@ -330,7 +273,7 @@ class Statement {
   Bind the values, execute the statement, ignoring the rows it returns, and resets it
   @param [Array,Object] Value to bind to the statement
     */
-  public run(values?: SQLParameterArray | SQLParameterFields) {
+  public run(values?: ParameterArray | ParameterMap) {
     if (typeof values !== 'undefined') {
       this.bind(values);
     }
@@ -344,8 +287,8 @@ class Statement {
   public reset(): boolean {
     this.freemem();
     return (
-      this.wasm.sqlite3_clear_bindings(this.stmt) === SQLite.OK &&
-      this.wasm.sqlite3_reset(this.stmt) === SQLite.OK
+      this.wasm.sqlite3_clear_bindings(this.stmt) === ReturnCode.OK &&
+      this.wasm.sqlite3_reset(this.stmt) === ReturnCode.OK
     );
   }
 
@@ -364,14 +307,14 @@ class Statement {
     */
   public free(): boolean {
     this.freemem();
-    const res = this.wasm.sqlite3_finalize(this.stmt) === SQLite.OK;
+    const res = this.wasm.sqlite3_finalize(this.stmt) === ReturnCode.OK;
     delete this.db.statements[this.stmt];
     this.stmt = this.wasm.NULL;
     return res;
   }
 }
 
-class Database {
+export class Database {
   public wasm: SQLite3Module;
   private filename: string;
   private dbPtr: Pointer;
@@ -413,7 +356,7 @@ class Database {
 
   @return [Database] The database object (useful for method chaining)
     */
-  public run(sql: string, params?: SQLParameterArray | SQLParameterFields) {
+  public run(sql: string, params?: ParameterArray | ParameterMap) {
     if (!this.dbPtr) {
       throw new Error('Database closed');
     }
@@ -533,15 +476,15 @@ class Database {
                   );
     */
   /* eslint-disable prettier/prettier */
-  public each(sql: string, callback: (row: SQLResultColumns) => void): this;
-  public each(sql: string, callback: (row: SQLResultColumns) => void, done: () => any): ReturnType<typeof done>;
-  public each(sql: string, params: SQLParameterArray | SQLParameterFields, callback: (row: SQLResultColumns) => void): this;
-  public each(sql: string, params: SQLParameterArray | SQLParameterFields, callback: (row: SQLResultColumns) => void, done: () => any): ReturnType<typeof done>;
+  public each(sql: string, callback: (row: ReturnMap) => void): this;
+  public each(sql: string, callback: (row: ReturnMap) => void, done: () => any): ReturnType<typeof done>;
+  public each(sql: string, params: ParameterArray | ParameterMap, callback: (row: ReturnMap) => void): this;
+  public each(sql: string, params: ParameterArray | ParameterMap, callback: (row: ReturnMap) => void, done: () => any): ReturnType<typeof done>;
   /* eslint-enable prettier/prettier */
   public each(sql: string, ...args: any[]) {
     let stmt: Statement;
     let doneCallback: () => any;
-    let rowCallback: (row: SQLResultColumns) => void;
+    let rowCallback: (row: ReturnMap) => void;
     if (typeof args[0] === 'function') {
       stmt = this.prepare(sql);
       rowCallback = args[0];
@@ -574,7 +517,7 @@ class Database {
   @return [Statement] the resulting statement
   @throw [String] SQLite error
     */
-  public prepare(sql: string, params?: SQLParameterArray | SQLParameterFields): Statement {
+  public prepare(sql: string, params?: ParameterArray | ParameterMap): Statement {
     this.wasm.setValue(this.wasm.tempInt32, 0, '*');
     this.handleError(this.wasm.sqlite3_prepare_v2(this.dbPtr, sql, -1, this.wasm.tempInt32, this.wasm.NULL));
     const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
@@ -638,8 +581,8 @@ class Database {
   an error with a descriptive message otherwise
   @nodoc
     */
-  public handleError(returnCode: SQLite) {
-    if (returnCode === SQLite.OK) {
+  public handleError(returnCode: ReturnCode) {
+    if (returnCode === ReturnCode.OK) {
       return true;
     } else {
       throw new Error(this.wasm.sqlite3_errmsg(this.dbPtr));
@@ -740,10 +683,8 @@ class Database {
     const funcPtr = this.wasm.addFunction(wrappedFunc);
     this.functions[name] = funcPtr;
     this.handleError(
-      this.wasm.sqlite3_create_function_v2(this.db, name, func.length, SQLite.UTF8, 0, funcPtr, 0, 0, 0)
+      this.wasm.sqlite3_create_function_v2(this.db, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0)
     );
     return this;
   };
 }
-
-export { Database, QueryResult, SQLResultColumns, SQLParameterArray, SQLParameterFields };

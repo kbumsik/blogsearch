@@ -4,7 +4,7 @@ import autocomplete, {
   AutocompleteElement,
   AutocompleteOptions,
 } from './autocomplete.js';
-import SQLite, { SearchResult as SQLiteResult, SQLiteConfig } from './sqlite';
+import SQLite, * as SQL from './sqlite';
 import templates from './templates';
 import $ from './zepto';
 
@@ -48,7 +48,7 @@ interface Config {
   layout?: 'columns' | 'simple';
 }
 
-type Args = Config & SQLiteConfig;
+type Args = Config & SQL.Config;
 
 class BlogSearch {
   // private indexName: Config['indexName'];
@@ -209,7 +209,7 @@ class BlogSearch {
       }
       return;
 
-      function formatSuggestions(results: SQLiteResult[]): Suggestion[] {
+      function formatSuggestions(results: SQL.SearchResult[]): Suggestion[] {
         return results.map(
           (row): Suggestion => {
             return {
