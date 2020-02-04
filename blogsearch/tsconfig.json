@@ -6,6 +6,12 @@
     "lib": ["ESNext", "WebWorker", "DOM"],
     "target": "es6",
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["**/__tests__/*"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/index.js"
+  ],
+  "exclude": [
+    "**/__tests__/*",
+    "**/__mocks__/*"
+  ]
 }

@@ -6,6 +6,9 @@
     "noImplicitReturns": false,
     "noUnusedLocals": false
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/index.js"
+  ],
   "exclude": []
 }

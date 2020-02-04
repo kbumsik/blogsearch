@@ -17,8 +17,6 @@ declare global {
   }
 }
 
-type JQueryElement = any; // This is a temporary type to use with zepto.
-
 interface Suggestion {
   isLvl0: boolean;
   isLvl1: boolean;
@@ -75,7 +73,7 @@ type Args = Config & SQLiteConfig;
 
 class BlogSearch {
   // private indexName: Config['indexName'];
-  private input: JQueryElement; // [TODO] A return type of zepto
+  private input: JQuery<HTMLElement>;
   private autocompleteOptions: Config['autocompleteOptions'];
   private autocomplete: any; // [TODO] A return type of autocomplete()
   private sqlite: SQLite;
@@ -112,7 +110,7 @@ class BlogSearch {
     this.sqlitePromise = new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load();
 
     // autocomplete.js configuration
-    this.input = BlogSearch.getInputFromSelector(inputSelector);
+    this.input = BlogSearch.getInputFromSelector(inputSelector)!;
     const autocompleteOptionsDebug =
       autocompleteOptions && autocompleteOptions.debug ? autocompleteOptions.debug : false;
     // eslint-disable-next-line no-param-reassign
@@ -285,8 +283,10 @@ class BlogSearch {
     window.location.assign(suggestion.url);
   }
 
-  private handleShown(input: JQueryElement) {
+  private handleShown(input: JQuery<HTMLElement>) {
+    // @ts-ignore
     const middleOfInput = input.offset().left + input.width() / 2;
+    // @ts-ignore
     let middleOfWindow = $(document).width() / 2;
 
     if (isNaN(middleOfWindow)) {
