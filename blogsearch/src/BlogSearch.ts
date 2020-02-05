@@ -57,7 +57,7 @@ class BlogSearch {
     layout = 'simple',
   }: Config & SQL.Config) {
     // eslint-disable-next-line prettier/prettier
-    BlogSearch.checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
+    checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
 
     this.sqlitePromise = new SQLite({
       wasmPath,
@@ -88,6 +88,23 @@ class BlogSearch {
     );
     this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
     return;
+
+    function checkArguments(args: Config & SQL.Config) {
+      if (
+        /* eslint-disable prettier/prettier */
+        typeof args.dbPath !== 'string' || !args.dbPath ||
+        typeof args.wasmPath !== 'string' || !args.wasmPath ||
+        typeof args.inputSelector !== 'string' || !args.inputSelector ||
+        (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
+        /* eslint-enable prettier/prettier */
+      ) {
+        throw new Error(usage);
+      }
+
+      if (!BlogSearch.getInputFromSelector(args.inputSelector)) {
+        throw new Error(`Error: No input element in the page matches ${args.inputSelector}`);
+      }
+    }
 
     function getWorkerFactory(factory?: () => Worker) {
       if (typeof factory !== 'undefined') {
@@ -130,29 +147,6 @@ class BlogSearch {
       "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
     );
     return this;
-  }
-
-  /**
-   * Checks that the passed arguments are valid. Will throw errors otherwise
-   * @function checkArguments
-   * @param  {object} args Arguments as an option object
-   * @returns {void}
-   */
-  private static checkArguments(args: Config & SQL.Config) {
-    if (
-      /* eslint-disable prettier/prettier */
-      typeof args.dbPath !== 'string' || !args.dbPath ||
-      typeof args.wasmPath !== 'string' || !args.wasmPath ||
-      typeof args.inputSelector !== 'string' || !args.inputSelector ||
-      (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
-      /* eslint-enable prettier/prettier */
-    ) {
-      throw new Error(usage);
-    }
-
-    if (!BlogSearch.getInputFromSelector(args.inputSelector)) {
-      throw new Error(`Error: No input element in the page matches ${args.inputSelector}`);
-    }
   }
 
   /**
