@@ -2,7 +2,7 @@
  * BlogSearch test suite #2
  * Test suite without mocking autocomplete.js.
  **/
-/* eslint-disable no-new, spaced-comment, max-len */
+/* eslint-disable spaced-comment */
 import $ from '../zepto';
 import Hogan from 'hogan.js';
 import BlogSearch from '../BlogSearch';
@@ -179,4 +179,4 @@ describe('BlogSearch', () => {
     });
   });
 });
-/* eslint-enable no-new, spaced-comment, max-len */
+/* eslint-enable spaced-comment */

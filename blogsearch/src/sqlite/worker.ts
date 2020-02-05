@@ -24,7 +24,6 @@ export default async function initWorker() {
   let db: Database;
 
   onmessage = async function(e: { data: WorkerMessage.Command }) {
-    console.log(e);
     const { data } = e;
     switch (data.command) {
       case 'open': {
@@ -103,7 +102,6 @@ function wasmLoader(module: EmscriptenModule) {
       };
       if (typeof wasmPath !== 'undefined' && wasmPath) {
         moduleOverrides['locateFile'] = function (path: string, scriptDirectory: string) {
-          console.log('fetching ', path);
           return path.match(/.wasm/) ? wasmPath : (scriptDirectory + path);
         };
       }
@@ -129,9 +127,3 @@ function wasmLoader(module: EmscriptenModule) {
 if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
   initWorker();
 }
-
-/**
- * TODO: This line causes undefined symbol: __webpack_require__
- * So comment out until figuring out the solution
- */
-// module.exports = initWorker;

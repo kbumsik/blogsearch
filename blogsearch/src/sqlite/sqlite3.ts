@@ -425,6 +425,7 @@ export class Database {
       while (this.wasm.getValue(nextSqlPtr, 'i8') !== this.wasm.NULL) {
         this.wasm.setValue(this.wasm.tempInt32, 0, '*');
         this.wasm.setValue(pzTail, 0, '*');
+        // eslint-disable-next-line prettier/prettier
         this.handleError(this.wasm.sqlite3_prepare_v2_sqlptr(this.dbPtr, nextSqlPtr, -1, this.wasm.tempInt32, pzTail));
         const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
         nextSqlPtr = this.wasm.getValue(pzTail, '*');
@@ -519,7 +520,9 @@ export class Database {
     */
   public prepare(sql: string, params?: ParameterArray | ParameterMap): Statement {
     this.wasm.setValue(this.wasm.tempInt32, 0, '*');
-    this.handleError(this.wasm.sqlite3_prepare_v2(this.dbPtr, sql, -1, this.wasm.tempInt32, this.wasm.NULL));
+    this.handleError(
+      this.wasm.sqlite3_prepare_v2(this.dbPtr, sql, -1, this.wasm.tempInt32, this.wasm.NULL)
+    );
     const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
     if (stmtPtr === this.wasm.NULL) {
       throw new Error('Nothing to prepare. Check your SQL statement.');
@@ -682,9 +685,8 @@ export class Database {
     }
     const funcPtr = this.wasm.addFunction(wrappedFunc);
     this.functions[name] = funcPtr;
-    this.handleError(
-      this.wasm.sqlite3_create_function_v2(this.db, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0)
-    );
+    // eslint-disable-next-line prettier/prettier
+    this.handleError(this.wasm.sqlite3_create_function_v2(this.db, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0));
     return this;
   };
 }

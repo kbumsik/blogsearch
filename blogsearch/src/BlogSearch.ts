@@ -10,7 +10,7 @@ import $ from './zepto';
 
 declare global {
   interface Window {
-    // 'blogsearch' object will be available when imported by UMD using <script> tag. 
+    // 'blogsearch' object will be available when imported by UMD using <script> tag.
     blogsearch: BlogSearch & {
       // blogsearch.worker is also imported by its own UMD.
       // In this case, you can it blob to get URL to use with Woker().
@@ -141,7 +141,7 @@ class BlogSearch {
     }
   }
 
-  public async load(): Promise<BlogSearch>{
+  public async load(): Promise<BlogSearch> {
     this.sqlite = await this.sqlitePromise;
     const meta = await this.sqlite.run(
       "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
@@ -169,10 +169,7 @@ class BlogSearch {
    * autocomplete
    */
   private getAutocompleteSource() {
-    return async (
-      query: string,
-      callback: (suggestion: Suggestion[]) => void
-    ) => {
+    return async (query: string, callback: (suggestion: Suggestion[]) => void) => {
       if (typeof this.sqlite === 'undefined') {
         throw new Error('Error: Search engine is not loaded.');
       }
@@ -211,9 +208,7 @@ class BlogSearch {
   }
 
   private static getSuggestionTemplate(isSimpleLayout: boolean) {
-    const stringTemplate = isSimpleLayout
-      ? templates.suggestionSimple
-      : templates.suggestion;
+    const stringTemplate = isSimpleLayout ? templates.suggestionSimple : templates.suggestion;
     const template = Hogan.compile(stringTemplate);
     return (suggestion: Hogan.Context) => template.render(suggestion);
   }
