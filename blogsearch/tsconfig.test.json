@@ -4,7 +4,8 @@
     "target": "ESNext",
     "module": "ESNext",
     "noImplicitReturns": false,
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    "outDir": "lib-test",
   },
   "include": [
     "src/**/*.ts",

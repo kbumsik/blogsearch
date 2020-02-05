@@ -205,3 +205,4 @@ clean:
 	-rm -rf dist
 	-rm -rf lib
 	-rm -rf sqlite-src
+	-rm -rf lib-test

@@ -1,4 +1,5 @@
 sqlite-src
 lib
+lib-test
 cache
 dist
