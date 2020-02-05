@@ -26,6 +26,7 @@ export interface Suggestion {
   url: string;
 }
 
+// Reference: https://github.com/algolia/autocomplete.js#events
 type autocompleteEvent =
   | 'autocomplete:opened'
   | 'autocomplete:shown'
@@ -44,7 +45,7 @@ interface AutocompleteElement {
   autocomplete: any;
 }
 
-type template = (args: Hogan.Context) => string;
+type template = ((args: Hogan.Context) => string) | string;
 
 export default function autocomplete(
   input: JQuery<HTMLElement>,

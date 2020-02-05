@@ -19,27 +19,6 @@ declare global {
   }
 }
 
-/**
- * Adds an autocomplete dropdown to an input field
- * @function DocSearch
- * @param  {string} options.apiKey         Read-only API key
- * @param  {string} options.indexName      Name of the index to target
- * @param  {string} options.inputSelector  CSS selector that targets the input
- * @param  {string} [options.appId]  Lets you override the applicationId used.
- * If using the default Algolia Crawler, you should not have to change this
- * value.
- * @param  {Object} [options.algoliaOptions] Options to pass the underlying Algolia client
- * @param  {Object} [options.autocompleteOptions] Options to pass to the underlying autocomplete instance
- * @return {Object}
- */
-const usage = `Usage:
-  blogsearch({
-    workerFactory: Function,
-    wasmPath: string,
-    dbPath: string,
-    inputSelector: string (CSS selector),
-})`;
-
 interface Config {
   workerFactory?: () => Worker;
   inputSelector: string;
@@ -48,16 +27,19 @@ interface Config {
   layout?: 'columns' | 'simple';
 }
 
-type Args = Config & SQL.Config;
+const usage = `Usage:
+blogsearch({
+  workerFactory: function that returns a Web Worker,
+  wasmPath: string,
+  dbPath: string,
+  inputSelector: string (CSS selector),
+})`;
 
 class BlogSearch {
-  // private indexName: Config['indexName'];
   private input: JQuery<HTMLElement>;
-  private autocompleteOptions: AutocompleteOptions;
   private autocomplete: AutocompleteElement;
-  private sqlite: SQLite;
+  private sqlite: SQLite | undefined; // This is not set by the contructor so possibly undefined
   private sqlitePromise: Promise<SQLite>;
-  private workerFactory: () => Worker;
 
   public constructor({
     workerFactory,
@@ -72,52 +54,44 @@ class BlogSearch {
       cssClasses: {},
       ariaLabel: '',
     },
-    layout = 'columns',
-  }: Args) {
-    BlogSearch.checkArguments({
-      workerFactory,
+    layout = 'simple',
+  }: Config & SQL.Config) {
+    // eslint-disable-next-line prettier/prettier
+    BlogSearch.checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
+
+    this.sqlitePromise = new SQLite({
       wasmPath,
       dbPath,
-      inputSelector,
-      debug,
-      autocompleteOptions,
-      layout,
-    });
+      worker: getWorkerFactory(workerFactory)(),
+    }).load();
 
-    // Set worker and then inittialize.
-    this.workerFactory = getWorkerFactory();
-    this.sqlitePromise = new SQLite({ wasmPath, dbPath, worker: this.workerFactory() }).load();
-
-    // autocomplete.js configuration
     this.input = BlogSearch.getInputFromSelector(inputSelector)!;
-    const autocompleteOptionsDebug =
-      autocompleteOptions && autocompleteOptions.debug ? autocompleteOptions.debug : false;
-    // eslint-disable-next-line no-param-reassign
-    autocompleteOptions.debug = debug || autocompleteOptionsDebug;
-    this.autocompleteOptions = autocompleteOptions;
-    this.autocompleteOptions.cssClasses = this.autocompleteOptions.cssClasses || {};
-    this.autocompleteOptions.cssClasses.prefix = this.autocompleteOptions.cssClasses.prefix || 'ds';
-    const inputAriaLabel =
-      this.input && typeof this.input.attr === 'function' && this.input.attr('aria-label');
-    this.autocompleteOptions.ariaLabel =
-      this.autocompleteOptions.ariaLabel || inputAriaLabel || 'search input';
 
-    // Initialize autocomplete.js
-    this.autocomplete = autocomplete(this.input, autocompleteOptions, [
-      {
-        source: this.getAutocompleteSource(),
-        templates: {
-          suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
-          footer: templates.footer,
-          empty: BlogSearch.getEmptyTemplate(),
+    this.autocomplete = autocomplete(
+      this.input,
+      configAutoCompleteOptions(autocompleteOptions, this.input, debug),
+      [
+        {
+          source: this.getAutocompleteSource(),
+          templates: {
+            suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
+            footer: templates.footer,
+            empty: BlogSearch.getEmptyTemplate(),
+          },
         },
-      },
-    ]);
+      ]
+    );
+    // Reference: https://github.com/algolia/autocomplete.js#events
+    this.autocomplete.on(
+      'autocomplete:selected',
+      this.handleSelected.bind(null, this.autocomplete.autocomplete)
+    );
+    this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
     return;
 
-    function getWorkerFactory() {
-      if (typeof workerFactory !== 'undefined') {
-        return workerFactory;
+    function getWorkerFactory(factory?: () => Worker) {
+      if (typeof factory !== 'undefined') {
+        return factory;
       }
       // Get current directory for worker
       const workerDir = (() => {
@@ -126,28 +100,34 @@ class BlogSearch {
           return URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
         } else {
           const curDir =
-            document.currentScript ? (document.currentScript as HTMLScriptElement).src :
-            self.location ? self.location.href :
-            '';
+            (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
           // This assumes that worker.umd.js is available in the NPM package.
           return `${curDir.substr(0, curDir.lastIndexOf('/'))}/worker.umd.js`;
         }
       })();
       return () => new Worker(workerDir);
     }
+
+    function configAutoCompleteOptions(
+      options: AutocompleteOptions,
+      input: JQuery<HTMLElement>,
+      debugFlag: boolean
+    ): AutocompleteOptions {
+      /* eslint-disable no-param-reassign */
+      options.debug = debugFlag ?? options.debug ?? false;
+      options.cssClasses = options.cssClasses ?? {};
+      options.cssClasses.prefix = options.cssClasses?.prefix ?? 'ds';
+      const inputAriaLabel = typeof input?.attr === 'function' && input.attr('aria-label');
+      options.ariaLabel = options.ariaLabel ?? (inputAriaLabel || 'search input');
+      /* eslint-enable no-param-reassign */
+      return options;
+    }
   }
 
   public async load(): Promise<BlogSearch>{
     this.sqlite = await this.sqlitePromise;
-    const meta = await this.sqlite.run("SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';")
-    
-    this.autocomplete.on(
-      'autocomplete:selected',
-      this.handleSelected.bind(null, this.autocomplete.autocomplete)
-    );
-    this.autocomplete.on(
-      'autocomplete:shown',
-      this.handleShown.bind(null, this.input)
+    const meta = await this.sqlite.run(
+      "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
     );
     return this;
   }
@@ -158,7 +138,7 @@ class BlogSearch {
    * @param  {object} args Arguments as an option object
    * @returns {void}
    */
-  private static checkArguments(args: Args) {
+  private static checkArguments(args: Config & SQL.Config) {
     if (
       /* eslint-disable prettier/prettier */
       typeof args.dbPath !== 'string' || !args.dbPath ||
