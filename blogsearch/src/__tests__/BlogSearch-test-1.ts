@@ -76,9 +76,6 @@ Object.defineProperty(window, 'Worker', {
  */
 describe('BlogSearch', () => {
   beforeEach(() => {
-    // Note: If you edit this HTML while doing TDD with `npm run test:watch`,
-    // you will have to restart `npm run test:watch` for the new HTML to be
-    // updated
     document.body.innerHTML = `
     <div>
       <input id="input" name="search" />
@@ -105,15 +102,7 @@ describe('BlogSearch', () => {
     const mockWorkerFactory = jest.fn(() => {
       return {};
     });
-    ///@ts-ignore
-    const getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
-    ///@ts-ignore
-    const checkArguments = jest.spyOn(BlogSearch, 'checkArguments') as jest.SpyInstance;
-
-    afterAll(() => {
-      getInputFromSelector.mockRestore();
-      checkArguments.mockRestore();
-    });
+    let getInputFromSelector: jest.SpyInstance;
 
     beforeEach(() => {
       defaultOptions = {
@@ -122,24 +111,15 @@ describe('BlogSearch', () => {
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };
+      ///@ts-ignore
+      getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
     });
 
     afterEach(() => {
-      getInputFromSelector.mockReset();
-      checkArguments.mockReset();
+      getInputFromSelector.mockRestore();
       mockWorkerFactory.mockClear();
     });
 
-    it('should call checkArguments', () => {
-      // Given
-      const options = defaultOptions;
-
-      // When
-      new BlogSearch(options);
-
-      // Then
-      expect(checkArguments).toBeCalledTimes(1);
-    });
     it('should pass main options to SQLite constructor', () => {
       // Given
       const options = defaultOptions;
@@ -155,21 +135,6 @@ describe('BlogSearch', () => {
       });
       expect(mockWorkerFactory).toBeCalledTimes(1);
     });
-    it("should call new Worker('.../worker.umd.js') by default", () => {
-      // Given
-      const options = defaultOptions;
-      delete options.workerFactory;
-
-      // When
-      new BlogSearch(options);
-
-      // Then
-      expect((SQLite as jest.Mock).mock.calls[0][0].worker).toBe(mockWorker);
-      expect((Worker as jest.Mock).mock.calls[0][0]).toMatch(/worker.umd.js/);
-    });
-    it('should call new Worker(window.blogsearch.worker) if exists', () => {
-      // [TODO] URL.createObjectURL() not provided by JSDOM figure out a workaround.
-    });
     it('should pass the input element as an instance property', () => {
       // Given
       const options = defaultOptions;
@@ -182,25 +147,6 @@ describe('BlogSearch', () => {
       const $inputs = (actual as any).input;
       expect($inputs.text()).toEqual('foo');
       expect($inputs[0].tagName).toEqual('SPAN');
-    });
-    it('should pass secondary options as instance properties', () => {
-      // Given
-      const options = {
-        ...defaultOptions,
-        autocompleteOptions: { anOption: 44 },
-      };
-
-      // When
-      const actual = new BlogSearch(options as any);
-
-      // Then
-      // expect((actual as any).algoliaOptions.anOption).toEqual(42);
-      expect((actual as any).autocompleteOptions).toEqual({
-        debug: false,
-        cssClasses: { prefix: 'ds' },
-        anOption: 44,
-        ariaLabel: 'search input',
-      });
     });
     it('should instantiate autocomplete.js', () => {
       // Given
@@ -234,6 +180,93 @@ describe('BlogSearch', () => {
       // Then
       ///@ts-ignore
       expect(typeof blogsearch.sqlite).toBe('undefined');
+    });
+
+    describe('checkArguments', () => {
+      it('should throw an error if no dbPath defined', () => {
+        // Given
+        const options = defaultOptions;
+        delete options.dbPath;
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Usage:/);
+      });
+      it('should throw an error if dbPath is empty string', () => {
+        // Given
+        const options = { ...defaultOptions, dbPath: '' };
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Usage:/);
+      });
+      it('should throw an error if no wasmPath defined', () => {
+        // Given
+        const options = defaultOptions;
+        delete options.wasmPath;
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Usage:/);
+      });
+      it('should throw an error if wasmPath is empty string', () => {
+        // Given
+        const options = { ...defaultOptions, wasmPath: '' };
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Usage:/);
+      });
+      it('should pass if no workerFactory defined', () => {
+        // Given
+        const options = defaultOptions;
+        delete options.workerFactory;
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).not.toThrow(/^Usage:/);
+      });
+      it('should throw an error if workerFactory is not function', () => {
+        // Given
+        const options = { ...defaultOptions, workerFactory: {} as any };
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Usage:/);
+      });
+      it('should throw an error if no selector matches', () => {
+        // Given
+        const options = { ...defaultOptions, inputSelector: 'noMatch' };
+
+        // When
+        expect(() => {
+          new BlogSearch(options);
+        }).toThrow(/^Error:/);
+      });
+    });
+
+    describe('getWorkerFactory', () => {
+      it("should call new Worker('.../worker.umd.js') by default", () => {
+        // Given
+        const options = defaultOptions;
+        delete options.workerFactory;
+
+        // When
+        new BlogSearch(options);
+
+        // Then
+        expect((SQLite as jest.Mock).mock.calls[0][0].worker).toBe(mockWorker);
+        expect((Worker as jest.Mock).mock.calls[0][0]).toMatch(/worker.umd.js/);
+      });
+      it('should call new Worker(window.blogsearch.worker) if exists', () => {
+        // [TODO] URL.createObjectURL() not provided by JSDOM figure out a workaround.
+      });
     });
   });
 
@@ -284,94 +317,6 @@ describe('BlogSearch', () => {
       // Then
       expect(mockAutoCompleteOn).toBeCalledTimes(2);
       expect(mockAutoCompleteOn.mock.calls[0][0]).toBe('autocomplete:selected');
-    });
-  });
-
-  describe('checkArguments', () => {
-    ///@ts-ignore
-    let checkArguments: typeof BlogSearch.checkArguments;
-    let defaultArgs: ConstructorParameters<typeof BlogSearch>[0];
-
-    beforeEach(() => {
-      ///@ts-ignore
-      checkArguments = BlogSearch.checkArguments;
-      defaultArgs = {
-        workerFactory: (() => {}) as any,
-        dbPath: 'test.db.bin',
-        wasmPath: 'test.wasm',
-        inputSelector: '#input',
-      };
-    });
-
-    it('should throw an error if no dbPath defined', () => {
-      // Given
-      const options = defaultArgs;
-      delete options.dbPath;
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Usage:/);
-    });
-    it('should throw an error if dbPath is empty string', () => {
-      // Given
-      const options = { ...defaultArgs, dbPath: '' };
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Usage:/);
-    });
-    it('should throw an error if no wasmPath defined', () => {
-      // Given
-      const options = defaultArgs;
-      delete options.wasmPath;
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Usage:/);
-    });
-    it('should throw an error if wasmPath is empty string', () => {
-      // Given
-      const options = { ...defaultArgs, wasmPath: '' };
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Usage:/);
-    });
-    it('should pass if no workerFactory defined', () => {
-      // Given
-      const options = defaultArgs;
-      delete options.workerFactory;
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).not.toThrow(/^Usage:/);
-    });
-    it('should throw an error if workerFactory is not function', () => {
-      // Given
-      const options = { ...defaultArgs, workerFactory: {} as any };
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Usage:/);
-    });
-    it('should throw an error if no selector matches', () => {
-      // Given
-      const options = defaultArgs;
-      ///@ts-ignore
-      const getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
-      getInputFromSelector.mockImplementation(() => false);
-
-      // When
-      expect(() => {
-        checkArguments(options);
-      }).toThrow(/^Error:/);
-      getInputFromSelector.mockRestore();
     });
   });
 
@@ -453,9 +398,6 @@ describe('BlogSearch', () => {
         expect(mockSQLiteSearch).toHaveBeenLastCalledWith('query', 5);
       });
     });
-
-
-
   });
 
   describe('getSuggestionTemplate', () => {
