@@ -6,12 +6,11 @@
  * Note: The Emscripten module will be ES6-modularized with -s MODULARIZE=1
  * -s EXPORT_ES6=1 options. See Makefile.
  */
-// eslint-disable-next-line spaced-comment
 /// <reference types="emscripten" />
 
-/* eslint-disable prettier/prettier, no-undef */
+/* eslint-disable dot-notation, no-undef */
 Module['NULL'] = 0;
-Module['onRuntimeInitialized'] = function() {
+Module['onRuntimeInitialized'] = function () {
   // Used as a temporary pointer
   Module['tempInt32'] = stackAlloc(4);
 
@@ -55,4 +54,4 @@ Module['onRuntimeInitialized'] = function() {
   Module['sqlite3_result_int64'] = cwrap('sqlite3_result_int64', null, ['number', 'number']);
   Module['sqlite3_result_error'] = cwrap('sqlite3_result_error', null, ['number', 'string', 'number']);
 };
-/* eslint-enable prettier/prettier, no-undef */
+/* eslint-enable dot-notation, no-undef */

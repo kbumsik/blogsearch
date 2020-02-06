@@ -1,7 +1,12 @@
-// eslint-disable-next-line spaced-comment
+/**
+ * Trible slash reference is used to explicitly prevent generating
+ * import statement on JS side.
+ */
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference types="emscripten" />
 
-export interface SQLite3Module extends EmscriptenModule {
+export interface SQLite3Wasm extends EmscriptenModule {
+  // [TODO] Tye every functions properly
   sqlite3_open: Function;
   sqlite3_exec: Function;
   sqlite3_free: Function;
@@ -62,7 +67,5 @@ export interface SQLite3Module extends EmscriptenModule {
   tempInt32: number; // A temporary pointer located in stack.
 }
 
-declare const sqlite3Module: SQLite3Module;
-export default sqlite3Module;
-
-export type Pointer = number;
+declare const sqlite3Wasm: SQLite3Wasm;
+export default sqlite3Wasm;

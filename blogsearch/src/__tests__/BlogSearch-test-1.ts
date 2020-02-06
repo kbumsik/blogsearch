@@ -1,12 +1,13 @@
-/* eslint-disable no-new, spaced-comment, max-len */
+/* eslint-disable no-new, @typescript-eslint/no-empty-function */
 import $ from '../zepto';
 import Hogan from 'hogan.js';
 import autocomplete from '../autocomplete.js';
 import BlogSearch from '../BlogSearch';
-
-jest.mock('../sqlite');
 // @ts-ignore
 import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../sqlite';
+
+// Have __mocks__
+jest.mock('../sqlite');
 
 /**
  * [TODO] Really?
@@ -111,7 +112,7 @@ describe('BlogSearch', () => {
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };
-      ///@ts-ignore
+      // @ts-ignore
       getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
     });
 
@@ -178,7 +179,7 @@ describe('BlogSearch', () => {
       const blogsearch = new BlogSearch(options);
 
       // Then
-      ///@ts-ignore
+      // @ts-ignore
       expect(typeof blogsearch.sqlite).toBe('undefined');
     });
 
@@ -290,7 +291,7 @@ describe('BlogSearch', () => {
       await blogsearch.load();
 
       // Then
-      ///@ts-ignore
+      // @ts-ignore
       expect(typeof blogsearch.sqlite).toBe('object');
     });
     it('should look up sqlite_master table to fetch metadata', async () => {
@@ -302,13 +303,13 @@ describe('BlogSearch', () => {
       await blogsearch.load();
 
       // Then
-      ///@ts-ignore
+      // @ts-ignore
       expect(mockSQLiteRun).toBeCalledTimes(1);
       expect(mockSQLiteRun.mock.calls[0][0]).toMatch(/sqlite_master/);
     });
     it('should listen to the selected and shown event of autocomplete', async () => {
       // Given
-      const options = { ...defaultOptions, handleSelected() {} };
+      const options = { ...defaultOptions, handleSelected () { return; } };
 
       // When
       const blogsearch = new BlogSearch(options);
@@ -321,11 +322,11 @@ describe('BlogSearch', () => {
   });
 
   describe('getInputFromSelector', () => {
-    ///@ts-ignore
+    // @ts-ignore
     let getInputFromSelector: typeof BlogSearch.getInputFromSelector;
 
     beforeEach(() => {
-      ///@ts-ignore
+      // @ts-ignore
       getInputFromSelector = BlogSearch.getInputFromSelector;
     });
 
@@ -357,7 +358,7 @@ describe('BlogSearch', () => {
       const actual = getInputFromSelector(selector);
 
       // Then
-      ///@ts-ignore
+      // @ts-ignore
       expect($.zepto.isZ(actual)).toBe(true);
     });
   });
@@ -375,7 +376,7 @@ describe('BlogSearch', () => {
 
     it('returns a function', () => {
       // Given
-      ///@ts-ignore
+      // @ts-ignore
       const actual = blogsearch.getAutocompleteSource();
 
       // When
@@ -385,13 +386,13 @@ describe('BlogSearch', () => {
     });
 
     describe('the returned function', () => {
-      it('calls the sqlite client with the correct parameters', () => {
+      it('calls the sqlite client with the correct parameters', async () => {
         // Given
-        ///@ts-ignore
+        // @ts-ignore
         const actual = blogsearch.getAutocompleteSource();
 
         // When
-        actual('query', () => {});
+        await actual('query', () => {});
 
         // Then
         expect(mockSQLiteSearch).toBeCalledTimes(1);
@@ -405,7 +406,7 @@ describe('BlogSearch', () => {
       // Given
 
       // When
-      ///@ts-ignore
+      // @ts-ignore
       const actual = BlogSearch.getSuggestionTemplate();
 
       // Then
@@ -416,7 +417,7 @@ describe('BlogSearch', () => {
         // Given
 
         // When
-        ///@ts-ignore
+        // @ts-ignore
         BlogSearch.getSuggestionTemplate();
 
         // Then
@@ -425,7 +426,7 @@ describe('BlogSearch', () => {
       });
       it('should call render on a Hogan template', () => {
         // Given
-        ///@ts-ignore
+        // @ts-ignore
         const actual = BlogSearch.getSuggestionTemplate();
 
         // When
@@ -438,4 +439,4 @@ describe('BlogSearch', () => {
     });
   });
 });
-/* eslint-enable no-new, spaced-comment, max-len */
+/* eslint-enable no-new, @typescript-eslint/no-empty-function */

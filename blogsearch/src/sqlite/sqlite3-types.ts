@@ -17,10 +17,10 @@ export type ParameterArray = SQLParameterType[];
 
 export type SQLReturnType = string | number | Uint8Array | null;
 export type ReturnMap = Record<string, SQLReturnType>;
-export type QueryResult = {
+export interface QueryResult {
   columns: string[];
   values: SQLReturnType[][];
-};
+}
 
 export enum ReturnCode {
   OK = 0,

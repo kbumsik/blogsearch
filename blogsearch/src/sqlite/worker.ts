@@ -1,10 +1,9 @@
 // [WARNING] The top-level imports must be type imports only.
 //   Importing actual motule will hoist outside of initWorker() function,
 //   making it difficult to wrap around it for UMD Web Worker function.
-// eslint-disable-next-line prettier/prettier
-import type { SQLite3Module } from './sqlite3-emscripten';
+import type { SQLite3Wasm } from './sqlite3-emscripten';
 import type { Database } from './sqlite3';
-import type { ReturnMap } from './sqlite3-types'
+import type { ReturnMap } from './sqlite3-types';
 import type { WorkerMessage } from './worker-interfaces';
 
 declare global {
@@ -16,14 +15,14 @@ declare global {
   function postMessage(message: WorkerMessage.Response, transfer?: Transferable[]): void;
 }
 
-export default async function initWorker() {
-  const sqlite3Module = (await import('./sqlite3-emscripten')).default;
+export default async function initWorker () {
+  const sqlite3Wasm = (await import('./sqlite3-emscripten')).default;
   const sqlit3API = await import('./sqlite3');
-  const loadWasm = wasmLoader(sqlite3Module as EmscriptenModule);
+  const loadWasm = wasmLoader(sqlite3Wasm);
   /** @type {Database} I import Database dynamically as value so I cannot use typeof Database. */
   let db: Database;
 
-  onmessage = async function(e: { data: WorkerMessage.Command }) {
+  onmessage = async function (e: { data: WorkerMessage.Command }) {
     const { data } = e;
     switch (data.command) {
       case 'open': {
@@ -32,8 +31,8 @@ export default async function initWorker() {
         }
         const dbBuffer = fetch(data.dbPath).then(r => r.arrayBuffer());
         // sqlite = (await loadWasm(data.wasmPath)) as EmscriptenModule;
-        const sqliteModule = (await loadWasm(data.wasmPath)) as SQLite3Module;
-        db = new sqlit3API.Database(sqliteModule, new Uint8Array(await dbBuffer));
+        const wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
+        db = new sqlit3API.Database(wasm, new Uint8Array(await dbBuffer));
         postMessage({ respondTo: 'open', success: true });
         break;
       }
@@ -88,19 +87,22 @@ export default async function initWorker() {
   };
 }
 
-function wasmLoader(module: EmscriptenModule) {
-  let loadedModule: EmscriptenModule | null = null;
-  return function(wasmPath?: string): Promise<Omit<EmscriptenModule, 'then'>> {
+/* eslint-disable dot-notation */
+function wasmLoader (wasmModule: SQLite3Wasm) {
+  let loadedModule: SQLite3Wasm | null = null;
+  return async function (wasmPath?: string): Promise<Omit<SQLite3Wasm, 'then'>> {
     return new Promise((resolve, reject) => {
       if (loadedModule) {
         resolve(loadedModule);
       }
       // Override Emscripten configuration
-      const moduleOverrides: any = {};
-      moduleOverrides['onAbort'] = function(what: any) {
+      const moduleOverrides: Partial<SQLite3Wasm> = {};
+      moduleOverrides['onAbort'] = function (what: any) {
         reject(what);
       };
-      if (typeof wasmPath !== 'undefined' && wasmPath) {
+      if (typeof wasmPath === 'string' && wasmPath) {
+        // This allows loading .wasm (wasmPath from index.ts) from cross-site.
+        // @ts-ignore
         moduleOverrides['locateFile'] = function (path: string, scriptDirectory: string) {
           return path.match(/.wasm/) ? wasmPath : (scriptDirectory + path);
         };
@@ -109,8 +111,8 @@ function wasmLoader(module: EmscriptenModule) {
       try {
         // [NOTE] Emscripten's then() is NOT really promise-based 'thenable'.
         //        then() must be deleted otherwise it casues infinite loop.
-        module(moduleOverrides).then(wasmModule => {
-          // eslint-disable-next-line no-param-reassign
+        wasmModule(moduleOverrides).then(wasmModule => {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete wasmModule['then'];
           loadedModule = wasmModule;
           resolve(wasmModule);
@@ -121,9 +123,13 @@ function wasmLoader(module: EmscriptenModule) {
     });
   };
 }
+/* eslint-enable dot-notation */
 
 /* global WorkerGlobalScope */
 // Run only if it is in web worker environment
 if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScope) {
-  initWorker();
+  initWorker()
+    .catch(e => {
+      throw new Error(`Worker Error: Failed to load the worker: ${e}`);
+    });
 }

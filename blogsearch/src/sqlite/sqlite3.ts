@@ -1,4 +1,4 @@
-import { SQLite3Module, Pointer } from './sqlite3-emscripten';
+import { SQLite3Wasm } from './sqlite3-emscripten';
 import {
   NumberedArray,
   SQLParameterType,
@@ -9,6 +9,9 @@ import {
   QueryResult,
   ReturnCode,
 } from './sqlite3-types';
+
+// Emscripten's (or WebAssembly in general) pointer type is essentially uint32.
+type Pointer = number;
 
 /* Represents a prepared statement.
 
@@ -25,19 +28,20 @@ closed too and become unusable.
 @see https://en.wikipedia.org/wiki/Prepared_statement
   */
 class Statement {
-  private wasm: SQLite3Module;
+  private readonly wasm: SQLite3Wasm;
   private stmt: Pointer;
-  private db: Database;
+  private readonly db: Database;
   private pos: number;
-  private allocatedmem: Pointer[];
+  private readonly allocatedmem: Pointer[];
 
-  public constructor(stmt: Pointer, db: Database) {
+  public constructor (stmt: Pointer, db: Database) {
     this.wasm = db.wasm;
     this.stmt = stmt;
     this.db = db;
     this.pos = 1;
     this.allocatedmem = [];
   }
+
   /* Bind values to the parameters, after having reseted the statement
 
   SQL statements can have parameters, named *'?', '?NNN', ':VVV', '@VVV', '$VVV'*,
@@ -74,7 +78,7 @@ class Statement {
   @param values [Array,Object] The values to bind
   @throw [String] SQLite Error
     */
-  public bind(values: ParameterArray | ParameterMap): void {
+  public bind (values: ParameterArray | ParameterMap): void {
     // eslint-disable-next-line no-shadow
     const bindFromArray = (values: ParameterArray): void => {
       values.forEach((value, i) => {
@@ -104,7 +108,7 @@ class Statement {
     return;
   }
 
-  private bindValue(val: SQLParameterType, pos: number = this.pos++): void {
+  private bindValue (val: SQLParameterType, pos: number = this.pos++): void {
     // Nested functions
     /* eslint-disable no-shadow */
     const bindString = (str: string, pos: number = this.pos++): void => {
@@ -157,11 +161,11 @@ class Statement {
 
   /* Execute the statement, fetching the the next line of result,
   that can be retrieved with [Statement.get()](#get-dynamic) .
-  
+
   @return [Boolean] true if a row of result available
   @throw [String] SQLite Error
     */
-  public step(): boolean {
+  public step (): boolean {
     if (!this.stmt) {
       throw new Error('Statement closed');
     }
@@ -182,13 +186,13 @@ class Statement {
   If the first parameter is not provided, step must have been called before get.
   @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
   @return [Array<String,Number,Uint8Array,null>] One row of result
-  
+
   @example Print all the rows of the table test to the console
-  
+
       var stmt = db.prepare("SELECT * FROM test");
       while (stmt.step()) console.log(stmt.get());
     */
-  public get(params?: ParameterArray | ParameterMap): SQLReturnType[] {
+  public get (params?: ParameterArray | ParameterMap): SQLReturnType[] {
     const getNumber = (pos: number = this.pos++): number => {
       return this.wasm.sqlite3_column_double(this.stmt, pos);
     };
@@ -233,12 +237,12 @@ class Statement {
   /* Get the list of column names of a row of result of a statement.
   @return [Array<String>] The names of the columns
   @example
-  
+
       var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
       stmt.step(); // Execute the statement
       console.log(stmt.getColumnNames()); // Will print ['nbr','data','null_value']
     */
-  public getColumnNames(): string[] {
+  public getColumnNames (): string[] {
     const results: string[] = [];
     const colSize = this.wasm.sqlite3_data_count(this.stmt);
     for (let col = 0; col < colSize; col++) {
@@ -252,14 +256,14 @@ class Statement {
   @param [Array,Object] Optional: If set, the values will be bound to the statement, and it will be executed
   @return [Object] The row of result
   @see [Statement.get](#get-dynamic)
-  
+
   @example
-  
+
       var stmt = db.prepare("SELECT 5 AS nbr, x'616200' AS data, NULL AS null_value;");
       stmt.step(); // Execute the statement
       console.log(stmt.getAsObject()); // Will print {nbr:5, data: Uint8Array([1,2,3]), null_value:null}
     */
-  public getAsObject(params?: ParameterArray | ParameterMap): ReturnMap {
+  public getAsObject (params?: ParameterArray | ParameterMap): ReturnMap {
     const values = this.get(params);
     const names = this.getColumnNames();
     const rowObject: ReturnMap = {};
@@ -273,7 +277,7 @@ class Statement {
   Bind the values, execute the statement, ignoring the rows it returns, and resets it
   @param [Array,Object] Value to bind to the statement
     */
-  public run(values?: ParameterArray | ParameterMap) {
+  public run (values?: ParameterArray | ParameterMap) {
     if (typeof values !== 'undefined') {
       this.bind(values);
     }
@@ -284,7 +288,7 @@ class Statement {
   /* Reset a statement, so that it's parameters can be bound to new values
   It also clears all previous bindings, freeing the memory used by bound parameters.
     */
-  public reset(): boolean {
+  public reset (): boolean {
     this.freemem();
     return (
       this.wasm.sqlite3_clear_bindings(this.stmt) === ReturnCode.OK &&
@@ -294,7 +298,7 @@ class Statement {
 
   /* Free the memory allocated during parameter binding
    */
-  private freemem() {
+  private freemem () {
     let mem;
     while ((mem = this.allocatedmem.pop())) {
       this.wasm._free(mem);
@@ -305,9 +309,10 @@ class Statement {
   /* Free the memory used by the statement
   @return [Boolean] true in case of success
     */
-  public free(): boolean {
+  public free (): boolean {
     this.freemem();
     const res = this.wasm.sqlite3_finalize(this.stmt) === ReturnCode.OK;
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete this.db.statements[this.stmt];
     this.stmt = this.wasm.NULL;
     return res;
@@ -315,21 +320,22 @@ class Statement {
 }
 
 export class Database {
-  public wasm: SQLite3Module;
+  public readonly wasm: SQLite3Wasm;
   private filename: string;
   private dbPtr: Pointer;
-  public statements: {
-    [stmtPtr: number]: Statement;
-  };
   private functions: {
     [functionPtrName: string]: Pointer;
+  };
+
+  public statements: {
+    [stmtPtr: number]: Statement;
   };
 
   /**
    * @param data  Raw data buffer of the SQLite Database. If not provided,
    *              a new Database is created.
    */
-  public constructor(wasm: SQLite3Module, data?: ArrayBufferView) {
+  public constructor (wasm: SQLite3Wasm, data?: ArrayBufferView) {
     this.wasm = wasm;
     // eslint-disable-next-line no-bitwise
     this.filename = `dbfile_${(0xffffffff * Math.random()) >>> 0}`;
@@ -356,7 +362,7 @@ export class Database {
 
   @return [Database] The database object (useful for method chaining)
     */
-  public run(sql: string, params?: ParameterArray | ParameterMap) {
+  public run (sql: string, params?: ParameterArray | ParameterMap) {
     if (!this.dbPtr) {
       throw new Error('Database closed');
     }
@@ -394,7 +400,6 @@ export class Database {
   | 2  |  18 | Paul   |
   | 3  |  3  | Markus |
 
-
   We query it like that:
   ```javascript
   var db = new SQL.Database();
@@ -408,11 +413,11 @@ export class Database {
           {columns: ['age','name'], values:[[1,'Ling'],[18,'Paul'],[3,'Markus']]}
       ]
   ```
-    
+
   @param sql [String] a string containing some SQL text to execute
   @return [Array<QueryResults>] An array of results.
     */
-  public exec(sql: string): QueryResult[] {
+  public exec (sql: string): QueryResult[] {
     // [TODO] Verify how it works
     if (!this.dbPtr) {
       throw new Error('Database closed');
@@ -425,7 +430,6 @@ export class Database {
       while (this.wasm.getValue(nextSqlPtr, 'i8') !== this.wasm.NULL) {
         this.wasm.setValue(this.wasm.tempInt32, 0, '*');
         this.wasm.setValue(pzTail, 0, '*');
-        // eslint-disable-next-line prettier/prettier
         this.handleError(this.wasm.sqlite3_prepare_v2_sqlptr(this.dbPtr, nextSqlPtr, -1, this.wasm.tempInt32, pzTail));
         const stmtPtr = this.wasm.getValue(this.wasm.tempInt32, '*');
         nextSqlPtr = this.wasm.getValue(pzTail, '*');
@@ -476,13 +480,11 @@ export class Database {
                       function(row){console.log(row.name + " is a grown-up.")}
                   );
     */
-  /* eslint-disable prettier/prettier */
   public each(sql: string, callback: (row: ReturnMap) => void): this;
   public each(sql: string, callback: (row: ReturnMap) => void, done: () => any): ReturnType<typeof done>;
   public each(sql: string, params: ParameterArray | ParameterMap, callback: (row: ReturnMap) => void): this;
   public each(sql: string, params: ParameterArray | ParameterMap, callback: (row: ReturnMap) => void, done: () => any): ReturnType<typeof done>;
-  /* eslint-enable prettier/prettier */
-  public each(sql: string, ...args: any[]) {
+  public each (sql: string, ...args: any[]) {
     let stmt: Statement;
     let doneCallback: () => any;
     let rowCallback: (row: ReturnMap) => void;
@@ -518,7 +520,7 @@ export class Database {
   @return [Statement] the resulting statement
   @throw [String] SQLite error
     */
-  public prepare(sql: string, params?: ParameterArray | ParameterMap): Statement {
+  public prepare (sql: string, params?: ParameterArray | ParameterMap): Statement {
     this.wasm.setValue(this.wasm.tempInt32, 0, '*');
     this.handleError(
       this.wasm.sqlite3_prepare_v2(this.dbPtr, sql, -1, this.wasm.tempInt32, this.wasm.NULL)
@@ -538,7 +540,7 @@ export class Database {
   /**
    * Close DB, but not delete the DB file
    */
-  private _close(): void {
+  private _close (): void {
     for (const [, stmt] of Object.entries(this.statements)) {
       stmt.free();
     }
@@ -554,7 +556,7 @@ export class Database {
     * Also frees all statements and memory, meaning it essentially reopens the DB.
   @return [Uint8Array] An array of bytes of the SQLite3 database file
     */
-  public export(): Uint8Array {
+  public export (): Uint8Array {
     this._close();
     const binaryDb: Uint8Array = this.wasm.FS.readFile(this.filename, { encoding: 'binary' });
     this.handleError(this.wasm.sqlite3_open(this.filename, this.wasm.tempInt32));
@@ -569,11 +571,10 @@ export class Database {
 
   **Warning**: A statement belonging to a database that has been closed cannot
   be used anymore.
-
   Databases **must** be closed, when you're finished with them, or the
   memory consumption will grow forever
     */
-  public close() {
+  public close () {
     this._close();
     this.wasm.FS.unlink(`/${this.filename}`);
     this.filename = '';
@@ -584,7 +585,7 @@ export class Database {
   an error with a descriptive message otherwise
   @nodoc
     */
-  public handleError(returnCode: ReturnCode) {
+  public handleError (returnCode: ReturnCode) {
     if (returnCode === ReturnCode.OK) {
       return true;
     } else {
@@ -599,7 +600,7 @@ export class Database {
 
   @return [Number] the number of rows modified
     */
-  public getRowsModified() {
+  public getRowsModified () {
     return this.wasm.sqlite3_changes(this.dbPtr);
   }
 
@@ -611,7 +612,7 @@ export class Database {
   @param name [String] the name of the function as referenced in SQL statements.
   @param func [Function] the actual function to be executed.
     */
-  public create_function = function(name: string, func: Function) {
+  public create_function = function (name: string, func: Function) {
     const wrappedFunc = (sqlite3ContextPtr: Pointer, argc: number, argvPtr: Pointer) => {
       const args = [];
       for (let i = 0; i < argc; i++) {
@@ -626,17 +627,19 @@ export class Database {
             case valueType !== 3:
               return this.wasm.sqlite3_value_text;
             case valueType !== 4:
-              return function(ptr: Pointer) {
+              return function (ptr: Pointer) {
                 const size = this.wasm.sqlite3_value_bytes(ptr);
                 const blobPtr = this.wasm.sqlite3_value_blob(ptr);
                 const blobArg = new Uint8Array(size);
                 for (let j = 0; j < size; j++) {
+                  // [TODO] Remove this ESLint disable
+                  // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
                   blobArg[j] = this.wasm.HEAP8[blobPtr + j];
                 }
                 return blobArg;
               };
             default:
-              return function(_: Pointer) {
+              return function (_: Pointer) {
                 return null;
               };
           }
@@ -681,11 +684,11 @@ export class Database {
     };
     if (name in this.functions) {
       this.wasm.removeFunction(this.functions[name]);
+      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.functions[name];
     }
     const funcPtr = this.wasm.addFunction(wrappedFunc);
     this.functions[name] = funcPtr;
-    // eslint-disable-next-line prettier/prettier
     this.handleError(this.wasm.sqlite3_create_function_v2(this.db, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0));
     return this;
   };

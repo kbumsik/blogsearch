@@ -1,14 +1,13 @@
 /**
  * Mocks for SQLite
  */
-// eslint-disable-next-line prettier/prettier
 import type { SearchResult, QueryResult } from '../';
 
-export const mockSQLiteLoad = jest.fn(function() {
+export const mockSQLiteLoad = jest.fn(async function () {
   return Promise.resolve(this);
 });
 
-export const mockSQLiteSearch = jest.fn(function(): Promise<SearchResult[]> {
+export const mockSQLiteSearch = jest.fn(async function (): Promise<SearchResult[]> {
   return Promise.resolve([
     { TestTitle: 'Title1', TestBody: 'Body1', TestURL: 'URL1' },
     { TestTitle: 'Title2', TestBody: 'Body2', TestURL: 'URL2' },
@@ -16,7 +15,7 @@ export const mockSQLiteSearch = jest.fn(function(): Promise<SearchResult[]> {
   ]);
 });
 
-export const mockSQLiteRun = jest.fn(function(): Promise<QueryResult[]> {
+export const mockSQLiteRun = jest.fn(async function (): Promise<QueryResult[]> {
   return Promise.resolve([
     {
       columns: ['TestTitle', 'TestBody', 'TestURL'],

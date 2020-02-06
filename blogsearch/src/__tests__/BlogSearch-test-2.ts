@@ -2,14 +2,14 @@
  * BlogSearch test suite #2
  * Test suite without mocking autocomplete.js.
  **/
-/* eslint-disable spaced-comment */
 import $ from '../zepto';
 import Hogan from 'hogan.js';
 import BlogSearch from '../BlogSearch';
-
-jest.mock('../sqlite');
 // @ts-ignore
 import SQLite, { mockSQLiteLoad, mockSQLiteSearch, mockSQLiteRun } from '../sqlite';
+
+// Have __mocks__
+jest.mock('../sqlite');
 
 // Catch any error inside of promise
 process.on('unhandledRejection', err => {
@@ -170,7 +170,7 @@ describe('BlogSearch', () => {
       // When
       const bs = new BlogSearch(options);
       await bs.load();
-      ///@ts-ignore
+      // @ts-ignore
       bs.autocomplete.trigger('autocomplete:shown');
 
       expect($('.algolia-autocomplete').attr('class')).toEqual(
@@ -179,4 +179,3 @@ describe('BlogSearch', () => {
     });
   });
 });
-/* eslint-enable spaced-comment */

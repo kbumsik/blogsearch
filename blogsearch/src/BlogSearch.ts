@@ -29,19 +29,19 @@ interface Config {
 
 const usage = `Usage:
 blogsearch({
-  workerFactory: function that returns a Web Worker,
-  wasmPath: string,
   dbPath: string,
   inputSelector: string (CSS selector),
+  wasmPath: (optional) string,
+  workerFactory: (optional) function that returns a Web Worker,
 })`;
 
 class BlogSearch {
-  private input: JQuery<HTMLElement>;
-  private autocomplete: AutocompleteElement;
+  private readonly input: JQuery<HTMLElement>;
+  private readonly autocomplete: AutocompleteElement;
   private sqlite: SQLite | undefined; // This is not set by the contructor so possibly undefined
-  private sqlitePromise: Promise<SQLite>;
+  private readonly sqlitePromise: Promise<SQLite>;
 
-  public constructor({
+  public constructor ({
     workerFactory,
     wasmPath,
     dbPath = '',
@@ -56,7 +56,6 @@ class BlogSearch {
     },
     layout = 'simple',
   }: Config & SQL.Config) {
-    // eslint-disable-next-line prettier/prettier
     checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
 
     this.sqlitePromise = new SQLite({
@@ -65,7 +64,7 @@ class BlogSearch {
       worker: getWorkerFactory(workerFactory)(),
     }).load();
 
-    this.input = BlogSearch.getInputFromSelector(inputSelector)!;
+    this.input = BlogSearch.getInputFromSelector(inputSelector);
 
     this.autocomplete = autocomplete(
       this.input,
@@ -89,24 +88,18 @@ class BlogSearch {
     this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
     return;
 
-    function checkArguments(args: Config & SQL.Config) {
+    function checkArguments (args: Config & SQL.Config) {
       if (
-        /* eslint-disable prettier/prettier */
         typeof args.dbPath !== 'string' || !args.dbPath ||
-        typeof args.wasmPath !== 'string' || !args.wasmPath ||
         typeof args.inputSelector !== 'string' || !args.inputSelector ||
         (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
-        /* eslint-enable prettier/prettier */
       ) {
         throw new Error(usage);
       }
-
-      if (!BlogSearch.getInputFromSelector(args.inputSelector)) {
-        throw new Error(`Error: No input element in the page matches ${args.inputSelector}`);
-      }
+      BlogSearch.getInputFromSelector(args.inputSelector);
     }
 
-    function getWorkerFactory(factory?: () => Worker) {
+    function getWorkerFactory (factory?: () => Worker) {
       if (typeof factory !== 'undefined') {
         return factory;
       }
@@ -114,7 +107,7 @@ class BlogSearch {
       const workerDir = (() => {
         if (typeof window?.blogsearch?.worker === 'function') {
           // See the global delcaration in the top of this file
-          return URL.createObjectURL(new Blob([`(${window?.blogsearch?.worker})()`]));
+          return URL.createObjectURL(new Blob([`(${window.blogsearch.worker})()`]));
         } else {
           const curDir =
             (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
@@ -125,7 +118,7 @@ class BlogSearch {
       return () => new Worker(workerDir);
     }
 
-    function configAutoCompleteOptions(
+    function configAutoCompleteOptions (
       options: AutocompleteOptions,
       input: JQuery<HTMLElement>,
       debugFlag: boolean
@@ -134,18 +127,20 @@ class BlogSearch {
       options.debug = debugFlag ?? options.debug ?? false;
       options.cssClasses = options.cssClasses ?? {};
       options.cssClasses.prefix = options.cssClasses?.prefix ?? 'ds';
-      const inputAriaLabel = typeof input?.attr === 'function' && input.attr('aria-label');
-      options.ariaLabel = options.ariaLabel ?? (inputAriaLabel || 'search input');
+      const inputAriaLabel = typeof input?.attr === 'function' ? input.attr('aria-label') : undefined;
+      options.ariaLabel = options.ariaLabel ?? inputAriaLabel ?? 'search input';
       /* eslint-enable no-param-reassign */
       return options;
     }
   }
 
-  public async load(): Promise<BlogSearch> {
+  public async load (): Promise<BlogSearch> {
     this.sqlite = await this.sqlitePromise;
     const meta = await this.sqlite.run(
       "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
     );
+    // eslint-disable-next-line no-console
+    console.log(meta);
     return this;
   }
 
@@ -156,9 +151,12 @@ class BlogSearch {
    * input of the page
    * @returns {void}
    */
-  private static getInputFromSelector(selector: string) {
+  private static getInputFromSelector (selector: string) {
     const input = $(selector).filter('input');
-    return input.length ? $(input[0]) : null;
+    if (!input?.length) {
+      throw new Error(`Error: No input element in the page matches ${selector}`);
+    }
+    return $(input[0]);
   }
 
   /**
@@ -168,57 +166,56 @@ class BlogSearch {
    * @returns {function} Method to be passed as the `source` option of
    * autocomplete
    */
-  private getAutocompleteSource() {
+  private getAutocompleteSource () {
     return async (query: string, callback: (suggestion: Suggestion[]) => void) => {
       if (typeof this.sqlite === 'undefined') {
         throw new Error('Error: Search engine is not loaded.');
       }
       const searchResult = await this.sqlite.search(query, 5);
       // eslint-disable-next-line no-console
+      console.log(searchResult);
       if (searchResult.length > 0) {
         callback(formatSuggestions(searchResult));
       }
       return;
 
-      function formatSuggestions(results: SQL.SearchResult[]): Suggestion[] {
-        return results.map(
-          (row): Suggestion => {
-            return {
-              isLvl0: false,
-              isLvl1: true,
-              isLvl2: false,
-              isLvl1EmptyOrDuplicate: false,
-              isCategoryHeader: true,
-              isSubCategoryHeader: true,
-              isTextOrSubcategoryNonEmpty: true,
-              category: row.title,
-              subcategory: row.title,
-              title: row.title,
-              text: row.body,
-              url: row.url,
-            };
-          }
-        );
+      function formatSuggestions (results: SQL.SearchResult[]): Suggestion[] {
+        return results.map((row): Suggestion => {
+          return {
+            isLvl0: false,
+            isLvl1: true,
+            isLvl2: false,
+            isLvl1EmptyOrDuplicate: false,
+            isCategoryHeader: true,
+            isSubCategoryHeader: true,
+            isTextOrSubcategoryNonEmpty: true,
+            category: row.title,
+            subcategory: row.title,
+            title: row.title,
+            text: row.body,
+            url: row.url,
+          };
+        });
       }
     };
   }
 
-  private static getEmptyTemplate() {
+  private static getEmptyTemplate () {
     return (args: Hogan.Context) => Hogan.compile(templates.empty).render(args);
   }
 
-  private static getSuggestionTemplate(isSimpleLayout: boolean) {
+  private static getSuggestionTemplate (isSimpleLayout: boolean) {
     const stringTemplate = isSimpleLayout ? templates.suggestionSimple : templates.suggestion;
     const template = Hogan.compile(stringTemplate);
     return (suggestion: Hogan.Context) => template.render(suggestion);
   }
 
-  private handleSelected(
+  private handleSelected (
     input: any,
     _event: any,
     suggestion: Suggestion,
     _datasetNumber: any,
-    context: any = {}
+    context: any = {},
   ) {
     // Do nothing if click on the suggestion, as it's already a <a href>, the
     // browser will take care of it. This allow Ctrl-Clicking on results and not
@@ -231,7 +228,7 @@ class BlogSearch {
     window.location.assign(suggestion.url);
   }
 
-  private handleShown(input: JQuery<HTMLElement>) {
+  private handleShown (input: JQuery<HTMLElement>) {
     // @ts-ignore
     const middleOfInput = input.offset().left + input.width() / 2;
     // @ts-ignore
