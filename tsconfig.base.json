@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
+    "target": "ES5",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "lib": ["ESNext"],
     "allowJs": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
     "importHelpers": true,
     "removeComments": true,
     "sourceMap": true,

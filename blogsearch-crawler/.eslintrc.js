@@ -1,5 +1,8 @@
 module.exports = {
   extends: [
-    '../.eslintrc.base.js'
-  ]
+    '../.eslintrc.js'
+  ],
+  "parserOptions": {
+      "project": "./blogsearch-crawler/tsconfig.json"
+  },
 };

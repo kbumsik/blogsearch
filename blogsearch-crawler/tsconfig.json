@@ -1,14 +1,14 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "build",
+    "outDir": "lib",
   },
   "include": [
     "./**/*.ts",
     "./**/index.js"
   ],
   "exclude": [
-    "build/*",
+    "lib",
     "**/__tests__/*",
     "**/__mocks__/*"
   ]
