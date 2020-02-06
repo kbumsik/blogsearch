@@ -1,5 +1,8 @@
 {
   "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "lib": ["ESNext"],
     "allowJs": true,
     "noImplicitAny": true,
     "noUnusedLocals": true,
@@ -10,8 +13,6 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true,
-    "target": "es5",
-    "module": "commonjs",
     "esModuleInterop": true,
     "strictNullChecks": true,
     "noImplicitReturns": true,

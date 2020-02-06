@@ -5,13 +5,5 @@ module.exports = {
   ],
   extends: [
     '../.eslintrc.base.js'
-  ],
-  overrides: [
-    {
-      files: ['./src/sqlite/*'],
-      rules: {
-        'dot-notation': ['off']
-      }
-    }
-  ],
+  ]
 };

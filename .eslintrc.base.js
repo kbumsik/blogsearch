@@ -1,22 +1,25 @@
 module.exports = {
   extends: [
     'algolia',
+    'algolia/typescript'
   ],
   env: {
     browser: true,
     node: true
   },
+  rules: {
+    'no-invalid-this': ['warn'],
+    'no-nested-ternary': ['off'],
+  },
   overrides: [
     {
       // TypeScript
       files: ['*.ts'],
-      extends: [
-        'algolia/typescript'
-      ],
       rules: {
         // These does not resolve .ts files. Is it bug?
         'import/extensions': ['off'],
         'import/no-unresolved': ['off'],
+        'import/named': ['off'],
         // This does not allow 'T' as generic type naming, forcing to use unnecessary lengthy 'TType' or something.
         '@typescript-eslint/generic-type-naming': ['off'],
         'no-dupe-class-members': ['off'],
