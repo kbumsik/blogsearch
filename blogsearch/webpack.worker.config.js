@@ -4,7 +4,7 @@
 const WrapperPlugin = require('wrapper-webpack-plugin');
 
 /**
- * I'm making packing a UMD module myself for the following reasons:
+ * I'm making a UMD module myself for the following reasons:
  *  1. Before checking availabilities of module, define(), and ES6, it should
  *    initiate itself if it is run in the web worker environment.
  *  2. If none of above environments available it should be attacted to
