@@ -1,14 +1,15 @@
 {
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
+    "allowJs": false,
     "outDir": "lib",
   },
   "include": [
     "./**/*.ts",
-    "./**/index.js"
   ],
   "exclude": [
     "lib",
+    "**/__fixtures__/*",
     "**/__tests__/*",
     "**/__mocks__/*"
   ]
