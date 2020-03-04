@@ -19,11 +19,11 @@ export type SearchResult = {
 };
 
 export default class SQLite {
-  private dbPath: string;
-  private wasmPath?: string;
-  private sqlWorker: Worker;
+  private readonly dbPath: string;
+  private readonly wasmPath?: string;
+  private readonly sqlWorker: Worker;
 
-  public constructor({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
+  public constructor ({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;
@@ -44,7 +44,7 @@ export default class SQLite {
     };
   }
 
-  public load(): Promise<SQLite> {
+  public async load (): Promise<SQLite> {
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'open') {
@@ -60,7 +60,7 @@ export default class SQLite {
     });
   }
 
-  public async search(match: string, top: number): Promise<SearchResult[]> {
+  public async search (match: string, top: number): Promise<SearchResult[]> {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
@@ -84,13 +84,13 @@ export default class SQLite {
         // filter body string
         // eslint-disable-next-line no-param-reassign
         row[1] = escapeXMLCharacters(row[1] as string)
-          .replace(/{{%%%/g, `<span class="algolia-docsearch-suggestion--highlight">`)
-          .replace(/%%%}}/g, `</span>`);
+          .replace(/{{%%%/g, '<span class="algolia-docsearch-suggestion--highlight">')
+          .replace(/%%%}}/g, '</span>');
         return Object.fromEntries(zip(columns, row));
       });
   }
 
-  public run(query: string): Promise<QueryResult[]> {
+  public async run (query: string): Promise<QueryResult[]> {
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'exec') {
@@ -108,9 +108,10 @@ export default class SQLite {
 
   /**
    * Wrapper for to narrow usage of worker handler.
+   *
    * @param handler Handler for worker response
    */
-  private handleMessageFromWorker(handler: (response: WorkerMessage.Response) => any) {
+  private handleMessageFromWorker (handler: (response: WorkerMessage.Response) => any) {
     this.sqlWorker.addEventListener(
       'message',
       e => {
@@ -123,9 +124,10 @@ export default class SQLite {
 
 /**
  * The same as python's built-in zip function.
+ *
  * @param arrays arrays of arrays of the same size.
  */
-function* zip(...arrays: any[]) {
+function * zip (...arrays: any[]) {
   const numOfArrays = arrays.length;
   const arrayLength = arrays[0].length;
   for (let i = 0; i < arrayLength; i++) {
@@ -140,9 +142,10 @@ function* zip(...arrays: any[]) {
 /**
  * Escape XML tag characters, from the W3C recommendation.
  * https://www.w3.org/International/questions/qa-escapes#use
+ *
  * @param input unsafe string
  */
-function escapeXMLCharacters(input: string) {
+function escapeXMLCharacters (input: string) {
   return input.replace(/[<>&]/g, c => {
     switch (c) {
       case '&':
