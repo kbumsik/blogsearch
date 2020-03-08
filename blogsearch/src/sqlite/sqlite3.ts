@@ -612,7 +612,7 @@ export class Database {
   @param name [String] the name of the function as referenced in SQL statements.
   @param func [Function] the actual function to be executed.
     */
-  public create_function = function (name: string, func: Function) {
+  public createFunction (name: string, func: Function) {
     const wrappedFunc = (sqlite3ContextPtr: Pointer, argc: number, argvPtr: Pointer) => {
       const args = [];
       for (let i = 0; i < argc; i++) {
@@ -687,9 +687,11 @@ export class Database {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete this.functions[name];
     }
-    const funcPtr = this.wasm.addFunction(wrappedFunc);
+    // The signature of the wrapped function is :
+    // void wrapped(sqlite3_context *db, int argc, sqlite3_value **argv)
+    const funcPtr = this.wasm.addFunction(wrappedFunc, 'viii');
     this.functions[name] = funcPtr;
-    this.handleError(this.wasm.sqlite3_create_function_v2(this.db, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0));
+    this.handleError(this.wasm.sqlite3_create_function_v2(this.dbPtr, name, func.length, ReturnCode.UTF8, 0, funcPtr, 0, 0, 0));
     return this;
-  };
+  }
 }
