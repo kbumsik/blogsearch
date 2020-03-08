@@ -147,14 +147,10 @@ dist/blogsearch.umd.js: $(filter-out lib/sqlite/%, $(JS_SRC))
 						$(WEBPACK_OPTS) \
 						-o $@
 # Worker - files under lib/sqlite
-# Remove .wasm before using webpack. Otherwise webpack tries to bundle .wasm
-# files and throw error.
 dist/worker.umd.js: $(filter lib/sqlite/%, $(JS_SRC)) lib/sqlite/blogsearch.wasm
-	mv lib/sqlite/blogsearch.wasm cache/blogsearch.wasm
 	yarn run webpack --config webpack.worker.config.js \
 						$(WEBPACK_OPTS) \
 						-o $@
-	mv cache/blogsearch.wasm lib/sqlite/blogsearch.wasm
 
 ################################################################################
 # Building WASM

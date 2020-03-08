@@ -27,5 +27,19 @@ module.exports = {
         },
       },
     ],
+    // Webpack breaks .wasm file loading. So redefine the default rules
+    // and remove the default .wasm rule.
+    // See: https://github.com/webpack/webpack/blob/d5e26f728adb63a1fca080ef728fd627952a921d/lib/WebpackOptionsDefaulter.js#L83-L86
+    // See: https://github.com/webpack/webpack/issues/6725
+    defaultRules: [
+			{
+				type: 'javascript/auto',
+				resolve: {},
+			},
+			{
+				test: /\.json$/i,
+				type: 'json',
+			},
+		],
   },
 };
