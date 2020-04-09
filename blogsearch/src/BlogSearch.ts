@@ -36,10 +36,8 @@ blogsearch({
 })`;
 
 class BlogSearch {
-  private readonly input: JQuery<HTMLElement>;
-  private readonly autocomplete: AutocompleteElement;
-  private sqlite: SQLite | undefined; // This is not set by the contructor so possibly undefined
-  private readonly sqlitePromise: Promise<SQLite>;
+  private readonly sqlite: SQLite;
+  private readonly startAutoComplete: () => void;
 
   public constructor ({
     workerFactory,
@@ -58,34 +56,38 @@ class BlogSearch {
   }: Config & SQL.Config) {
     checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
 
-    this.sqlitePromise = new SQLite({
+    this.sqlite = new SQLite({
       wasmPath,
       dbPath,
       worker: getWorkerFactory(workerFactory)(),
-    }).load();
+    });
 
-    this.input = BlogSearch.getInputFromSelector(inputSelector);
-
-    this.autocomplete = autocomplete(
-      this.input,
-      configAutoCompleteOptions(autocompleteOptions, this.input, debug),
-      [
-        {
-          source: this.getAutocompleteSource(),
-          templates: {
-            suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
-            footer: templates.footer,
-            empty: BlogSearch.getEmptyTemplate(),
+    this.startAutoComplete = () => {
+      const selector = BlogSearch.getInputFromSelector(inputSelector);
+      const autocompleteEngine = autocomplete(
+        selector,
+        configAutoCompleteOptions(autocompleteOptions, selector, debug),
+        [
+          {
+            source: this.getAutocompleteSource(),
+            templates: {
+              suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
+              footer: templates.footer,
+              empty: BlogSearch.getEmptyTemplate(),
+            },
           },
-        },
-      ]
-    );
-    // Reference: https://github.com/algolia/autocomplete.js#events
-    this.autocomplete.on(
-      'autocomplete:selected',
-      this.handleSelected.bind(null, this.autocomplete.autocomplete)
-    );
-    this.autocomplete.on('autocomplete:shown', this.handleShown.bind(null, this.input));
+        ]
+      );
+      // Reference: https://github.com/algolia/autocomplete.js#events
+      autocompleteEngine.on(
+        'autocomplete:selected',
+        this.handleSelected.bind(null, autocompleteEngine.autocomplete)
+      );
+      autocompleteEngine.on(
+        'autocomplete:shown',
+        this.handleShown.bind(null, selector)
+      );
+    };
     return;
 
     function checkArguments (args: Config & SQL.Config) {
@@ -123,24 +125,27 @@ class BlogSearch {
       input: JQuery<HTMLElement>,
       debugFlag: boolean
     ): AutocompleteOptions {
-      /* eslint-disable no-param-reassign */
-      options.debug = debugFlag ?? options.debug ?? false;
-      options.cssClasses = options.cssClasses ?? {};
-      options.cssClasses.prefix = options.cssClasses?.prefix ?? 'ds';
       const inputAriaLabel = typeof input?.attr === 'function' ? input.attr('aria-label') : undefined;
-      options.ariaLabel = options.ariaLabel ?? inputAriaLabel ?? 'search input';
-      /* eslint-enable no-param-reassign */
-      return options;
+      return {
+        ...options,
+        debug: debugFlag ?? options.debug ?? false,
+        cssClasses: {
+          prefix: 'ds',
+          ...options.cssClasses,
+        },
+        ariaLabel: options.ariaLabel ?? inputAriaLabel ?? 'search input',
+      };
     }
   }
 
   public async load (): Promise<BlogSearch> {
-    this.sqlite = await this.sqlitePromise;
+    await this.sqlite.load();
     const meta = await this.sqlite.run(
       "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
     );
     // eslint-disable-next-line no-console
     console.log(meta);
+    this.startAutoComplete();
     return this;
   }
 
