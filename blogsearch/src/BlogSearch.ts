@@ -41,7 +41,7 @@ class BlogSearch {
 
   public constructor ({
     workerFactory,
-    wasmPath,
+    wasmPath = getCurrentDir('blogsearch.wasm'),
     dbPath = '',
     inputSelector = '',
     debug = false,
@@ -106,17 +106,9 @@ class BlogSearch {
         return factory;
       }
       // Get current directory for worker
-      const workerDir = (() => {
-        if (typeof window?.blogsearch?.worker === 'function') {
-          // See the global delcaration in the top of this file
-          return URL.createObjectURL(new Blob([`(${window.blogsearch.worker})()`]));
-        } else {
-          const curDir =
-            (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
-          // This assumes that worker.umd.js is available in the NPM package.
-          return `${curDir.substr(0, curDir.lastIndexOf('/'))}/worker.umd.js`;
-        }
-      })();
+      const workerDir = typeof window?.blogsearch?.worker === 'function'
+        ? URL.createObjectURL(new Blob([`(${window.blogsearch.worker})()`]))
+        : getCurrentDir('worker.umd.js');
       return () => new Worker(workerDir);
     }
 
@@ -260,6 +252,13 @@ class BlogSearch {
       autocompleteWrapper.removeClass(otherAlignClass);
     }
   }
+}
+
+function getCurrentDir (fileName: string) {
+  const curDir =
+    (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
+  // This assumes that worker.umd.js is available in the CDN (e.g. JSDelivr).
+  return `${curDir.substr(0, curDir.lastIndexOf('/'))}/${fileName}`;
 }
 
 export default BlogSearch;

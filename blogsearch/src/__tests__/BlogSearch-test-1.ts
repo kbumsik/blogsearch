@@ -170,33 +170,16 @@ describe('BlogSearch', () => {
           new BlogSearch(options);
         }).toThrow(/^Usage:/);
       });
-      it('should throw an error if dbPath is empty string', () => {
-        // Given
-        const options = { ...defaultOptions, dbPath: '' };
-
-        // When
-        expect(() => {
-          new BlogSearch(options);
-        }).toThrow(/^Usage:/);
-      });
-      it('should throw an error if no wasmPath defined', () => {
+      it('should use the default wasmPath if no wasmPath defined', () => {
         // Given
         const options = defaultOptions;
         delete options.wasmPath;
 
         // When
-        expect(() => {
-          new BlogSearch(options);
-        }).toThrow(/^Usage:/);
-      });
-      it('should throw an error if wasmPath is empty string', () => {
-        // Given
-        const options = { ...defaultOptions, wasmPath: '' };
+        new BlogSearch(options);
 
-        // When
-        expect(() => {
-          new BlogSearch(options);
-        }).toThrow(/^Usage:/);
+        // Then
+        expect((SQLite as jest.Mock).mock.calls[0][0].wasmPath).toMatch(/\/\/localhost\/blogsearch.wasm/);
       });
       it('should pass if no workerFactory defined', () => {
         // Given
@@ -239,7 +222,7 @@ describe('BlogSearch', () => {
 
         // Then
         expect((SQLite as jest.Mock).mock.calls[0][0].worker).toBe(mockWorker);
-        expect((Worker as jest.Mock).mock.calls[0][0]).toMatch(/worker.umd.js/);
+        expect((Worker as jest.Mock).mock.calls[0][0]).toMatch(/\/\/localhost\/worker.umd.js/);
       });
       it('should call new Worker(window.blogsearch.worker) if exists', () => {
         // [TODO] URL.createObjectURL() not provided by JSDOM figure out a workaround.
