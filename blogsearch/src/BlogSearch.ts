@@ -72,7 +72,6 @@ class BlogSearch {
             source: this.getAutocompleteSource(),
             templates: {
               suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
-              footer: templates.footer,
               empty: BlogSearch.getEmptyTemplate(),
             },
           },

@@ -1,6 +1,5 @@
 const prefix = 'algolia-docsearch';
 const suggestionPrefix = `${prefix}-suggestion`;
-const footerPrefix = `${prefix}-footer`;
 
 /* eslint-disable max-len */
 
@@ -67,11 +66,6 @@ const templates = {
       {{/text}}
     </div>
   </div>
-  `,
-  footer: `
-    <div class="${footerPrefix}">
-      Search by <a class="${footerPrefix}--logo" href="https://www.algolia.com/docsearch">Algolia</a>
-    </div>
   `,
   empty: `
   <div class="${suggestionPrefix}">
