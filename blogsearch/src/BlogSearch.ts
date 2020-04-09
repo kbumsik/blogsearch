@@ -163,25 +163,12 @@ class BlogSearch {
    * autocomplete
    */
   private getAutocompleteSource () {
-    return async (query: string, callback: (suggestion: Suggestion[]) => void) => {
-      const searchResult = await this.sqlite.search(query, 5);
-      callback(formatSuggestions(searchResult));
+    return async (query: string, showSearchResult: (suggestion: Suggestion[]) => void) => {
+      const suggestion = await this.sqlite.search(query, 5);
+      showSearchResult(suggestion as any[]);
       // eslint-disable-next-line no-console
-      console.log(searchResult);
+      console.log(suggestion);
       return;
-
-      function formatSuggestions (results: SQL.SearchResult[]): Suggestion[] {
-        return results.map((row): Suggestion => {
-          return {
-            title: row.title,
-            body: row.body,
-            body_highlight: row.body_highlight,
-            url: row.url,
-            categories: row.categories,
-            tags: row.tags,
-          };
-        });
-      }
     };
   }
 
