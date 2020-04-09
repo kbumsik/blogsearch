@@ -24,7 +24,7 @@ interface Config {
   inputSelector: string;
   debug?: boolean;
   autocompleteOptions?: AutocompleteOptions;
-  layout?: 'columns' | 'simple';
+  layout?: 'simple' | 'columns';
 }
 
 const usage = `Usage:
@@ -71,7 +71,7 @@ class BlogSearch {
           {
             source: this.getAutocompleteSource(),
             templates: {
-              suggestion: BlogSearch.getSuggestionTemplate(layout === 'simple'),
+              suggestion: BlogSearch.getSuggestionTemplate(layout),
               empty: BlogSearch.getEmptyTemplate(),
             },
           },
@@ -164,32 +164,21 @@ class BlogSearch {
    */
   private getAutocompleteSource () {
     return async (query: string, callback: (suggestion: Suggestion[]) => void) => {
-      if (typeof this.sqlite === 'undefined') {
-        throw new Error('Error: Search engine is not loaded.');
-      }
       const searchResult = await this.sqlite.search(query, 5);
+      callback(formatSuggestions(searchResult));
       // eslint-disable-next-line no-console
       console.log(searchResult);
-      if (searchResult.length > 0) {
-        callback(formatSuggestions(searchResult));
-      }
       return;
 
       function formatSuggestions (results: SQL.SearchResult[]): Suggestion[] {
         return results.map((row): Suggestion => {
           return {
-            isLvl0: false,
-            isLvl1: true,
-            isLvl2: false,
-            isLvl1EmptyOrDuplicate: false,
-            isCategoryHeader: true,
-            isSubCategoryHeader: true,
-            isTextOrSubcategoryNonEmpty: true,
-            category: row.title,
-            subcategory: row.title,
             title: row.title,
-            text: row.body,
+            body: row.body,
+            body_highlight: row.body_highlight,
             url: row.url,
+            categories: row.categories,
+            tags: row.tags,
           };
         });
       }
@@ -200,8 +189,8 @@ class BlogSearch {
     return (args: Hogan.Context) => Hogan.compile(templates.empty).render(args);
   }
 
-  private static getSuggestionTemplate (isSimpleLayout: boolean) {
-    const stringTemplate = isSimpleLayout ? templates.suggestionSimple : templates.suggestion;
+  private static getSuggestionTemplate (layout: Config['layout']) {
+    const stringTemplate = layout === 'simple' ? templates.suggestionSimple : templates.suggestion;
     const template = Hogan.compile(stringTemplate);
     return (suggestion: Hogan.Context) => template.render(suggestion);
   }

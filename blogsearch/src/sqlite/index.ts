@@ -64,9 +64,8 @@ export default class SQLite {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
-        title,
-        snippet(blogsearch, 1, '{{%%%', '%%%}}', '', 10) as body,
-        url 
+        snippet(blogsearch, 1, '{{%%%', '%%%}}', '', 10) as body_highlight,
+        *
       FROM blogsearch
       WHERE blogsearch 
         MATCH '${match}'
@@ -79,11 +78,11 @@ export default class SQLite {
     }
     const { columns, values } = raw[0];
     return values
-      .filter(row => row[0]) // Filter empty title
+      .filter(row => row[1]) // Filter empty title. [TODO] Get the title index in a better way
       .map(row => {
-        // filter body string
+        // hightlight body string
         // eslint-disable-next-line no-param-reassign
-        row[1] = escapeXMLCharacters(row[1] as string)
+        row[0] = escapeXMLCharacters(row[0] as string)
           .replace(/{{%%%/g, '<span class="algolia-docsearch-suggestion--highlight">')
           .replace(/%%%}}/g, '</span>');
         return Object.fromEntries(zip(columns, row));

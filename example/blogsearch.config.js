@@ -51,11 +51,11 @@ module.exports = {
     // Optional fields
     categories: {
       weight: 5.0,
-      parser: false,
+      parser: () => 'categories-1 categories-2',
     },
     tags: {
       weight: 5.0,
-      parser: false,
+      parser: () => 'tags-1 tags-2',
     },
   }
 };

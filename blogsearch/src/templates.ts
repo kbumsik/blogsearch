@@ -1,69 +1,64 @@
 const prefix = 'algolia-docsearch';
 const suggestionPrefix = `${prefix}-suggestion`;
 
-/* eslint-disable max-len */
-
 const templates = {
   suggestion: `
-  <a class="${suggestionPrefix}
-    {{#isCategoryHeader}}${suggestionPrefix}__main{{/isCategoryHeader}}
-    {{#isSubCategoryHeader}}${suggestionPrefix}__secondary{{/isSubCategoryHeader}}
+  <a class="
+    ${suggestionPrefix}
+    ${suggestionPrefix}__main
     "
     aria-label="Link to the result"
     href="{{{url}}}"
-    >
-    <div class="${suggestionPrefix}--category-header">
-        <span class="${suggestionPrefix}--category-header-lvl0">{{{category}}}</span>
-    </div>
+  >
     <div class="${suggestionPrefix}--wrapper">
       <div class="${suggestionPrefix}--subcategory-column">
-        <span class="${suggestionPrefix}--subcategory-column-text">{{{subcategory}}}</span>
+        {{#categories}}
+        <span class="${suggestionPrefix}--subcategory-column-text">
+          {{{categories}}}
+        </span>
+        {{/categories}}
+        {{#tags}}
+        <span class="${suggestionPrefix}--subcategory-column-text">
+          {{{tags}}}
+        </span>
+        {{/tags}}
       </div>
-      {{#isTextOrSubcategoryNonEmpty}}
       <div class="${suggestionPrefix}--content">
-        <div class="${suggestionPrefix}--subcategory-inline">{{{subcategory}}}</div>
         <div class="${suggestionPrefix}--title">{{{title}}}</div>
-        {{#text}}<div class="${suggestionPrefix}--text">{{{text}}}</div>{{/text}}
+        {{#body_highlight}}
+        <div class="${suggestionPrefix}--text">{{{body_highlight}}}</div>
+        {{/body_highlight}}
       </div>
-      {{/isTextOrSubcategoryNonEmpty}}
     </div>
   </a>
   `,
   suggestionSimple: `
-  <div class="${suggestionPrefix}
-    {{#isCategoryHeader}}${suggestionPrefix}__main{{/isCategoryHeader}}
-    {{#isSubCategoryHeader}}${suggestionPrefix}__secondary{{/isSubCategoryHeader}}
+  <div class="
+    ${suggestionPrefix}
+    ${suggestionPrefix}__main
     suggestion-layout-simple
   ">
     <div class="${suggestionPrefix}--category-header">
-        {{^isLvl0}}
-        <span class="${suggestionPrefix}--category-header-lvl0 ${suggestionPrefix}--category-header-item">{{{category}}}</span>
-          {{^isLvl1}}
-          {{^isLvl1EmptyOrDuplicate}}
-          <span class="${suggestionPrefix}--category-header-lvl1 ${suggestionPrefix}--category-header-item">
-              {{{subcategory}}}
-          </span>
-          {{/isLvl1EmptyOrDuplicate}}
-          {{/isLvl1}}
-        {{/isLvl0}}
         <div class="${suggestionPrefix}--title ${suggestionPrefix}--category-header-item">
-            {{#isLvl2}}
-                {{{title}}}
-            {{/isLvl2}}
-            {{#isLvl1}}
-                {{{subcategory}}}
-            {{/isLvl1}}
-            {{#isLvl0}}
-                {{{category}}}
-            {{/isLvl0}}
+            {{{title}}}
         </div>
+        {{#categories}}
+        <span class="${suggestionPrefix}--category-header-lvl0 ${suggestionPrefix}--category-header-item">
+          {{{categories}}}
+        </span>
+        {{/categories}}
+        {{#tags}}
+        <span class="${suggestionPrefix}--category-header-lvl1 ${suggestionPrefix}--category-header-item">
+          {{{tags}}}
+        </span>
+        {{/tags}}
     </div>
     <div class="${suggestionPrefix}--wrapper">
-      {{#text}}
+      {{#body_highlight}}
       <div class="${suggestionPrefix}--content">
-        <div class="${suggestionPrefix}--text">{{{text}}}</div>
+        <div class="${suggestionPrefix}--text">{{{body_highlight}}}</div>
       </div>
-      {{/text}}
+      {{/body_highlight}}
     </div>
   </div>
   `,

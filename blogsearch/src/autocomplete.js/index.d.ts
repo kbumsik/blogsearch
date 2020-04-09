@@ -12,18 +12,12 @@ export interface AutocompleteOptions {
 }
 
 export interface Suggestion {
-  isLvl0: boolean;
-  isLvl1: boolean;
-  isLvl2: boolean;
-  isLvl1EmptyOrDuplicate: boolean;
-  isCategoryHeader: boolean;
-  isSubCategoryHeader: boolean;
-  isTextOrSubcategoryNonEmpty: boolean;
-  category: string;
-  subcategory: string;
   title: string;
-  text: string | null;
+  body: string | null;
+  body_highlight: string | null;
   url: string;
+  categories: string;
+  tags: string;
 }
 
 // Reference: https://github.com/algolia/autocomplete.js#events
