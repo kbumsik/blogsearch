@@ -5,34 +5,7 @@ import * as fs from 'fs';
 import * as sqlite from 'sqlite';
 // This is only need for constants declarations
 import { OPEN_CREATE, OPEN_READWRITE } from 'sqlite3';
-
-export type Field = 'title' | 'body' | 'url' | OptionalField;
-export type OptionalField = 'categories' | 'tags';
-export interface FieldConfig {
-  hasContent?: boolean;
-  weight?: number;
-  parser: Parser;
-}
-
-type FieldsRecord = Record<Field, FieldConfig>
-export type FieldsMap = Map<Field, Required<FieldConfig>>
-
-type SelectorString = string;
-type GenericParser<T> = (entry: string, page: puppeteer.Page) => Promise<puppeteer.ElementHandle<T>> | Promise<T> | T | null;
-export type Parser = SelectorString | GenericParser<string> | false;
-function isSelectorString (x: Parser): x is SelectorString {
-  return typeof x === 'string';
-}
-
-export interface UncheckedConfig {
-  type?: 'simple';
-  output?: string;
-  entries?: string[];
-  fields?: FieldsMap | FieldsRecord;
-}
-export interface Config extends Required<UncheckedConfig> {
-  fields: FieldsMap;
-}
+import { Config, Field, Parser, GenericParser, isSelectorString } from './configTypes';
 
 export default async function (config: Config) {
   const browser = await puppeteer.launch({ ignoreHTTPSErrors: true });

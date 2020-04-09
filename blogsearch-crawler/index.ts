@@ -1,6 +1,7 @@
 import * as glob from 'glob';
 import * as fs from 'fs';
-import crawl, { Config, UncheckedConfig } from './crawler';
+import { Config, UncheckedConfig } from './configTypes';
+import crawl from './crawler';
 
 const madatoryDefaults: Config['fields'] = new Map([
   ['title', { hasContent: true, weight: 10.0, parser: false }],

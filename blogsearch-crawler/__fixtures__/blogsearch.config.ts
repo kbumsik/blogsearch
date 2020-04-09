@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { UncheckedConfig } from '../crawler';
+import { UncheckedConfig } from '../configTypes';
 
 const configExample: UncheckedConfig = {
   type: 'simple',
