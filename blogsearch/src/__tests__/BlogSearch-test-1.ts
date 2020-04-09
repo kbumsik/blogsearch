@@ -136,20 +136,7 @@ describe('BlogSearch', () => {
       });
       expect(mockWorkerFactory).toBeCalledTimes(1);
     });
-    it('should pass the input element as an instance property', () => {
-      // Given
-      const options = defaultOptions;
-      getInputFromSelector.mockImplementation(() => $('<span>foo</span>'));
-
-      // When
-      const actual = new BlogSearch(options);
-
-      // Then
-      const $inputs = (actual as any).input;
-      expect($inputs.text()).toEqual('foo');
-      expect($inputs[0].tagName).toEqual('SPAN');
-    });
-    it('should instantiate autocomplete.js', () => {
+    it('should instantiate autocomplete.js', async () => {
       // Given
       const options = {
         ...defaultOptions,
@@ -159,7 +146,7 @@ describe('BlogSearch', () => {
       getInputFromSelector.mockImplementation(() => $input);
 
       // When
-      new BlogSearch(options as any);
+      await (new BlogSearch(options as any)).load();
 
       // Then
       expect(autocomplete).toBeCalledTimes(1);
@@ -170,17 +157,6 @@ describe('BlogSearch', () => {
         debug: false,
         ariaLabel: 'search input',
       } as any);
-    });
-    it('should not initialize this.sqlite object', () => {
-      // Given
-      const options = defaultOptions;
-
-      // When
-      const blogsearch = new BlogSearch(options);
-
-      // Then
-      // @ts-ignore
-      expect(typeof blogsearch.sqlite).toBe('undefined');
     });
 
     describe('checkArguments', () => {
@@ -330,25 +306,23 @@ describe('BlogSearch', () => {
       getInputFromSelector = BlogSearch.getInputFromSelector;
     });
 
-    it('should return null if no element matches the selector', () => {
+    it('should throw an error if no element matches the selector', () => {
       // Given
       const selector = '.i-do-not-exist > at #all';
 
       // When
-      const actual = getInputFromSelector(selector);
-
-      // Then
-      expect(actual).toEqual(null);
+      expect(() => {
+        getInputFromSelector(selector);
+      }).toThrow(/^Error: No input element in the page matches/);
     });
-    it('should return null if the matched element is not an input', () => {
+    it('should throw an error if the matched element is not an input', () => {
       // Given
       const selector = '.i-am-a-span';
 
       // When
-      const actual = getInputFromSelector(selector);
-
-      // Then
-      expect(actual).toEqual(null);
+      expect(() => {
+        getInputFromSelector(selector);
+      }).toThrow(/^Error: No input element in the page matches/);
     });
     it('should return a Zepto wrapped element if it matches', () => {
       // Given

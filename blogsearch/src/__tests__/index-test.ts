@@ -2,6 +2,7 @@ import blogsearch from '../index';
 import BlogSearch from '../BlogSearch';
 
 jest.mock('../sqlite');
+// eslint-disable-next-line import/first
 import SQLite from '../sqlite';
 
 // Catch any error inside of promise
@@ -47,13 +48,13 @@ describe('index.ts', () => {
     expect(obj).toBeInstanceOf(BlogSearch);
   });
 
-  it('should call BlogSearch.load() and SQLite constructor', () => {
+  it('should call BlogSearch.load() and SQLite constructor', async () => {
     // Given
     const load = spyOn(BlogSearch.prototype, 'load');
     const options = defaultOptions;
 
     // When
-    blogsearch(options);
+    await blogsearch(options);
 
     // Then
     expect(load).toHaveBeenCalledTimes(1);
