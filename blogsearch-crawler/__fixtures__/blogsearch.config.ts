@@ -1,4 +1,7 @@
-module.exports = {
+// @ts-nocheck
+import { UncheckedConfig } from '../crawler';
+
+const configExample: UncheckedConfig = {
   type: 'simple',
   output: './reactjs.org.blogsearch.db.bin',
   /**
@@ -13,18 +16,24 @@ module.exports = {
    * The below an example, of course, you can add more fields as you need.
    *
    * Options for a field
-   *  - searchable: boolean
-   *      This enables full-text indexing. If enabled, search() in
-   *      the browser will be search against the field.
-   *      Recommended for disabled if the field is something like URL,
-   *      which is not intended to be looked up.
-   *  - noContent: boolean
-   *      When enabled the content of this field won't appear in the
-   *      search field. The data still will be "searchable" even if
-   *      noContent is enabled.
-   *      Recommended for disabled to reduce the size of the output size,
    *  - weight: number
    *      The weight of matching score during the search() operation.
+   *  - hasContent: boolean
+   *      When enabled the content of this field won't appear in the
+   *      search field. The data still will be "searchable" even if
+   *      content is enabled.
+   *      Recommended for disabled to reduce the size of the output size,
+   */
+
+  /**
+   * The crawler uses this to parse for the fields
+   * Each field can have three types:
+   *  - string
+   *      This is considered as a CSS selector.
+   *  - function (entry, page: puppeteer::page) => string | Promise<string>
+   *      This is a generic parser function when a CSS selector is not available.
+   *  - false
+   *      This can be use if you don't want to parse the field.
    */
   fields: {
     // These are mandatory fields
@@ -48,7 +57,6 @@ module.exports = {
         return entry.replace('./reactjs.org/public', 'https://my_own_blog_website');
       }
     },
-    // Optional fields
     categories: {
       weight: 5.0,
       parser: false,
@@ -59,3 +67,5 @@ module.exports = {
     },
   }
 };
+
+module.exports = configExample;

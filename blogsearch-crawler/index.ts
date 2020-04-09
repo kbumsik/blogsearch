@@ -1,20 +1,22 @@
 import * as glob from 'glob';
 import * as fs from 'fs';
-import crawl, { UncheckedConfig, InputConfig, Config } from './crawler';
+import crawl, { Config, UncheckedConfig } from './crawler';
 
-const defaultFields: Config['fields'] = new Map([
-  ['title', { searchable: true, noContent: false, weight: 10.0 }],
-  ['url', { searchable: false, noContent: false, weight: 1.0 }],
-  ['body', { searchable: true, noContent: false, weight: 1.0 }],
-  ['categories', { searchable: true, noContent: false, weight: 5.0 }],
+const madatoryDefaults: Config['fields'] = new Map([
+  ['title', { hasContent: true, weight: 10.0, parser: false }],
+  ['body', { hasContent: false, weight: 1.0, parser: false }],
+  ['url', { hasContent: true, weight: 0, parser: false }],
+]);
+
+const optionalDefaults: Config['fields'] = new Map([
+  ['categories', { hasContent: true, weight: 5.0, parser: false }],
+  ['tags', { hasContent: true, weight: 5.0, parser: false }],
 ]);
 
 // Load configuration
-export default async function crawlBlog (config: Config | UncheckedConfig) {
+export default async function crawlBlog (uncheckedConfig: UncheckedConfig) {
   try {
-    if (!preprocessConfig(config)) {
-      throw new Error('Parsing config file failed.');
-    }
+    const config = checkConfig(uncheckedConfig);
 
     // Override DB file
     if (fs.existsSync(config.output)) {
@@ -28,55 +30,74 @@ export default async function crawlBlog (config: Config | UncheckedConfig) {
   }
 }
 
-function preprocessConfig (config: Config | UncheckedConfig): config is Config {
+function checkConfig (config: UncheckedConfig): Config {
   if (typeof config !== 'object') {
-    throw new Error('exported mduole must be an object.');
+    throw new Error('Exported config must be an object.');
   }
+  return {
+    type: checkType(config),
+    output: checkOutput(config),
+    entries: checkEntries(config),
+    fields: checkFields(config)
+  };
+}
 
-  // config.output
-  if (typeof config.output !== 'string') {
-    throw new Error('\'output\' field must be a string of a generated file path.');
+function checkType ({ type }: UncheckedConfig) {
+  if (type === undefined) {
+    throw new Error('\'type\' must be specified');
   }
-
-  // config.fields
-  if (typeof config.fields === 'object' && !(config.fields instanceof Map)) {
-    const fieldsMap: Config['fields'] = new Map();
-    for (const [field, fieldConfig] of defaultFields) {
-      if (!(field in config.fields)) {
-        throw new Error(`'${field}' is missing in 'fields'.`);
-      }
-      fieldsMap.set(field, { ...fieldConfig, ...config.fields[field] });
-    }
-    config.fields = fieldsMap;
+  if (type === 'simple') {
+    return type;
   } else {
-    throw new Error('\'fields\' must be an object with proper fields.');
+    throw new Error('\'type\' must be \'simple\' value');
   }
+}
 
-  // config.inputs
-  if (Array.isArray(config.inputs)) {
-    config.inputs.forEach((input, index) => {
-      // input.entries
-      if (Array.isArray(input.entries)) {
-        input.entries = input.entries.flatMap(entry => glob.sync(entry, { nodir: true }));
-      } else {
-        throw new Error('\'input.entries\' must be an array of glob patterns.');
-      }
+function checkOutput ({ output }: UncheckedConfig) {
+  if (output === undefined) {
+    throw new Error('\'output\' must be specified');
+  }
+  if (typeof output !== 'string') {
+    throw new Error('\'output\' must be a string of a generated database file path.');
+  }
+  return output;
+}
 
-      // input.fieldsParser
-      if (typeof input.fieldsParser !== 'object' || input.fieldsParser instanceof Map) {
-        throw new Error(`'input[${index}].fieldsParser' must be an object with proper fields.`);
-      }
-      const fieldsParserMap: InputConfig['fieldsParser'] = new Map();
-      for (const [field] of defaultFields) {
-        if (!(field in input.fieldsParser)) {
-          throw new Error(`${field} is missing in 'fields' field.`);
+function checkEntries ({ entries }: UncheckedConfig) {
+  if (entries === undefined) {
+    throw new Error('\'entries\' must be specified');
+  }
+  if (Array.isArray(entries)) {
+    return entries.flatMap(entry => glob.sync(entry, { nodir: true }));
+  } else {
+    throw new Error('\'entries\' must be an array of glob patterns.');
+  }
+}
+
+function checkFields ({ fields }: UncheckedConfig) {
+  if (fields === undefined) {
+    throw new Error('\'fields\' must be specified');
+  }
+  if (typeof fields === 'object' && !(fields instanceof Map)) {
+    const newFields: Config['fields'] = new Map();
+
+    const overrideDefaults = (defaults: Config['fields'], mandatory: boolean) => {
+      for (const [fieldToCheck, defaultField] of defaults) {
+        if (!(fieldToCheck in fields)) {
+          if (mandatory) {
+            throw new Error(`'${fieldToCheck}' is missing in 'fields'.`);
+          } else {
+            return;
+          }
         }
-        fieldsParserMap.set(field, input.fieldsParser[field]);
+        newFields.set(fieldToCheck, { ...defaultField, ...fields[fieldToCheck] });
       }
-      input.fieldsParser = fieldsParserMap;
-    });
+    };
+
+    overrideDefaults(madatoryDefaults, true);
+    overrideDefaults(optionalDefaults, false);
+    return newFields;
   } else {
-    throw new Error('\'fields\' field must be an object with proper properties.');
+    throw new Error('\'fields\' must be an object with proper search configurations.');
   }
-  return true;
 }
