@@ -54,6 +54,7 @@ module.exports = {
       parser: () => 'categories-1 categories-2',
     },
     tags: {
+      enabled: false,
       weight: 5.0,
       parser: () => 'tags-1 tags-2',
     },

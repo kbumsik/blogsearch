@@ -8,7 +8,12 @@ import { OPEN_CREATE, OPEN_READWRITE } from 'sqlite3';
 import { Config, Field, Parser, GenericParser, isSelectorString } from './configTypes';
 
 export default async function (config: Config) {
-  const browser = await puppeteer.launch({ ignoreHTTPSErrors: true });
+  config.fields = filterMap(config.fields, field => field.enabled);
+
+  const browser = await puppeteer.launch({
+    ignoreHTTPSErrors: true
+  });
+
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
   await db.run(`CREATE VIRTUAL TABLE blogsearch USING fts5(${Array.from(config.fields.keys()).join(',')}, detail=full);`);
 
@@ -80,4 +85,13 @@ function checkParser (parser: Parser): GenericParser<string> {
   } else {
     return parser;
   }
+}
+
+function filterMap<K, V> (map: Map<K, V>, callback: (value: V) => boolean) {
+  for (const [key, value] of map) {
+    if (!callback(value)) {
+      map.delete(key);
+    }
+  }
+  return map;
 }

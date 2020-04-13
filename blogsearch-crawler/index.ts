@@ -3,15 +3,12 @@ import * as fs from 'fs';
 import { Config, UncheckedConfig } from './configTypes';
 import crawl from './crawler';
 
-const madatoryDefaults: Config['fields'] = new Map([
-  ['title', { hasContent: true, weight: 10.0, parser: false }],
-  ['body', { hasContent: false, weight: 1.0, parser: false }],
-  ['url', { hasContent: true, weight: 0, parser: false }],
-]);
-
-const optionalDefaults: Config['fields'] = new Map([
-  ['categories', { hasContent: true, weight: 5.0, parser: false }],
-  ['tags', { hasContent: true, weight: 5.0, parser: false }],
+const defaultFields: Config['fields'] = new Map([
+  ['title', { hasContent: true, weight: 10.0, parser: false, enabled: true }],
+  ['body', { hasContent: false, weight: 1.0, parser: false, enabled: true }],
+  ['url', { hasContent: true, weight: 0, parser: false, enabled: true }],
+  ['categories', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
+  ['tags', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
 ]);
 
 // Load configuration
@@ -82,21 +79,14 @@ function checkFields ({ fields }: UncheckedConfig) {
   if (typeof fields === 'object' && !(fields instanceof Map)) {
     const newFields: Config['fields'] = new Map();
 
-    const overrideDefaults = (defaults: Config['fields'], mandatory: boolean) => {
-      for (const [fieldToCheck, defaultField] of defaults) {
-        if (!(fieldToCheck in fields)) {
-          if (mandatory) {
-            throw new Error(`'${fieldToCheck}' is missing in 'fields'.`);
-          } else {
-            return;
-          }
-        }
-        newFields.set(fieldToCheck, { ...defaultField, ...fields[fieldToCheck] });
+    // Override defaults if not set.
+    for (const [fieldToCheck, defaultField] of defaultFields) {
+      if (!(fieldToCheck in fields)) {
+        throw new Error(`'${fieldToCheck}' is missing in 'fields'.`);
       }
-    };
+      newFields.set(fieldToCheck, { ...defaultField, ...fields[fieldToCheck] });
+    }
 
-    overrideDefaults(madatoryDefaults, true);
-    overrideDefaults(optionalDefaults, false);
     return newFields;
   } else {
     throw new Error('\'fields\' must be an object with proper search configurations.');

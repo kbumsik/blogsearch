@@ -61,8 +61,7 @@ const configExample: UncheckedConfig = {
       parser: false,
     },
     tags: {
-      weight: 5.0,
-      parser: false,
+      enabled: false,
     },
   }
 };

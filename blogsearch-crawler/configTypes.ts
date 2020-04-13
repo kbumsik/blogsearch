@@ -6,6 +6,7 @@ export interface FieldConfig {
   hasContent?: boolean;
   weight?: number;
   parser: Parser;
+  enabled: boolean;
 }
 
 type FieldsRecord = Record<Field, FieldConfig>
