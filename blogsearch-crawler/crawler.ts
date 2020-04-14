@@ -34,7 +34,13 @@ export default async function (config: Config) {
       const entry = entries.pop()!;
 
       const page = await context.newPage();
-      await page.goto(resolveEntry(entry));
+      try {
+        await page.goto(resolveEntry(entry), {
+          waitUntil: 'networkidle2'
+        });
+      } catch (error) {
+        throw new Error(`Failed to open a page of ${entry}: ${error}`);
+      }
 
       const parsedFields = new Map<Field, string>();
       for (const [field, fieldConfig] of fields) {
