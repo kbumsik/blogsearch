@@ -16,7 +16,12 @@ export default async function (config: Config) {
   });
 
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
-  await db.run(`CREATE VIRTUAL TABLE blogsearch USING fts5(${Array.from(config.fields.keys()).join(',')}, detail=full);`);
+  await db.run(`
+    CREATE VIRTUAL TABLE blogsearch
+    USING fts5(
+        ${Array.from(config.fields.keys()).join(',')},
+        detail=full
+      );`);
 
   await Promise.all([...Array(os.cpus().length).keys()]
     .map(taskNumber => crawlerTask(config, taskNumber)));
