@@ -34,6 +34,7 @@ module.exports = {
       parser: 'article > header',
     },
     body: {
+      hasContent: false,
       weight: 1.0,
       // It can be a function as well.
       parser: (entry, page) => {

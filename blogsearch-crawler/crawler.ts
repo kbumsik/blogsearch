@@ -6,7 +6,7 @@ import * as os from 'os';
 import * as sqlite from 'sqlite';
 // This is only need for constants declarations
 import { OPEN_CREATE, OPEN_READWRITE } from 'sqlite3';
-import { Config, Field, Parser, GenericParser, isSelectorString } from './configTypes';
+import { Config, Field, Parser, GenericParser, isSelectorString, FieldConfig } from './configTypes';
 
 export default async function (config: Config) {
   config.fields = filterMap(config.fields, field => field.enabled);
@@ -17,11 +17,20 @@ export default async function (config: Config) {
 
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
   await db.run(`
+    CREATE TABLE blogsearch_ext_content (
+      rowid INTEGER PRIMARY KEY,
+      ${[...config.fields.keys()].join(',')});`);
+  await db.run(`
     CREATE VIRTUAL TABLE blogsearch
     USING fts5(
-        ${[...config.fields.keys()].join(',')},
-        detail=full
-      );`);
+        ${[...config.fields.entries()]
+            .map(([field, config]) => `${field}${config.weight < 0.0001 ? ' UNINDEXED' : ''}`)
+            .join(',')},
+        tokenize = 'porter unicode61 remove_diacritics 1',
+        content=blogsearch_ext_content,
+        content_rowid=rowid);`);
+  // This is a global rowid counter
+  let rowidCounter = 0;
 
   await Promise.all([...Array(os.cpus().length).keys()]
     .map(taskNumber => crawlerTask(config, taskNumber)));
@@ -47,7 +56,7 @@ export default async function (config: Config) {
         throw new Error(`Failed to open a page of ${entry}: ${error}`);
       }
 
-      const parsedFields = new Map<Field, string>();
+      const parsedFields = new Map<Field, { fieldConfig: Required<FieldConfig>; value: string}>();
       for (const [field, fieldConfig] of fields) {
         const parser = checkParser(fieldConfig.parser);
 
@@ -56,7 +65,7 @@ export default async function (config: Config) {
           if (parsed === null) {
             throw new Error('Parsing result is null.');
           }
-          parsedFields.set(field, parsed.toString());
+          parsedFields.set(field, { fieldConfig, value: parsed.toString() });
         } catch (error) {
           const msg = error instanceof Error ? error.message : error;
           throw new Error(`Failed to parse '${field}' field in ${entry}: ${msg}`);
@@ -65,11 +74,27 @@ export default async function (config: Config) {
 
       // A single quote should be encoded to two single quotes
       // See: https://www.sqlite.org/lang_expr.html
-      const values = [...parsedFields.values()]
-        .map(value => value.replace(/'/g, "''"))
-        .map(value => `'${value}'`)
-        .join(',');
-      await db.run(`INSERT INTO blogsearch VALUES (${values});`);
+      const rowid = rowidCounter++;
+      await db.run(`
+        INSERT INTO blogsearch_ext_content
+        VALUES (
+          ${rowid},
+          ${[...parsedFields.values()]
+            .map(({ value, fieldConfig }) => fieldConfig.hasContent ? value : '')
+            .map(value => value.replace(/'/g, "''"))
+            .map(value => `'${value}'`)
+            .join(',')});`);
+      await db.run(`
+        INSERT INTO blogsearch (
+          rowid,
+          ${[...parsedFields.keys()].join(',')})
+        VALUES (
+          ${rowid},
+          ${[...parsedFields.values()]
+            .map(({ value }) => value)
+            .map(value => value.replace(/'/g, "''"))
+            .map(value => `'${value}'`)
+            .join(',')});`);
       await page.close();
     }
     await context.close();
@@ -100,10 +125,11 @@ function checkParser (parser: Parser): GenericParser<string> {
 }
 
 function filterMap<K, V> (map: Map<K, V>, callback: (value: V) => boolean) {
+  const newMap = new Map();
   for (const [key, value] of map) {
-    if (!callback(value)) {
-      map.delete(key);
+    if (callback(value)) {
+      newMap.set(key, value);
     }
   }
-  return map;
+  return newMap;
 }
