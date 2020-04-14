@@ -19,7 +19,7 @@ export default async function (config: Config) {
   await db.run(`
     CREATE VIRTUAL TABLE blogsearch
     USING fts5(
-        ${Array.from(config.fields.keys()).join(',')},
+        ${[...config.fields.keys()].join(',')},
         detail=full
       );`);
 
@@ -65,11 +65,10 @@ export default async function (config: Config) {
 
       // A single quote should be encoded to two single quotes
       // See: https://www.sqlite.org/lang_expr.html
-      const values =
-        Array.from(parsedFields.values())
-          .map(value => value.replace(/'/g, "''"))
-          .map(value => `'${value}'`)
-          .join(',');
+      const values = [...parsedFields.values()]
+        .map(value => value.replace(/'/g, "''"))
+        .map(value => `'${value}'`)
+        .join(',');
       await db.run(`INSERT INTO blogsearch VALUES (${values});`);
       await page.close();
     }
