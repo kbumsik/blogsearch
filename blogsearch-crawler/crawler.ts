@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 // This is an "promisified" version of sqlite3
 import * as sqlite from 'sqlite';
 // This is only need for constants declarations
@@ -17,13 +18,14 @@ export default async function (config: Config) {
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
   await db.run(`CREATE VIRTUAL TABLE blogsearch USING fts5(${Array.from(config.fields.keys()).join(',')}, detail=full);`);
 
-  await Promise.all((new Array(4)).fill(crawlerTask(config)));
+  await Promise.all([...Array(os.cpus().length).keys()]
+    .map(taskNumber => crawlerTask(config, taskNumber)));
 
   await db.close();
   await browser.close();
   return;
 
-  async function crawlerTask ({ fields, entries }: Config) {
+  async function crawlerTask ({ fields, entries }: Config, taskNumber: number) {
     const context = await browser.createIncognitoBrowserContext();
 
     // Use Array.pop() for iteration because multiple async crawler tasks consume the same array
