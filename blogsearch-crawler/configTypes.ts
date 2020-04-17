@@ -1,7 +1,9 @@
 import type puppeteer from 'puppeteer';
 
-export type Field = 'title' | 'body' | 'url' | OptionalField;
-export type OptionalField = 'categories' | 'tags';
+export const BLOGSEARCH = 'blogsearch';
+export const BLOGSEARCH_EXT_CONTENT = 'blogsearch_ext_content';
+
+export type Field = 'title' | 'body' | 'url' | 'categories' | 'tags';
 export interface FieldConfig {
   hasContent?: boolean;
   weight?: number;

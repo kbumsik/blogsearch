@@ -6,7 +6,10 @@ import * as os from 'os';
 import * as sqlite from 'sqlite';
 // This is only need for constants declarations
 import { OPEN_CREATE, OPEN_READWRITE } from 'sqlite3';
-import { Config, Field, Parser, GenericParser, isSelectorString, FieldConfig } from './configTypes';
+import {
+  Config, Field, Parser, GenericParser, isSelectorString, FieldConfig,
+  BLOGSEARCH, BLOGSEARCH_EXT_CONTENT
+} from './configTypes';
 
 export default async function (config: Config) {
   config.fields = filterMap(config.fields, field => field.enabled);
@@ -16,20 +19,29 @@ export default async function (config: Config) {
   });
 
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
+  /**
+   * Create table 'blogsearch_ext_content'. This is an external content table
+   * for FTS5. External content table is used to support "hasConent" feature
+   * that helps reducing the size of the output db file.
+   */
   await db.run(`
-    CREATE TABLE blogsearch_ext_content (
+    CREATE TABLE ${BLOGSEARCH_EXT_CONTENT} (
       rowid INTEGER PRIMARY KEY,
       ${[...config.fields.keys()].join(',')});`);
+  /**
+   * Create a virtual table 'blogsearch'
+   * We use the fts5 extension to support full-text search out of the box.
+   */
   await db.run(`
-    CREATE VIRTUAL TABLE blogsearch
+    CREATE VIRTUAL TABLE ${BLOGSEARCH}
     USING fts5(
         ${[...config.fields.entries()]
             .map(([field, config]) => `${field}${config.weight < 0.0001 ? ' UNINDEXED' : ''}`)
             .join(',')},
         tokenize = 'porter unicode61 remove_diacritics 1',
-        content=blogsearch_ext_content,
+        content=${BLOGSEARCH_EXT_CONTENT},
         content_rowid=rowid);`);
-  // This is a global rowid counter
+
   let rowidCounter = 0;
 
   await Promise.all([...Array(os.cpus().length).keys()]
@@ -72,29 +84,33 @@ export default async function (config: Config) {
         }
       }
 
-      // A single quote should be encoded to two single quotes
-      // See: https://www.sqlite.org/lang_expr.html
       const rowid = rowidCounter++;
+      /**
+       * Insert the parsed content first.
+       */
       await db.run(`
-        INSERT INTO blogsearch_ext_content
+        INSERT INTO ${BLOGSEARCH_EXT_CONTENT}
         VALUES (
           ${rowid},
           ${[...parsedFields.values()]
             .map(({ value, fieldConfig }) => fieldConfig.hasContent ? value : '')
-            .map(value => value.replace(/'/g, "''"))
-            .map(value => `'${value}'`)
+            .map(value => `'${value.replace(/'/g, "''")}'`) // A single quote should be encoded to two single quotes: https://www.sqlite.org/lang_expr.html
             .join(',')});`);
+      /**
+       * When inserting a row in the fts table, it only indexes content but does
+       * not actually store content.
+       */
       await db.run(`
-        INSERT INTO blogsearch (
+        INSERT INTO ${BLOGSEARCH} (
           rowid,
           ${[...parsedFields.keys()].join(',')})
         VALUES (
           ${rowid},
           ${[...parsedFields.values()]
             .map(({ value }) => value)
-            .map(value => value.replace(/'/g, "''"))
-            .map(value => `'${value}'`)
+            .map(value => `'${value.replace(/'/g, "''")}'`) // The same as above
             .join(',')});`);
+
       await page.close();
     }
     await context.close();
