@@ -104,7 +104,7 @@ SQLITE_OWN_OPTIMIZATIONS = \
 
 
 # Top level build targets
-all: dist/blogsearch.umd.js dist/worker.umd.js dist/blogsearch.wasm
+all: dist/blogsearch.umd.js dist/worker.umd.js dist/blogsearch.wasm dist/blogsearch.min.css
 	# Check wrapper js size
 	@echo 'Wrapper .js size:'
 	@cat $(word 1, $^) | wc -c | numfmt --to=iec
@@ -191,6 +191,17 @@ sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c: cache/$(SQLITE_AMALGAMATION).zip
 cache/$(SQLITE_AMALGAMATION).zip:
 	mkdir -p cache
 	curl -LsSf '$(SQLITE_AMALGAMATION_ZIP_URL)' -o $@
+
+################################################################################
+# Building CSS
+################################################################################
+dist/blogsearch.css:
+	node-sass --output-style expanded ./src/styles/main.scss \
+  	| postcss --use autoprefixer -o $@
+
+dist/blogsearch.min.map: dist/blogsearch.min.css
+dist/blogsearch.min.css: dist/blogsearch.css
+	postcss $< --use cssnano --map $(@:.css=.min.css) -o $@
 
 ################################################################################
 # Etc.
