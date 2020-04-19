@@ -105,16 +105,13 @@ SQLITE_OWN_OPTIMIZATIONS = \
 
 # Top level build targets
 all: dist/blogsearch.umd.js dist/worker.umd.js dist/blogsearch.wasm dist/blogsearch.min.css
-	# Check wrapper js size
-	@echo 'Wrapper .js size:'
-	@cat $(word 1, $^) | wc -c | numfmt --to=iec
-	@echo 'Wrapper .js gzipped size:'
-	@gzip -c $(word 1, $^) | wc -c | numfmt --to=iec
-	# Check .wasm size
-	@echo '.wasm size:'
-	@cat $(word 2, $^) | wc -c | numfmt --to=iec
-	@echo '.wasm gzipped size:'
-	@gzip -c $(word 2, $^) | wc -c | numfmt --to=iec
+	@$(foreach target, $^, $(call print_size, $(target)))
+
+define print_size
+	printf '=> $(1)\tsize: %s\tgzipped: %s\n' \
+		$$(cat $(1) | wc -c | numfmt --to=iec) \
+		$$(gzip -9 < $(1) | wc -c | numfmt --to=iec);
+endef
 
 # [TODO] --closure 1 optimization breaks the code
 dist: EMCC_OPTS += -Oz
