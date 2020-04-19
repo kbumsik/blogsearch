@@ -64,25 +64,27 @@ class BlogSearch {
 
     this.startAutoComplete = () => {
       const selector = BlogSearch.getInputFromSelector(inputSelector);
-      const autocompleteEngine = autocomplete(
+      const template = Hogan.compile(layout === 'simple' ? templates.suggestionSimple : templates.suggestion);
+      const emptyTemplate = Hogan.compile(templates.empty);
+      const inputHandler = autocomplete(
         selector,
         configAutoCompleteOptions(autocompleteOptions, selector, debug),
         [
           {
             source: this.getAutocompleteSource(),
             templates: {
-              suggestion: BlogSearch.getSuggestionTemplate(layout),
-              empty: BlogSearch.getEmptyTemplate(),
+              suggestion: (suggestion) => template.render(suggestion),
+              empty: (suggestion) => emptyTemplate.render(suggestion),
             },
           },
         ]
       );
       // Reference: https://github.com/algolia/autocomplete.js#events
-      autocompleteEngine.on(
+      inputHandler.on(
         'autocomplete:selected',
-        this.handleSelected.bind(null, autocompleteEngine.autocomplete)
+        this.handleSelected.bind(null, inputHandler.autocomplete)
       );
-      autocompleteEngine.on(
+      inputHandler.on(
         'autocomplete:shown',
         this.handleShown.bind(null, selector)
       );
@@ -171,16 +173,6 @@ class BlogSearch {
       console.log(suggestion);
       return;
     };
-  }
-
-  private static getEmptyTemplate () {
-    return (args: Hogan.Context) => Hogan.compile(templates.empty).render(args);
-  }
-
-  private static getSuggestionTemplate (layout: Config['layout']) {
-    const stringTemplate = layout === 'simple' ? templates.suggestionSimple : templates.suggestion;
-    const template = Hogan.compile(stringTemplate);
-    return (suggestion: Hogan.Context) => template.render(suggestion);
   }
 
   private handleSelected (
