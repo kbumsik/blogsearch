@@ -6,6 +6,7 @@ export interface AutocompleteOptions {
   hint: boolean;
   autoselect: boolean;
   cssClasses: {
+    root?: string;
     prefix?: string;
   };
   ariaLabel?: string;

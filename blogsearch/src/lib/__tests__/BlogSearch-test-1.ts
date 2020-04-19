@@ -153,7 +153,10 @@ describe('BlogSearch', () => {
       expect(((autocomplete as unknown) as jest.Mock).mock.calls[0][0]).toBe($input);
       expect(((autocomplete as unknown) as jest.Mock).mock.calls[0][1]).toStrictEqual({
         anOption: '44',
-        cssClasses: { prefix: 'ds' },
+        cssClasses: {
+          root: 'blogsearch-autocomplete',
+          prefix: 'bs'
+        },
         debug: false,
         ariaLabel: 'search input',
       } as any);

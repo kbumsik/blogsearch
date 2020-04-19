@@ -121,7 +121,8 @@ class BlogSearch {
         ...options,
         debug: debugFlag ?? options.debug ?? false,
         cssClasses: {
-          prefix: 'ds',
+          root: 'blogsearch-autocomplete',
+          prefix: 'bs',
           ...options.cssClasses,
         },
         ariaLabel: options.ariaLabel ?? inputAriaLabel ?? 'search input',
@@ -212,13 +213,13 @@ class BlogSearch {
 
     const alignClass =
       middleOfInput - middleOfWindow >= 0
-        ? 'algolia-autocomplete-right'
-        : 'algolia-autocomplete-left';
+        ? 'blogsearch-autocomplete-right'
+        : 'blogsearch-autocomplete-left';
     const otherAlignClass =
       middleOfInput - middleOfWindow < 0
-        ? 'algolia-autocomplete-right'
-        : 'algolia-autocomplete-left';
-    const autocompleteWrapper = $('.algolia-autocomplete');
+        ? 'blogsearch-autocomplete-right'
+        : 'blogsearch-autocomplete-left';
+    const autocompleteWrapper = $('.blogsearch-autocomplete');
     if (!autocompleteWrapper.hasClass(alignClass)) {
       autocompleteWrapper.addClass(alignClass);
     }

@@ -83,7 +83,7 @@ export default class SQLite {
         // hightlight body string
         // eslint-disable-next-line no-param-reassign
         row[0] = escapeXMLCharacters(row[0] as string)
-          .replace(/{{%%%/g, '<span class="algolia-docsearch-suggestion--highlight">')
+          .replace(/{{%%%/g, '<span class="blogsearch-suggestion--highlight">')
           .replace(/%%%}}/g, '</span>');
         return Object.fromEntries(zip(columns, row));
       });

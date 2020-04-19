@@ -173,8 +173,8 @@ describe('BlogSearch', () => {
       // @ts-ignore
       bs.autocomplete.trigger('autocomplete:shown');
 
-      expect($('.algolia-autocomplete').attr('class')).toEqual(
-        'algolia-autocomplete algolia-autocomplete-right'
+      expect($('.blogsearch-autocomplete').attr('class')).toEqual(
+        'blogsearch-autocomplete blogsearch-autocomplete-right'
       );
     });
   });

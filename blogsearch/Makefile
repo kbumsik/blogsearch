@@ -194,8 +194,8 @@ cache/$(SQLITE_AMALGAMATION).zip:
 ################################################################################
 # Building CSS
 ################################################################################
-dist/blogsearch.css:
-	node-sass --output-style expanded ./src/styles/main.scss \
+dist/blogsearch.css: src/styles/main.scss $(wildcard src/styles/*.scss)
+	node-sass --output-style expanded $< \
   	| postcss --use autoprefixer -o $@
 
 dist/blogsearch.min.map: dist/blogsearch.min.css
