@@ -466,7 +466,7 @@
           font-weight: normal;
 
           &::before {
-            content: '#';
+            content: '';
             font-weight: bold;
             color: $main-color;
             display: inline-block;
