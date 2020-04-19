@@ -125,8 +125,12 @@ debug: all
 ################################################################################
 # Building JS
 ################################################################################
-TS_SRC = $(shell find src/ -type f -name '*.ts' -not -path "*/__mocks__/*" -not -path "*/__tests__/*")
-# Basically: lib/*.js
+TS_SRC = $(shell \
+	find src/ -type f \
+		-name '*.ts' \
+		-not -path "*/__mocks__/*" \
+		-not -path "*/__tests__/*")
+# Basically: src/*.ts => lib/*.js, except TypeScript .d.js files
 JS_SRC = $(filter-out %.d.js, $(patsubst src/%, lib/%, $(TS_SRC:%.ts=%.js)))
 JS_SRC += lib/sqlite/sqlite3-emscripten.js
 
@@ -136,14 +140,16 @@ lib/%.js: src/%.ts
 #### UMD
 # API
 dist/blogsearch.umd.js: $(filter-out lib/sqlite/%, $(JS_SRC))
-	webpack --config webpack.config.js \
-						$(WEBPACK_OPTS) \
-						-o $@
+	webpack \
+		--config webpack.config.js \
+		$(WEBPACK_OPTS) \
+		-o $@
 # Worker - files under lib/sqlite
 dist/worker.umd.js: $(filter lib/sqlite/%, $(JS_SRC)) lib/sqlite/blogsearch.wasm
-	webpack --config webpack.worker.config.js \
-						$(WEBPACK_OPTS) \
-						-o $@
+	webpack \
+		--config webpack.worker.config.js \
+		$(WEBPACK_OPTS) \
+		-o $@
 
 ################################################################################
 # Building WASM
@@ -177,7 +183,7 @@ lib/sqlite/blogsearch.wasm: $(WASM_DEPS)
 ################################################################################
 sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c: cache/$(SQLITE_AMALGAMATION).zip
 	mkdir -p sqlite-src
-	echo '$(SQLITE_AMALGAMATION_ZIP_SHA1)  ./cache/$(SQLITE_AMALGAMATION).zip' > cache/sha_$(SQLITE_AMALGAMATION).txt
+	echo '$(SQLITE_AMALGAMATION_ZIP_SHA1) ./cache/$(SQLITE_AMALGAMATION).zip' > cache/sha_$(SQLITE_AMALGAMATION).txt
 	sha1sum -c cache/sha_$(SQLITE_AMALGAMATION).txt
 	unzip -DD 'cache/$(SQLITE_AMALGAMATION).zip' -d sqlite-src/
 
