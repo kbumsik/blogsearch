@@ -29,8 +29,11 @@ export default async function initWorker () {
         if (db) {
           db.close();
         }
-        const dbBuffer = fetch(data.dbPath).then(r => r.arrayBuffer());
-        // sqlite = (await loadWasm(data.wasmPath)) as EmscriptenModule;
+        const dbBuffer = fetch(
+          self.location?.href.startsWith('blob:')
+            ? correctScriptDir() + data.dbPath
+            : data.dbPath
+        ).then(r => r.arrayBuffer());
         const wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
         db = new sqlit3API.Database(wasm, new Uint8Array(await dbBuffer));
         postMessage({ respondTo: 'open', success: true });
@@ -102,9 +105,13 @@ function wasmLoader (wasmModule: SQLite3Wasm) {
       };
       if (typeof wasmPath === 'string' && wasmPath) {
         // This allows loading .wasm (wasmPath from index.ts) from cross-site.
-        // @ts-ignore
         moduleOverrides['locateFile'] = function (path: string, scriptDirectory: string) {
-          return path.match(/.wasm/) ? wasmPath : (scriptDirectory + path);
+          const dir = correctScriptDir(scriptDirectory);
+          return path.match(/.wasm/)
+            ? wasmPath.startsWith('http://') || wasmPath.startsWith('https://')
+              ? wasmPath
+              : dir + wasmPath
+            : (dir + path);
         };
       }
 
@@ -124,6 +131,18 @@ function wasmLoader (wasmModule: SQLite3Wasm) {
   };
 }
 /* eslint-enable dot-notation */
+
+function correctScriptDir (dir?: string) {
+  /**
+   * When the script (WorkerGlobalScope) is blob-generated, scriptDirectory
+   * of locateFile method (moduleOverrides['locateFile']) is an empty string.
+   * scriptDirectory should be corrected if so.
+   * [TODO] Contribute emscripten
+   */
+  return ((dir || self.location?.href) ?? '')
+    .replace(/^(blob:)/, '')
+    .replace(/\/[^\/]+$/, '/');
+};
 
 /* global WorkerGlobalScope */
 // Run only if it is in web worker environment
