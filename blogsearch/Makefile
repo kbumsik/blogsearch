@@ -4,9 +4,6 @@ SQLITE_AMALGAMATION := sqlite-amalgamation-3300100
 SQLITE_AMALGAMATION_ZIP_URL := https://www.sqlite.org/2019/$(SQLITE_AMALGAMATION).zip
 SQLITE_AMALGAMATION_ZIP_SHA1 := ff9b4e140fe0764bc7bc802facf5ac164443f517
 
-# Emscripten build config
-EMCC := emcc
-
 # See: https://github.com/emscripten-core/emscripten/blob/incoming/src/settings.js
 EMCC_OPTS = \
 	-s ERROR_ON_UNDEFINED_SYMBOLS=0 \
@@ -139,13 +136,12 @@ lib/%.js: src/%.ts
 #### UMD
 # API
 dist/blogsearch.umd.js: $(filter-out lib/sqlite/%, $(JS_SRC))
-	echo $^
-	yarn run webpack --config webpack.config.js \
+	webpack --config webpack.config.js \
 						$(WEBPACK_OPTS) \
 						-o $@
 # Worker - files under lib/sqlite
 dist/worker.umd.js: $(filter lib/sqlite/%, $(JS_SRC)) lib/sqlite/blogsearch.wasm
-	yarn run webpack --config webpack.worker.config.js \
+	webpack --config webpack.worker.config.js \
 						$(WEBPACK_OPTS) \
 						-o $@
 
@@ -166,7 +162,7 @@ WASM_DEPS = \
 lib/sqlite/sqlite3-emscripten.js: lib/sqlite/blogsearch.wasm
 lib/sqlite/blogsearch.wasm: $(WASM_DEPS)
 	mkdir -p $(dir $@)
-	$(EMCC) \
+	emcc \
 		$(EMCC_OPTS) \
 		$(EMCC_SQLITE_FLAGS) \
 		--post-js $(word 1, $^) \
