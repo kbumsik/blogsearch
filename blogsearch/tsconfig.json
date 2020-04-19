@@ -3,12 +3,12 @@
   "compilerOptions": {
     "target": "ES6",
     "lib": ["ESNext", "WebWorker", "DOM"],
-    "rootDir": "src",
+    "rootDir": "src/lib",
     "outDir": "lib",
   },
   "include": [
-    "src/**/*.ts",
-    "src/**/index.js"
+    "src/lib/**/*.ts",
+    "src/lib/**/index.js"
   ],
   "exclude": [
     "lib",

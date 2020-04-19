@@ -126,15 +126,15 @@ debug: all
 # Building JS
 ################################################################################
 TS_SRC = $(shell \
-	find src/ -type f \
+	find src/lib/ -type f \
 		-name '*.ts' \
 		-not -path "*/__mocks__/*" \
 		-not -path "*/__tests__/*")
-# Basically: src/*.ts => lib/*.js, except TypeScript .d.js files
-JS_SRC = $(filter-out %.d.js, $(patsubst src/%, lib/%, $(TS_SRC:%.ts=%.js)))
+# Basically: src/lib/*.ts => lib/*.js, except TypeScript .d.js files
+JS_SRC = $(filter-out %.d.js, $(patsubst src/lib/%, lib/%, $(TS_SRC:%.ts=%.js)))
 JS_SRC += lib/sqlite/sqlite3-emscripten.js
 
-lib/%.js: src/%.ts
+lib/%.js: src/lib/%.ts
 	yarn build:ts
 
 #### UMD
@@ -160,10 +160,10 @@ dist/blogsearch.wasm: lib/sqlite/blogsearch.wasm
 
 # These are represented as $(word {line_num}, $^) in the recipe
 WASM_DEPS = \
-	src/sqlite/sqlite3-emscripten-post-js.js \
+	src/lib/sqlite/sqlite3-emscripten-post-js.js \
 	sqlite-src/$(SQLITE_AMALGAMATION)/sqlite3.c \
-	src/sqlite/exported_functions.json \
-	src/sqlite/exported_runtime_methods.json
+	src/lib/sqlite/exported_functions.json \
+	src/lib/sqlite/exported_runtime_methods.json
 
 lib/sqlite/sqlite3-emscripten.js: lib/sqlite/blogsearch.wasm
 lib/sqlite/blogsearch.wasm: $(WASM_DEPS)

@@ -1,5 +1,6 @@
-sqlite-src
-lib
-lib-test
-cache
-dist
+/sqlite-src
+/lib
+/lib-test
+/cache
+/dist
+/test
