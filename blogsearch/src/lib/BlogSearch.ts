@@ -1,7 +1,6 @@
 import Hogan from 'hogan.js';
 import autocomplete, {
   Suggestion,
-  AutocompleteElement,
   AutocompleteOptions,
 } from './autocomplete.js';
 import SQLite, * as SQL from './sqlite';
@@ -62,33 +61,36 @@ class BlogSearch {
       worker: getWorkerFactory(workerFactory)(),
     });
 
-    this.startAutoComplete = () => {
+    this.startAutoComplete = (() => {
       const selector = BlogSearch.getInputFromSelector(inputSelector);
-      const template = Hogan.compile(layout === 'simple' ? templates.suggestionSimple : templates.suggestion);
+      const template = Hogan.compile(layout === 'simple'
+                                    ? templates.suggestionSimple
+                                    : templates.suggestion);
       const emptyTemplate = Hogan.compile(templates.empty);
-      const inputHandler = autocomplete(
-        selector,
-        configAutoCompleteOptions(autocompleteOptions, selector, debug),
-        [
-          {
-            source: this.getAutocompleteSource(),
-            templates: {
-              suggestion: (suggestion) => template.render(suggestion),
-              empty: (suggestion) => emptyTemplate.render(suggestion),
+      const options = getAutocompleteOptions(autocompleteOptions, selector, debug);
+      return () => {
+        const inputHandler = autocomplete(selector, options,
+          [
+            {
+              source: this.getAutocompleteSource(),
+              templates: {
+                suggestion: (suggestion) => template.render(suggestion),
+                empty: (suggestion) => emptyTemplate.render(suggestion),
+              },
             },
-          },
-        ]
-      );
-      // Reference: https://github.com/algolia/autocomplete.js#events
-      inputHandler.on(
-        'autocomplete:selected',
-        this.handleSelected.bind(null, inputHandler.autocomplete)
-      );
-      inputHandler.on(
-        'autocomplete:shown',
-        this.handleShown.bind(null, selector)
-      );
-    };
+          ]
+        );
+        // Reference: https://github.com/algolia/autocomplete.js#events
+        inputHandler.on(
+          'autocomplete:selected',
+          this.handleSelected.bind(null, inputHandler.autocomplete)
+        );
+        inputHandler.on(
+          'autocomplete:shown',
+          this.handleShown.bind(null, selector)
+        );
+      }
+    })();
     return;
 
     function checkArguments (args: Config & SQL.Config) {
@@ -113,7 +115,7 @@ class BlogSearch {
       return () => new Worker(workerDir);
     }
 
-    function configAutoCompleteOptions (
+    function getAutocompleteOptions (
       options: AutocompleteOptions,
       input: JQuery<HTMLElement>,
       debugFlag: boolean
