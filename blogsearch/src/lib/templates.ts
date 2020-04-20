@@ -7,18 +7,18 @@ const templates = {
     ${suggestionPrefix}
     ${suggestionPrefix}__main
   ">
-    <div class="${suggestionPrefix}--category-header">
-      <div class="${suggestionPrefix}--title ${suggestionPrefix}--category-header-item">
+    <div class="${suggestionPrefix}--header">
+      <div class="${suggestionPrefix}--title ${suggestionPrefix}--header-item">
         {{{title}}}
       </div>
       <div>
         {{#categories}}
-        <span class="${suggestionPrefix}--category-header-lvl0 ${suggestionPrefix}--category-header-item">
+        <span class="${suggestionPrefix}--header-category ${suggestionPrefix}--header-item">
           {{{value}}}
         </span>
         {{/categories}}
         {{#tags}}
-        <span class="${suggestionPrefix}--category-header-lvl1 ${suggestionPrefix}--category-header-item">
+        <span class="${suggestionPrefix}--header-tag ${suggestionPrefix}--header-item">
           {{{value}}}
         </span>
         {{/tags}}
