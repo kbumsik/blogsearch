@@ -4,6 +4,17 @@ import { QueryResult, ReturnMap } from './sqlite3-types';
 export { Config } from './worker-interfaces';
 export { QueryResult, ReturnMap } from './sqlite3-types';
 
+enum Db {
+  TitleIdx = 0,
+
+  BobyIdx,
+  UrlIdx,
+  CategoriesIdx,
+  TagsIdx,
+  DbName = 'blogsearch',
+  MaxDisplayedTokens = 10,
+};
+
 declare global {
   interface Worker {
     /**
@@ -64,12 +75,12 @@ export default class SQLite {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
-        snippet(blogsearch, 1, '{{%%%', '%%%}}', '', 10) as body_highlight,
+        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight,
         *
-      FROM blogsearch
-      WHERE blogsearch 
+      FROM ${Db.DbName}
+      WHERE ${Db.DbName} 
         MATCH '${match}'
-      ORDER BY bm25(blogsearch)
+      ORDER BY bm25(${Db.DbName})
       LIMIT ${top};
     `;
     const raw = await this.run(query);
