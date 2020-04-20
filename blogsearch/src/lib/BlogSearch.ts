@@ -23,7 +23,6 @@ interface Config {
   inputSelector: string;
   debug?: boolean;
   autocompleteOptions?: AutocompleteOptions;
-  layout?: 'simple' | 'columns';
 }
 
 const usage = `Usage:
@@ -51,9 +50,8 @@ class BlogSearch {
       cssClasses: {},
       ariaLabel: '',
     },
-    layout = 'simple',
   }: Config & SQL.Config) {
-    checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions, layout });
+    checkArguments({ workerFactory, wasmPath, dbPath, inputSelector, debug, autocompleteOptions });
 
     this.sqlite = new SQLite({
       wasmPath,
@@ -63,9 +61,7 @@ class BlogSearch {
 
     this.startAutoComplete = (() => {
       const selector = BlogSearch.getInputFromSelector(inputSelector);
-      const template = Hogan.compile(layout === 'simple'
-                                    ? templates.suggestionSimple
-                                    : templates.suggestion);
+      const template = Hogan.compile(templates.suggestion);
       const emptyTemplate = Hogan.compile(templates.empty);
       const options = getAutocompleteOptions(autocompleteOptions, selector, debug);
       return () => {
