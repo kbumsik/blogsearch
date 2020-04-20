@@ -85,6 +85,18 @@ function checkFields ({ fields }: UncheckedConfig) {
         throw new Error(`'${fieldToCheck}' is missing in 'fields'.`);
       }
       newFields.set(fieldToCheck, { ...defaultField, ...fields[fieldToCheck] });
+
+      // extra field check
+      const newFieldObj = newFields.get(fieldToCheck) as FieldConfig;
+      const defaultFieldObj = defaultFields.get(fieldToCheck) as FieldConfig;
+      if (Object.keys(newFieldObj).length !== Object.keys(defaultFieldObj).length) {
+        for (const prop in defaultFieldObj) {
+          // @ts-ignore
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete newFieldObj[prop];
+        }
+        throw new Error(`'${fieldToCheck}' field has unsupported configs: ${Object.keys(newFieldObj)}.`);
+      }
     }
 
     return newFields;
