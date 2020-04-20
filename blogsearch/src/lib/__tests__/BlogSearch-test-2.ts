@@ -97,22 +97,6 @@ describe('BlogSearch', () => {
       mockAssign.mockClear();
     });
 
-    it('should change the location if no handleSelected specified', async () => {
-      // Given
-      const options = defaultOptions;
-
-      // When
-      const search = new BlogSearch(options);
-      await search.load();
-      (search as any).autocomplete.trigger('autocomplete:selected', {
-        url: 'https://website.com/doc/page',
-      });
-
-      return new Promise(resolve => {
-        expect(window.location.assign).toHaveBeenCalledWith('https://website.com/doc/page');
-        resolve();
-      });
-    });
     describe('default handleSelected', () => {
       it('enterKey: should change the page', () => {
         const options = defaultOptions;
@@ -155,27 +139,6 @@ describe('BlogSearch', () => {
           resolve();
         });
       });
-    });
-  });
-
-  describe('handleShown', () => {
-    it('should add an alignment class', async () => {
-      // Given
-      const options = {
-        dbPath: 'test.db.bin',
-        wasmPath: 'test.wasm',
-        inputSelector: '#input',
-      };
-
-      // When
-      const bs = new BlogSearch(options);
-      await bs.load();
-      // @ts-ignore
-      bs.autocomplete.trigger('autocomplete:shown');
-
-      expect($('.blogsearch-autocomplete').attr('class')).toEqual(
-        'blogsearch-autocomplete blogsearch-autocomplete-right'
-      );
     });
   });
 });

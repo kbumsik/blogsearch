@@ -360,43 +360,5 @@ describe('BlogSearch', () => {
       });
     });
   });
-
-  describe('getSuggestionTemplate', () => {
-    it('should return a function', () => {
-      // Given
-
-      // When
-      // @ts-ignore
-      const actual = BlogSearch.getSuggestionTemplate();
-
-      // Then
-      expect(actual).toBeInstanceOf(Function);
-    });
-    describe('returned function', () => {
-      it('should compile the suggestion template', () => {
-        // Given
-
-        // When
-        // @ts-ignore
-        BlogSearch.getSuggestionTemplate();
-
-        // Then
-        expect(Hogan.compile).toBeCalledTimes(1);
-        expect(Hogan.compile).toHaveBeenLastCalledWith('<div></div>');
-      });
-      it('should call render on a Hogan template', () => {
-        // Given
-        // @ts-ignore
-        const actual = BlogSearch.getSuggestionTemplate();
-
-        // When
-        actual({ foo: 'bar' });
-
-        // Then
-        expect(mockHoganRender).toBeCalledTimes(1);
-        expect(mockHoganRender.mock.calls[0][0].foo).toBe('bar');
-      });
-    });
-  });
 });
 /* eslint-enable no-new, @typescript-eslint/no-empty-function */
