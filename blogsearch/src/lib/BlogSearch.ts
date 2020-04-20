@@ -167,10 +167,12 @@ class BlogSearch {
    */
   private getAutocompleteSource () {
     return async (query: string, showSearchResult: (suggestion: Suggestion[]) => void) => {
-      const suggestion = await this.sqlite.search(query, 5);
-      showSearchResult(suggestion as any[]);
-      // eslint-disable-next-line no-console
-      console.log(suggestion);
+      const suggestions = <Suggestion[]><unknown[]>await this.sqlite.search(query, 5);
+      showSearchResult(suggestions.map(suggestion => ({
+        ...suggestion,
+        tags: (<string>suggestion.tags ?? '').split(',').map(str => ({ value: str.trim() })),
+        categories: (<string>suggestion.categories ?? '').split(',').map(str => ({ value: str.trim() })),
+      })));
       return;
     };
   }

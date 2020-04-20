@@ -14,12 +14,12 @@ const templates = {
       <div class="${suggestionPrefix}--subcategory-column">
         {{#categories}}
         <span class="${suggestionPrefix}--subcategory-column-text">
-          {{{categories}}}
+          {{{value}}}
         </span>
         {{/categories}}
         {{#tags}}
         <span class="${suggestionPrefix}--subcategory-column-text">
-          {{{tags}}}
+          {{{value}}}
         </span>
         {{/tags}}
       </div>
@@ -43,13 +43,13 @@ const templates = {
             {{{title}}}
         </div>
         {{#categories}}
-        <span class="${suggestionPrefix}--category-header-lvl0 ${suggestionPrefix}--category-header-item">
-          {{{categories}}}
+        <span class="${suggestionPrefix}--category-header-lvl1 ${suggestionPrefix}--category-header-item">
+          {{{value}}}
         </span>
         {{/categories}}
         {{#tags}}
         <span class="${suggestionPrefix}--category-header-lvl1 ${suggestionPrefix}--category-header-item">
-          {{{tags}}}
+          {{{value}}}
         </span>
         {{/tags}}
     </div>

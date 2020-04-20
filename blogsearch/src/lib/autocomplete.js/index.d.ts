@@ -17,8 +17,8 @@ export interface Suggestion {
   body: string | null;
   body_highlight: string | null;
   url: string;
-  categories: string;
-  tags: string;
+  categories: string | { value: string }[];
+  tags: string | { value: string }[];
 }
 
 // Reference: https://github.com/algolia/autocomplete.js#events
