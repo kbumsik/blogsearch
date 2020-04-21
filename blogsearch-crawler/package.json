@@ -1,10 +1,13 @@
 {
   "name": "blogsearch-crawler",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A generic command line tool to build a database for blogsearch",
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "bin": "./bin/blogsearch-crawler",
+  "files": [
+    "lib/"
+  ],
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
   "license": "MIT",
