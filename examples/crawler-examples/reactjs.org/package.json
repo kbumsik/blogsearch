@@ -4,8 +4,9 @@
   "description": "blogsearch-crawler usage example with reactjs.org",
   "private": true,
   "scripts": {
+    "build": "yarn build:pages && yarn build:database",
     "build:pages": "./build-page.sh",
-    "build:blogsearch": "blogsearch-crawler",
-    "build": "yarn build:pages && yarn build:blogsearch"
+    "build:database": "blogsearch-crawler",
+    "clean": "rm -rf reactjs.org.blogsearch.db.bin reactjs.org page_source.tar.gz"
   }
 }

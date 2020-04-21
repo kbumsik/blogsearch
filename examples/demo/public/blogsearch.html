@@ -3,15 +3,15 @@
   
   <head>
     <meta charset="utf-8" />
-    <title>DocSearch playground</title>
+    <title>BlogSearch playground</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="docsearch.min.css" />
+    <link rel="stylesheet" href="blogsearch.css" />
   </head>
   
   <body>
     <div class="container">
       <div class="mt-1">
-        <h1>docsearch test</h1>
+        <h1>BlogSearch test</h1>
       </div>
       <div class="col-md-12">
         <div class="input-group">
@@ -20,22 +20,7 @@
       </div>
     </div>
     <!-- at the end of the BODY -->
-    <script src="docsearch.js"></script>
-    <script>
-      docsearch({
-        apiKey: '25626fae796133dc1e734c6bcaaeac3c',
-        indexName: 'docsearch',
-        inputSelector: '#q',
-        handleSelected(input, event, suggestion, datasetNumber, context) {
-          console.info(input);
-          console.info(event);
-          console.info(suggestion);
-          console.info(datasetNumber);
-          console.info(context);
-        },
-        debug: true // Set debug to true if you want to inspect the dropdown
-      });
-    </script>
+    <script src="/index.js"></script>
     <style>
 
       .container {
