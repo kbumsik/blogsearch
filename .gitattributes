@@ -1,0 +1,5 @@
+docs/* linguist-documentation
+examples/* linguist-documentation
+
+*.config.js linguist-vendored
+.eslintrc.js linguist-vendored
