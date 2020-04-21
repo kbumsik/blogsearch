@@ -1,8 +1,9 @@
 {
   "name": "blogsearch-crawler",
   "version": "0.0.1",
-  "description": "Command Line tool to build a database for blogsearch",
+  "description": "A generic command line tool to build a database for blogsearch",
   "main": "./lib/index.js",
+  "typings": "./lib/index.d.ts",
   "bin": "./bin/blogsearch-crawler",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
@@ -10,7 +11,8 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "clean": "rm -rf lib"
   },
   "dependencies": {
     "glob": "^7.1.6",
