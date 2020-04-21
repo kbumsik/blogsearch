@@ -1,11 +1,11 @@
 import * as glob from 'glob';
 import * as fs from 'fs';
-import { Config, UncheckedConfig } from './configTypes';
+import { Config, UncheckedConfig, FieldConfig } from './configTypes';
 import crawl from './crawler';
 
 const defaultFields: Config['fields'] = new Map([
   ['title', { hasContent: true, weight: 10.0, parser: false, enabled: true }],
-  ['body', { hasContent: false, weight: 1.0, parser: false, enabled: true }],
+  ['body', { hasContent: true, weight: 1.0, parser: false, enabled: true }],
   ['url', { hasContent: true, weight: 0, parser: false, enabled: true }],
   ['categories', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
   ['tags', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
