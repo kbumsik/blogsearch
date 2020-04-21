@@ -3,7 +3,7 @@
   "workspaces": [
     "blogsearch",
     "blogsearch-crawler",
-    "example"
+    "examples/crawler-examples/reactjs.org"
   ],
   "devDependencies": {
     "@types/node": "^12.12.18",

@@ -1,0 +1,11 @@
+{
+  "name": "crawler-examples-reactjs.org",
+  "version": "0.0.1",
+  "description": "blogsearch-crawler usage example with reactjs.org",
+  "private": true,
+  "scripts": {
+    "build:pages": "./build-page.sh",
+    "build:blogsearch": "blogsearch-crawler",
+    "build": "yarn build:pages && yarn build:blogsearch"
+  }
+}
