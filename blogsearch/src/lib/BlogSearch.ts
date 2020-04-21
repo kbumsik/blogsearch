@@ -222,11 +222,17 @@ class BlogSearch {
   }
 }
 
-function getCurrentDir (fileName: string) {
-  const curDir =
-    (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
-  // This assumes that worker.umd.js is available in the CDN (e.g. JSDelivr).
-  return `${curDir.substr(0, curDir.lastIndexOf('/'))}/${fileName}`;
-}
+const getCurrentDir = (() => {
+  /**
+   * This must be processed in the top-level, before blogsearch() initialization
+   * code is called. This is because blogsearch() can be called in a different
+   * <script> tag.
+   */
+  const curDir = (document.currentScript as HTMLScriptElement)?.src ?? self.location?.href ?? '';
+  return function (fileName: string) {
+    // This assumes that worker.umd.js is available in the CDN (e.g. JSDelivr).
+    return `${curDir.substr(0, curDir.lastIndexOf('/'))}/${fileName}`;
+  }
+})(); 
 
 export default BlogSearch;
