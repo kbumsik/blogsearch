@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  
+  <head>
+    <meta charset="utf-8" />
+    <title>BlogSearch playground</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.css" />
+  </head>
+  
+  <body>
+    <div class="container">
+      <div>
+        <h1>BlogSearch Playground</h1>
+      </div>
+      <div>
+        <h3>
+          <a href="https://github.com/kbumsik/blogsearch">
+            Visit project main page
+          </a>
+        </h3>
+      </div>
+
+      <!-- blogsearch will run in this input tag -->
+      <input type="search" placeholder="BlogSearch input" class="form-control" id="q">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/worker.umd.js"></script>
+    <script>
+      blogsearch({
+        dbPath: 'blogsearch/reactjs.org.blogsearch.db.bin',
+        inputSelector: '#q',
+      });
+    </script>
+  </body>
+
+</html>
