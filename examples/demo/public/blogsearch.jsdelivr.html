@@ -5,13 +5,13 @@
     <meta charset="utf-8" />
     <title>BlogSearch playground</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="blogsearch.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.css" />
   </head>
   
   <body>
     <div class="container">
       <div>
-        <h1>BlogSearch Playground (using distribution UMD module)</h1>
+        <h1>BlogSearch Playground (using UMD module from jsDelivr CDN)</h1>
       </div>
       <div>
         <a href="/">Go to top index</a>
@@ -21,15 +21,14 @@
       <input type="search" placeholder="BlogSearch input" class="form-control" id="q">
     </div>
 
-    <script src="blogsearch.umd.js"></script>
-    <!-- You don't need to import it manually
-      If worker.umd.js is located in the same directory as blogsearch.umd.js.  -->
-    <!-- <script src="worker.umd.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/worker.umd.js"></script>
     <script>
       blogsearch({
         dbPath: 'reactjs.org.blogsearch.db.bin',
         inputSelector: '#q',
-        wasmPath: 'blogsearch.wasm',
+        // When using jsdeliver, you don't need to define wasmPath
+        // wasmPath: 'https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.wasm',
         debug: true // Set debug to true if you want to inspect the dropdown
       }).then(bs => {
         console.log('Loaded: ', bs);

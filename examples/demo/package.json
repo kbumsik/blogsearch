@@ -2,18 +2,20 @@
   "name": "example",
   "version": "0.0.1",
   "description": "Set of examples of blogsearch",
-  "main": "index.js",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build:pages": "make",
-    "build:blogsearch": "blogsearch-crawler",
-    "build": "yarn build:pages && yarn build:blogsearch",
     "start": "webpack-dev-server",
-    "copy:sqlite": "cp ../blogsearch/dist/* public/",
-    "copy:sqlite-original": "cp public/blogsearch/sqlite/{sql-wasm.wasm,worker.sql-wasm.js} public/blogsearch/"
+    "build": "make && yarn build:webpack",
+    "build:blogsearch": "make blogsearch",
+    "build:database": "make database",
+    "build:webpack": "webpack",
+    "clean": "make clean && yarn clean:webpack",
+    "clean:blogsearch": "make clean-blogsearch",
+    "clean:database": "make clean-database",
+    "clean:webpack": "rm -rf public/webpack*"
   },
   "devDependencies": {
     "@babel/core": "^7.7.7",
