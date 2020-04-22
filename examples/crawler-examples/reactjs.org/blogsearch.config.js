@@ -64,7 +64,7 @@ module.exports = {
       weight: 0,
       parser: (entry, page) => {
         // entry is a string of the path being parsed.
-        return entry.replace('./reactjs.org/public', 'https://my_own_blog_website');
+        return entry.replace('./reactjs.org/public', 'https://reactjs.org');
       },
     },
     categories: {
