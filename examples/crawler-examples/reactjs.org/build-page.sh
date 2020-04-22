@@ -12,9 +12,10 @@ if [ ! -d "$REPO" ]; then
   tar -xzf $PAGE_SOURCE_TARBALL
   mv $REPO-$VERSION $REPO
 fi
-cd $REPO
-yarn --ignore-engines upgrade
-yarn --ignore-engines install --no-bin-links
+
+cd "./$REPO"
+cp ../yarn.lock ./
+yarn --ignore-engines install
 yarn --ignore-engines build
 
 cd $CURDIR
