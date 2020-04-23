@@ -8,9 +8,8 @@
   "main": "./lib/index.js",
   "typings": "./lib/index.d.ts",
   "scripts": {
-    "build": "make",
+    "build": "make dist",
     "build:dev": "make debug",
-    "build:deploy": "make dist",
     "build:ts": "tsc",
     "build:ts-test": "tsc --build tsconfig.test.json",
     "watch": "tsc -w",

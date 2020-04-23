@@ -27,7 +27,7 @@ database: $(DB_PUBLIC)
 $(BLOGSEARCH_ROOT): blogsearch_root
 .PHONY: blogsearch_root
 blogsearch_root:
-	cd ../../blogsearch && yarn build:deploy
+	cd ../../blogsearch && yarn build
 
 # Database build
 ./public/reactjs.org.blogsearch.db.bin: ../crawler-examples/reactjs.org/reactjs.org.blogsearch.db.bin
