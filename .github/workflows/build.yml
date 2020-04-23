@@ -1,0 +1,22 @@
+name: Build and Test CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build all in the builder container
+      run: |
+        docker run \
+        -v ${{ github.workspace }}:/build \
+        -u $(id -u):$(id -g) \
+        kbumsik/emscripten \
+        /bin/bash -c "yarn install-node-modules && yarn build"
+      env:
+        CI: true
