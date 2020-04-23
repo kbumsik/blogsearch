@@ -6,6 +6,18 @@
     "examples/demo",
     "examples/crawler-examples/reactjs.org"
   ],
+  "scripts": {
+    "install-node-modules": "make install-node-modules",
+    "build": "make all",
+    "build:blogsearch": "make build-blogsearch",
+    "build:blogsearch-crawler": "make build-blogsearch-crawlers",
+    "build:examples": "make build-examples",
+    "test": "make test",
+    "start": "make start",
+    "clean": "make clean",
+    "build-using-docker": "make build-using-docker",
+    "build-docker-image": "make build-docker-image"
+  },
   "devDependencies": {
     "@types/node": "^12.12.18",
     "@typescript-eslint/eslint-plugin": "^2.19.0",
