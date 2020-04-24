@@ -7,7 +7,7 @@ PAGE_SOURCE_TARBALL="page_source.tar.gz"
 CURDIR=$(pwd)
 
 if [ ! -d "$REPO" ]; then
-  wget https://github.com/reactjs/$REPO/archive/$VERSION.tar.gz \
+  wget --quiet https://github.com/reactjs/$REPO/archive/$VERSION.tar.gz \
     -O $PAGE_SOURCE_TARBALL
   tar -xzf $PAGE_SOURCE_TARBALL
   mv $REPO-$VERSION $REPO
