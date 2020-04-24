@@ -50,21 +50,23 @@ export default async function (config: Config) {
 
   let rowidCounter = 0;
 
+  // Run multiple crawler task depending on the number of the CPU cores.
   await Promise.all([...Array(os.cpus().length).keys()]
-    .map(taskNumber => crawlerTask(config, taskNumber)));
+    .map(taskNumber => crawlerWorker(config, taskNumber)));
 
   await db.close();
   await browser.close();
   return;
 
-  async function crawlerTask ({ fields, entries }: Config, taskNumber: number) {
+  async function crawlerWorker ({ fields, entries }: Config, workerNumber: number) {
+    console.log(`Worker ${workerNumber} starting...`);
     const context = await browser.createIncognitoBrowserContext();
 
     // Use Array.pop() for iteration because multiple async crawler tasks consume the same array
     while (entries.length !== 0) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const entry = entries.pop()!;
-
+      console.log(`Worker ${workerNumber}: ${entry}`);
       const page = await context.newPage();
       try {
         await page.goto(resolveEntry(entry), {
@@ -120,6 +122,7 @@ export default async function (config: Config) {
       await page.close();
     }
     await context.close();
+    console.log(`Worker ${workerNumber} finished.`);
     return;
   }
 }
