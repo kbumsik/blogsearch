@@ -50,8 +50,10 @@ export default async function (config: Config) {
 
   let rowidCounter = 0;
 
-  // Run multiple crawler task depending on the number of the CPU cores.
-  await Promise.all([...Array(os.cpus().length).keys()]
+  const numCores = os.cpus().length;
+  console.log(`${config.entries.length} entries found.`);
+  console.log(`${numCores} cores detected. Running ${numCores} workers.`);
+  await Promise.all([...Array(numCores).keys()]
     .map(taskNumber => crawlerWorker(config, taskNumber)));
 
   await db.close();
