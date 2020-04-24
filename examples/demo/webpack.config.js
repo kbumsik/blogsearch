@@ -14,12 +14,6 @@ module.exports = {
   module: {
     rules: [
       {
-        enforce: 'pre',
-        test: /\.(js|jsx|ts|tsx|mjs)$/,
-        exclude: [/node_modules/, /blogsearch/],
-        use: 'eslint-loader',
-      },
-      {
         test: /\.wasm$/,
         type: 'javascript/auto',
         loader: 'file-loader',
