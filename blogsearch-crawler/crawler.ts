@@ -15,7 +15,13 @@ export default async function (config: Config) {
   config.fields = filterMap(config.fields, field => field.enabled);
 
   const browser = await puppeteer.launch({
-    ignoreHTTPSErrors: true
+    ignoreHTTPSErrors: true,
+    /**
+     * I disable sandbox because our docker image facing "No usable sandbox!"
+     * issue.I think it is okay because blogsearch-crawler crawls trusted websites
+     * (aka. your static websites.)
+     */
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
   const db = await sqlite.open(config.output, { mode: (OPEN_CREATE | OPEN_READWRITE), verbose: true });
