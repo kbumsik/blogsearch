@@ -30,7 +30,7 @@ See [other examples](/examples) to learn how to build database files.
 
 ## Rebuild files (for maintainers & developers)
 
-### Rebuild database (.db.bin) files
+### Rebuild database (.db.wasm) files
 
 The following command will rebuild the database files in the [example directory](/examples),
 and then copies them to `public/` directory.

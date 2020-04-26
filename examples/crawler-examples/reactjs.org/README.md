@@ -11,13 +11,13 @@ a blogsearch database for [reactjs.org].
 ./build-pages.sh
 ```
 
-2. Run blogsearch-crawler. Have a look at [blogsearch.config.js] to see how to configure it. blogsearch-crawler will generate `reactjs.org.blogsearch.db.bin` in this folder.
+2. Run blogsearch-crawler. Have a look at [blogsearch.config.js] to see how to configure it. blogsearch-crawler will generate `reactjs.org.blogsearch.db.wasm` in this folder.
 
 ```bash
 yarn blogsearch-crawler
 ```
 
-3. Move `reactjs.org.blogsearch.db.bin` to [the demo folder](../../demo) and test it.
+3. Move `reactjs.org.blogsearch.db.wasm` to [the demo folder](../../demo) and test it.
 
 [reactjs.org]: https://github.com/reactjs/reactjs.org
 [blogsearch.config.js]: ./blogsearch.config.js

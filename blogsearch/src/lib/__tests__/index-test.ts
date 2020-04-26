@@ -29,7 +29,7 @@ describe('index.ts', () => {
 
     defaultOptions = {
       workerFactory: (() => jest.fn()) as any,
-      dbPath: '/test.db.bin',
+      dbPath: '/test.db.wasm',
       wasmPath: 'test.wasm',
       inputSelector: '#input',
     };

@@ -7,7 +7,7 @@
     "build": "yarn build:pages && yarn build:database",
     "build:pages": "./build-page.sh",
     "build:database": "blogsearch-crawler",
-    "clean": "rm -rf reactjs.org.blogsearch.db.bin reactjs.org page_source.tar.gz node_modules",
+    "clean": "rm -rf reactjs.org.blogsearch.db.wasm reactjs.org page_source.tar.gz node_modules",
     "upgrade-deps": "./upgrade-yarn.sh"
   }
 }

@@ -3,11 +3,14 @@ module.exports = {
   type: 'simple',
   /**
    * Generated blogsearch database file.
-   * Note that you might not want to use .db instead of .bin (or .db.bin).
-   * Setting improper file extension may lead file format corruption
-   * by the web server.
+   * Note that you might not want to use .db instead of .wasm (or .db.wasm).
+   * Setting improper file extension may lead file format corruption.
+   * .wasm is recommended because this is a file format that is usually
+   * compressed by web servers.
+   * Make sure that web servers compress the file extension you choose.
+   * (e.g. Content-Encoding: gzip included in the response) 
    */
-  output: './reactjs.org.blogsearch.db.bin',
+  output: './reactjs.org.blogsearch.db.wasm',
   /**
    * List of entries to parse. The crawler uses glob pattern internally.
    * How to use glob: https://github.com/isaacs/node-glob

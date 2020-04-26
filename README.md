@@ -6,6 +6,19 @@
 
 A pure client-side full-text search engine for static websites, using WebAssembly.
 
+## QnA
+
+#### Why `.db.wasm` is recommended file type for database? It's not a WebAssembly binary file. Why not just `.db`?
+
+It is because we want the database file to get gzip-compressed by the web server.
+Popular web services (especially GitHub Pages) usually serve a `.db` file as
+an application/octet-stream and do not compress the file. By lying that it is
+a WebAssembly binary file `.wasm`, the servers recognize it as application/wasm
+and ship it compressed.
+
+Compression is important because it signficantly reduce the size. I saw the size
+is reduced up to 1/3.
+
 ## Contribution Guide
 
 ### Workflow

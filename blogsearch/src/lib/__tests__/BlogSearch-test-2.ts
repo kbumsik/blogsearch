@@ -87,7 +87,7 @@ describe('BlogSearch', () => {
 
     beforeEach(() => {
       defaultOptions = {
-        dbPath: 'test.db.bin',
+        dbPath: 'test.db.wasm',
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };

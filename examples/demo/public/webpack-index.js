@@ -6035,7 +6035,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     workerFactory: function workerFactory() {
       return new _worker.default();
     },
-    dbPath: '/reactjs.org.blogsearch.db.bin',
+    dbPath: '/reactjs.org.blogsearch.db.wasm',
     wasmPath: _blogsearch2.default,
     inputSelector: '#q',
     debug: true // Set debug to true if you want to inspect the dropdown

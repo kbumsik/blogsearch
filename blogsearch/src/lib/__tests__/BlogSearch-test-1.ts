@@ -108,7 +108,7 @@ describe('BlogSearch', () => {
     beforeEach(() => {
       defaultOptions = {
         workerFactory: mockWorkerFactory as any,
-        dbPath: 'test.db.bin',
+        dbPath: 'test.db.wasm',
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };
@@ -131,7 +131,7 @@ describe('BlogSearch', () => {
       // Then
       expect(SQLite).toHaveBeenLastCalledWith({
         wasmPath: 'test.wasm',
-        dbPath: 'test.db.bin',
+        dbPath: 'test.db.wasm',
         worker: {},
       });
       expect(mockWorkerFactory).toBeCalledTimes(1);
@@ -238,7 +238,7 @@ describe('BlogSearch', () => {
 
     beforeEach(() => {
       defaultOptions = {
-        dbPath: 'test.db.bin',
+        dbPath: 'test.db.wasm',
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };
@@ -327,7 +327,7 @@ describe('BlogSearch', () => {
     let blogsearch: BlogSearch;
     beforeEach(async () => {
       blogsearch = new BlogSearch({
-        dbPath: 'test.db.bin',
+        dbPath: 'test.db.wasm',
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       });
