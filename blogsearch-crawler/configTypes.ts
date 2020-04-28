@@ -1,8 +1,4 @@
 import type puppeteer from 'puppeteer';
-
-export const BLOGSEARCH = 'blogsearch';
-export const BLOGSEARCH_EXT_CONTENT = 'blogsearch_ext_content';
-
 export type Field = 'title' | 'body' | 'url' | 'categories' | 'tags';
 export interface FieldConfig {
   hasContent?: boolean;
@@ -13,6 +9,8 @@ export interface FieldConfig {
 
 type FieldsRecord = Record<Field, FieldConfig>
 export type FieldsMap = Map<Field, Required<FieldConfig>>
+export type ParsedFields = Record<Field, string>;
+export type ParsedFieldsMap = Map<Field, { config: Required<FieldConfig>; value: string }>;
 
 type SelectorString = string;
 export type GenericParser<T> = (entry: string, page: puppeteer.Page) => Promise<puppeteer.ElementHandle<T>> | Promise<T> | T | null;
