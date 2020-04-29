@@ -8,7 +8,6 @@
     "examples/crawler-examples/reactjs.org"
   ],
   "scripts": {
-    "install-node-modules": "make install-node-modules",
     "build": "make all",
     "build:blogsearch": "make build-blogsearch",
     "build:blogsearch-crawler": "make build-blogsearch-crawlers",

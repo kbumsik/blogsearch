@@ -16,9 +16,9 @@ all: build-blogsearch build-crawlers build-examples
 		make $(patsubst %-docker,%,$@)
 
 # Common tasks
-install-node-modules:
-	cd blogsearch && yarn install
-	cd blogsearch-crawler && yarn install
+install:
+	yarn install
+
 
 test: all
 	cd blogsearch && yarn test

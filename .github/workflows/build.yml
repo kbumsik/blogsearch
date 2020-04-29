@@ -17,7 +17,7 @@ jobs:
         -v ${{ github.workspace }}:/build \
         -u $(id -u):$(id -g) \
         kbumsik/emscripten \
-        /bin/bash -c "yarn install-node-modules && yarn build"
+        /bin/bash -c "yarn install && yarn build"
       env:
         CI: true
 
@@ -32,6 +32,6 @@ jobs:
         -v ${{ github.workspace }}:/build \
         -u $(id -u):$(id -g) \
         kbumsik/emscripten \
-        /bin/bash -c "yarn install-node-modules && yarn test"
+        /bin/bash -c "yarn install && yarn test"
       env:
         CI: true

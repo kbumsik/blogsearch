@@ -37,7 +37,7 @@ For NodeJS and Emscripten versions used in thie project, please look at
 #### Prepare
 
 ```bash
-make install-nodue-modules-docker
+make install-docker
 ```
 
 #### Build
