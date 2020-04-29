@@ -13,8 +13,8 @@ export type ParsedFields = Record<Field, string>;
 export type ParsedFieldsMap = Map<Field, { config: Required<FieldConfig>; value: string }>;
 
 type SelectorString = string;
-export type GenericParser<T> = (entry: string, page: puppeteer.Page) => Promise<puppeteer.ElementHandle<T>> | Promise<T> | T | null;
-export type Parser = SelectorString | GenericParser<string> | false;
+export type GenericParser<T> = (entry: string, page: puppeteer.Page) => Promise<T> | T;
+export type Parser = SelectorString | GenericParser<string | null> | false;
 export function isSelectorString (x: Parser): x is SelectorString {
   return typeof x === 'string';
 }

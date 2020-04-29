@@ -3,6 +3,7 @@
   "compilerOptions": {
     "allowJs": false,
     "outDir": "lib",
+    "lib": ["ESNext", "DOM"],
   },
   "include": [
     "./**/*.ts",

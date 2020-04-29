@@ -90,7 +90,7 @@ function resolveEntry (entry: string): string {
   }
 }
 
-function checkParser (parser: Parser): GenericParser<string> {
+function checkParser (parser: Parser): GenericParser<string | null> {
   if (isSelectorString(parser)) {
     const selector = parser;
     return (_, page) => page.$eval(selector, el => el.textContent);
