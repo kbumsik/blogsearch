@@ -256,7 +256,7 @@ describe('BlogSearch', () => {
       // @ts-ignore
       expect(typeof blogsearch.sqlite).toBe('object');
     });
-    it('should look up sqlite_master table to fetch metadata', async () => {
+    it('should not run any query', async () => {
       // Given
       const options = defaultOptions;
 
@@ -266,8 +266,7 @@ describe('BlogSearch', () => {
 
       // Then
       // @ts-ignore
-      expect(mockSQLiteRun).toBeCalledTimes(1);
-      expect(mockSQLiteRun.mock.calls[0][0]).toMatch(/sqlite_master/);
+      expect(mockSQLiteRun).toBeCalledTimes(0);
     });
     it('should listen to the selected and shown event of autocomplete', async () => {
       // Given
