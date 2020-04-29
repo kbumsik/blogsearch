@@ -3,10 +3,14 @@ const suggestionPrefix = `${prefix}-suggestion`;
 
 const templates = {
   suggestion: `
-  <div class="
-    ${suggestionPrefix}
-    ${suggestionPrefix}__main
-  ">
+  <a
+    class="
+      ${suggestionPrefix}
+      ${suggestionPrefix}__main
+      "
+    aria-label="Link to the result"
+    href="{{{url}}}"
+  >
     <div class="${suggestionPrefix}--header">
       <div class="${suggestionPrefix}--title ${suggestionPrefix}--header-item">
         {{{title}}}
@@ -31,7 +35,7 @@ const templates = {
       </div>
       {{/body_highlight}}
     </div>
-  </div>
+  </a>
   `,
   empty: `
   <div class="${suggestionPrefix}">
