@@ -15,7 +15,7 @@
     "test": "make test",
     "start": "make start",
     "clean": "make clean",
-    "build-docker": "make all-docker",
+    "build-in-docker": "make all-in-docker",
     "build-docker-image": "make build-docker-image"
   },
   "devDependencies": {

@@ -2,9 +2,9 @@
 
 all: build-blogsearch build-crawlers build-examples
 
-# Every commands can be run in a docker container when *-docker is appended.
-# e.g make all => make all-docker,
-# 		make start => make start-docker,
+# Every commands can be run in a docker container when *-in-docker is appended.
+# e.g make all => make all-in-docker,
+# 		make start => make start-in-docker,
 #			make test => make test-docker
 # Port 9000 is used by the webserver of examples/demo
 %-in-docker:
@@ -13,7 +13,7 @@ all: build-blogsearch build-crawlers build-examples
 		-u $$(id -u):$$(id -g) \
 		-p 9000:9000 \
 		kbumsik/emscripten \
-		make $(patsubst %-docker,%,$@)
+		make $(patsubst %-in-docker,%,$@)
 
 # Common tasks
 install:

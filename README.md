@@ -37,19 +37,19 @@ For NodeJS and Emscripten versions used in thie project, please look at
 #### Prepare
 
 ```bash
-make install-docker
+make install-in-docker
 ```
 
 #### Build
 
 ```bash
-make all-docker   # Or make all, without docker
+make all-in-docker   # Or make all, without docker
 ```
 
 #### Run a demo server
 
 ```bash
-make start-docker # Or make start, without docker
+make start-in-docker # Or make start, without docker
 
 # You can access the demo page via 0.0.0.0:9000
 ```
@@ -57,7 +57,7 @@ make start-docker # Or make start, without docker
 #### Testing
 
 ```bash
-make test-docker # Or make test, without docker
+make test-in-docker # Or make test, without docker
 ```
 
 #### Rebuild everything
