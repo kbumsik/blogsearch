@@ -132,11 +132,6 @@ class BlogSearch {
 
   public async load (): Promise<BlogSearch> {
     await this.sqlite.load();
-    const meta = await this.sqlite.run(
-      "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
-    );
-    // eslint-disable-next-line no-console
-    console.log(meta);
     this.startAutoComplete();
     return this;
   }
