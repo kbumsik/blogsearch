@@ -68,6 +68,12 @@ make clean
 # Then run any commands above
 ```
 
+#### Get into a bash session in the container
+
+```bash
+make bash-in-docker
+```
+
 ## Credits & License
 
 This project is inspired by [DocSearch](https://docsearch.algolia.com/) and is

@@ -19,7 +19,6 @@ all: build-blogsearch build-crawlers build-examples
 install:
 	yarn install
 
-
 test: all
 	cd blogsearch && yarn test
 
@@ -50,3 +49,7 @@ clean:
 	cd blogsearch && yarn clean
 	cd blogsearch-crawler && yarn clean
 	cd examples/demo && yarn clean
+
+# Just to work in the docker container, so run bash-in-docker
+bash:
+	bash
