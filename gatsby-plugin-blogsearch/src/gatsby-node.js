@@ -3,6 +3,7 @@
  *
  * See: https://www.gatsbyjs.org/docs/node-apis/
  */
+const fs = require('fs');
 const { Database } = require('blogsearch-crawler/lib/database');
 
 /**
@@ -15,8 +16,13 @@ const { Database } = require('blogsearch-crawler/lib/database');
 // Implement the Gatsby API “createPages”. This is called once the
 // data layer is bootstrapped to let plugins create pages from data.
 exports.createPages = async ({ graphql, reporter }, options) => {
+  const filename = 'blogsearch.db.wasm';
+  if (fs.existsSync(filename)) {
+    fs.unlinkSync(filename);
+  }
+
   const db = await Database.create({
-    filename: 'blogsearch.db.wasm',
+    filename,
     columns: new Map([
       ['title', { hasContent: true, weight: 10.0, parser: false, enabled: true }],
       ['body', { hasContent: true, weight: 1.0, parser: false, enabled: true }],
