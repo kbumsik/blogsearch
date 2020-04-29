@@ -1,0 +1,24 @@
+From b878a616fb9848a96cacc288e93bef7050a8ad0e Mon Sep 17 00:00:00 2001
+From: Bumsik Kim <k.bumsik@gmail.com>
+Date: Wed, 29 Apr 2020 20:58:01 +0900
+Subject: [PATCH 5/5] add blogsearch in package config
+
+---
+ package.json | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/package.json b/package.json
+index 8107eb13..24bd9ab7 100644
+--- a/package.json
++++ b/package.json
+@@ -7,6 +7,7 @@
+     "url": "https://github.com/reactjs/reactjs.org"
+   },
+   "dependencies": {
++    "gatsby-plugin-blogsearch": "^0.0.1",
+     "babel-eslint": "^8.0.1",
+     "eslint": "^4.8.0",
+     "eslint-config-fbjs": "^2.0.0",
+-- 
+2.20.1
+

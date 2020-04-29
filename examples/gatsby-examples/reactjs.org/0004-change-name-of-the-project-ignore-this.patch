@@ -1,0 +1,23 @@
+From f80592622d22fc63cfa8696d82a13315e5183121 Mon Sep 17 00:00:00 2001
+From: Bumsik Kim <k.bumsik@gmail.com>
+Date: Wed, 29 Apr 2020 19:58:41 +0900
+Subject: [PATCH 4/5] change name of the project (ignore this)
+
+---
+ package.json | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/package.json b/package.json
+index 7f8ecc03..8107eb13 100644
+--- a/package.json
++++ b/package.json
+@@ -1,5 +1,5 @@
+ {
+-  "name": "react-website",
++  "name": "gatsby-example-for-react-website",
+   "description": "React website",
+   "version": "0.0.1",
+   "private": true,
+-- 
+2.20.1
+

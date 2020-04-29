@@ -1,0 +1,84 @@
+From de89947d0e979cf43ddf9f0c6cc6526d6ac485f7 Mon Sep 17 00:00:00 2001
+From: Bumsik Kim <k.bumsik@gmail.com>
+Date: Mon, 27 Apr 2020 15:04:16 +0900
+Subject: [PATCH 3/5] add blogsearch in gatsby-config.js
+
+---
+ gatsby-config.js | 61 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 61 insertions(+)
+
+diff --git a/gatsby-config.js b/gatsby-config.js
+index 2637eac9..8a6adde4 100644
+--- a/gatsby-config.js
++++ b/gatsby-config.js
+@@ -17,6 +17,67 @@ module.exports = {
+     'MarkdownRemark.frontmatter.author': 'AuthorYaml',
+   },
+   plugins: [
++    {
++      resolve: 'gatsby-plugin-blogsearch',
++      options: {
++        // A unique name for the search index. This should be descriptive of
++        // what the index contains. This is required.
++        name: 'pages',
++
++        // Set the search engine to create the index. This is required.
++        // The following engines are supported: flexsearch, lunr
++        engine: 'flexsearch',
++
++        // Provide options to the engine. This is optional and only recommended
++        // for advanced users.
++        //
++        // Note: Only the flexsearch engine supports options.
++        engineOptions: 'speed',
++
++        // GraphQL query used to fetch all data for the search index. This is
++        // required.
++        query: `
++          {
++            allMarkdownRemark {
++              nodes {
++                id
++                frontmatter {
++                  path
++                  title
++                }
++                rawMarkdownBody
++              }
++            }
++          }
++        `,
++
++        // Field used as the reference value for each document.
++        // Default: 'id'.
++        ref: 'id',
++
++        // List of keys to index. The values of the keys are taken from the
++        // normalizer function below.
++        // Default: all fields
++        index: ['title', 'body'],
++
++        // List of keys to store and make available in your UI. The values of
++        // the keys are taken from the normalizer function below.
++        // Default: all fields
++        store: ['id', 'path', 'title'],
++
++        // Function used to map the result from the GraphQL query. This should
++        // return an array of items to index in the form of flat objects
++        // containing properties to index. The objects must contain the `ref`
++        // field above (default: 'id'). This is required.
++        normalizer: ({ data }) =>
++          data.allMarkdownRemark.nodes.map(node => ({
++            id: node.id,
++            path: node.frontmatter.path,
++            title: node.frontmatter.title,
++            body: node.rawMarkdownBody,
++          })),
++      },
++    },
+     'gatsby-source-react-error-codes',
+     'gatsby-transformer-authors-yaml',
+     'gatsby-transformer-home-example-code',
+-- 
+2.20.1
+
