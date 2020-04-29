@@ -18,5 +18,6 @@ cd "$REPO_DIR"
 yarn install
 yarn reset
 yarn build
+cp *.db.wasm ../
 
 cd "$CUR_DIR"

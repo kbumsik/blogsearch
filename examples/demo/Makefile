@@ -34,7 +34,7 @@ blogsearch_root:
 ./public/reactjs.org.blogsearch.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.blogsearch.db.wasm
 	cp $< $@
 
-./public/blogsearch.db.wasm: ../gatsby-examples/reactjs.org/reactjs.org/blogsearch.db.wasm
+./public/blogsearch.db.wasm: ../gatsby-examples/reactjs.org/blogsearch.db.wasm
 	cp $< $@
 
 ../%.db.wasm:
