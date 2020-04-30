@@ -7,31 +7,27 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  build-parts:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Build all in the builder container
-      run: |
-        docker run \
-        -v ${{ github.workspace }}:/build \
-        -u $(id -u):$(id -g) \
-        kbumsik/emscripten \
-        /bin/bash -c "yarn install && yarn build"
-      env:
-        CI: true
+    - run: make -C ${{ github.workspace }} install-in-docker
+    - run: make -C ${{ github.workspace }} blogsearch-in-docker
+    - run: make -C ${{ github.workspace }} blogsearch-crawler-in-docker
+    - run: make -C ${{ github.workspace }} gatsby-reactjs-in-docker
+    - run: make -C ${{ github.workspace }} jekyll-circleci-in-docker
+    - run: make -C ${{ github.workspace }} demo-in-docker
+
+  build-all:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: make -C ${{ github.workspace }} install-in-docker
+    - run: make -C ${{ github.workspace }} all-in-docker
 
   test:
-    needs: build
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Test in the builder container
-      run: |
-        docker run \
-        -v ${{ github.workspace }}:/build \
-        -u $(id -u):$(id -g) \
-        kbumsik/emscripten \
-        /bin/bash -c "yarn install && yarn test"
-      env:
-        CI: true
+    - run: make -C ${{ github.workspace }} install-in-docker
+    - run: make -C ${{ github.workspace }} test-in-docker

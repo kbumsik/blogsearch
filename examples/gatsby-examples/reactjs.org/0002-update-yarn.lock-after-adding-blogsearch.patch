@@ -110,7 +110,7 @@ index 69372e57..375e96ba 100644
      lodash "^4.17.15"
      micromatch "^3.1.10"
  
-+gatsby-plugin-blogsearch@^0.0.2:
++gatsby-plugin-blogsearch@^0.0.1:
 +  version "0.0.1"
 +  resolved "https://registry.yarnpkg.com/gatsby-plugin-blogsearch/-/gatsby-plugin-blogsearch-0.0.1.tgz#75b768f03ff0491049df601fba3eaa6f98dd4dbc"
 +  integrity sha512-8jGhNXKcsU9D+pYoR5kgvvORaCBbHhPOZZ++iJqU3IRjwY0/mvLhVV8A4hAiwpzhwDlvDtV1pwKfoLZ14H0t5g==
