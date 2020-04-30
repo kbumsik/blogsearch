@@ -6,7 +6,7 @@ require 'jekyll/blogsearch/version'
 require "nokogiri"
 
 begin
-  db_path = 'blogsearch.db.bin'
+  db_path = 'circleci-docs.jekyll-example.db.wasm'
   File.delete(db_path) if File.exist?(db_path)
   db = SQLite3::Database.new db_path
   rowid_counter = 0

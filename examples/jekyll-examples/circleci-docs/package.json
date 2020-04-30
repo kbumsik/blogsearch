@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "./download.sh && ./build-database.sh",
-    "clean": "rm -rf circleci-docs",
+    "clean": "rm -rf circleci-docs *.db.wasm",
     "update-patches": "./update-patches"
   }
 }

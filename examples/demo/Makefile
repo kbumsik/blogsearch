@@ -9,7 +9,8 @@ BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 
 DB = \
 	reactjs.org.crawler-example.db.wasm \
-	blogsearch.db.wasm
+	blogsearch.db.wasm \
+	circleci-docs.jekyll-example.db.wasm
 DB_PUBLIC = $(addprefix ./public/, $(DB))
 
 # Build targests
@@ -35,6 +36,9 @@ blogsearch_root:
 	cp $< $@
 
 ./public/blogsearch.db.wasm: ../gatsby-examples/reactjs.org/blogsearch.db.wasm
+	cp $< $@
+
+./public/circleci-docs.jekyll-example.db.wasm: ../jekyll-examples/circleci-docs/circleci-docs.jekyll-example.db.wasm
 	cp $< $@
 
 ../%.db.wasm:
