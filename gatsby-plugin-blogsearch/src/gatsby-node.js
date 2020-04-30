@@ -16,7 +16,7 @@ const { Database } = require('blogsearch-crawler/lib/database');
 // Implement the Gatsby API “createPages”. This is called once the
 // data layer is bootstrapped to let plugins create pages from data.
 exports.createPages = async ({ graphql, reporter }, options) => {
-  const filename = 'blogsearch.db.wasm';
+  const filename = 'reactjs.org.gatsby-example.db.wasm';
   if (fs.existsSync(filename)) {
     fs.unlinkSync(filename);
   }

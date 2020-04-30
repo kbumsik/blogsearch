@@ -9,7 +9,7 @@ BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 
 DB = \
 	reactjs.org.crawler-example.db.wasm \
-	blogsearch.db.wasm \
+	reactjs.org.gatsby-example.db.wasm \
 	circleci-docs.jekyll-example.db.wasm
 DB_PUBLIC = $(addprefix ./public/, $(DB))
 
@@ -35,7 +35,7 @@ blogsearch_root:
 ./public/reactjs.org.crawler-example.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.crawler-example.db.wasm
 	cp $< $@
 
-./public/blogsearch.db.wasm: ../gatsby-examples/reactjs.org/blogsearch.db.wasm
+./public/reactjs.org.gatsby-example.db.wasm: ../gatsby-examples/reactjs.org/reactjs.org.gatsby-example.db.wasm
 	cp $< $@
 
 ./public/circleci-docs.jekyll-example.db.wasm: ../jekyll-examples/circleci-docs/circleci-docs.jekyll-example.db.wasm
