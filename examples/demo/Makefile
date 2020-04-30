@@ -8,7 +8,7 @@ BLOGSEARCH_ROOT = $(addprefix ../../blogsearch/dist/, $(BLOGSEARCH))
 BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 
 DB = \
-	reactjs.org.blogsearch.db.wasm \
+	reactjs.org.crawler-example.db.wasm \
 	blogsearch.db.wasm
 DB_PUBLIC = $(addprefix ./public/, $(DB))
 
@@ -31,7 +31,7 @@ blogsearch_root:
 	cd ../../blogsearch && yarn build
 
 # Database build
-./public/reactjs.org.blogsearch.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.blogsearch.db.wasm
+./public/reactjs.org.crawler-example.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.crawler-example.db.wasm
 	cp $< $@
 
 ./public/blogsearch.db.wasm: ../gatsby-examples/reactjs.org/blogsearch.db.wasm

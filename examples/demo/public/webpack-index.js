@@ -6035,9 +6035,9 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     workerFactory: function workerFactory() {
       return new _worker.default();
     },
-    dbPath: '/reactjs.org.blogsearch.db.wasm',
+    dbPath: '/reactjs.org.crawler-example.db.wasm',
     wasmPath: _blogsearch2.default,
-    inputSelector: '#q',
+    inputSelecreactjs.org.crawler-example.db.wasm
     debug: true // Set debug to true if you want to inspect the dropdown
 
   });

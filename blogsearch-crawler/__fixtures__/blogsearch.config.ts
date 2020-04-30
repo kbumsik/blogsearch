@@ -2,7 +2,7 @@ import { UncheckedConfig } from '../configTypes';
 
 const configExample: UncheckedConfig = {
   type: 'simple',
-  output: './reactjs.org.blogsearch.db.wasm',
+  output: './reactjs.org.crawler-example.db.wasm',
   /**
    * List of entries to parse. The crawler uses glob package internally.
    */

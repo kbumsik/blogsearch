@@ -10,7 +10,7 @@ module.exports = {
    * Make sure that web servers compress the file extension you choose.
    * (e.g. Content-Encoding: gzip included in the response) 
    */
-  output: './reactjs.org.blogsearch.db.wasm',
+  output: './reactjs.org.crawler-example.db.wasm',
   /**
    * List of entries to parse. The crawler uses glob pattern internally.
    * How to use glob: https://github.com/isaacs/node-glob

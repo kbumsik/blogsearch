@@ -7,7 +7,7 @@ import SearchWasm from 'blogsearch/lib/sqlite/blogsearch.wasm';
 
 blogsearch({
   workerFactory: () => new SearchWorker(),
-  dbPath: '/reactjs.org.blogsearch.db.wasm',
+  dbPath: '/reactjs.org.crawler-example.db.wasm',
   wasmPath: SearchWasm,
   inputSelector: '#q',
   debug: true, // Set debug to true if you want to inspect the dropdown
