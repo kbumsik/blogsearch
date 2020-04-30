@@ -1,44 +1,35 @@
-From 7a1c69321010cdff42991e6d74c6f40e2c71460d Mon Sep 17 00:00:00 2001
+From 9d5880107bbf46153f2bc6a5c2e14072c577399f Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Thu, 30 Apr 2020 00:52:44 +0900
 Subject: [PATCH 2/2] IGNORE: configure build script
 
 ---
- docker-compose.yml          | 3 ++-
- scripts/blogsearch_start.sh | 7 +++++++
- 2 files changed, 9 insertions(+), 1 deletion(-)
- create mode 100755 scripts/blogsearch_start.sh
+ docker-compose.yml | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+ mode change 100644 => 100755 docker-compose.yml
 
 diff --git a/docker-compose.yml b/docker-compose.yml
-index 1bf35384e..cada45e1e 100644
+old mode 100644
+new mode 100755
+index 1bf35384e..ed9589eb3
 --- a/docker-compose.yml
 +++ b/docker-compose.yml
-@@ -1,10 +1,11 @@
+@@ -1,10 +1,13 @@
  version: "3"
  services:
    jekyll:
 -    command: jekyll serve -s jekyll --incremental --livereload
-+    command: "bash scripts/blogsearch_start.sh"
-     image: jekyll/jekyll:3.8.6
+-    image: jekyll/jekyll:3.8.6
++    command: /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build -s jekyll"
++    build:
++      context: .
++      dockerfile: ../Dockerfile
      volumes:
        - ".:/srv/jekyll"
 +      - "../../../../jekyll-blogsearch:/jekyll-blogsearch"
      ports:
        - 127.0.0.1:4000:4000
        - 127.0.0.1:35729:35729
-diff --git a/scripts/blogsearch_start.sh b/scripts/blogsearch_start.sh
-new file mode 100755
-index 000000000..6665da4ea
---- /dev/null
-+++ b/scripts/blogsearch_start.sh
-@@ -0,0 +1,7 @@
-+#!/bin/bash
-+
-+# jekyll needs sqlite3
-+# but, the default jekyll/jekyll image doesn't have sqlite3 installed.
-+apk --no-cache add sqlite-dev
-+
-+jekyll build -s ./jekyll
 -- 
 2.26.2
 

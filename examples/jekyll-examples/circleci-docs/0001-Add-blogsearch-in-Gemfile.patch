@@ -1,4 +1,4 @@
-From b63f346b3020bd1d470dbf1e528082628cae3d32 Mon Sep 17 00:00:00 2001
+From 36e45d167ed887b859ace9dc26b08e4a8eb6e781 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Thu, 30 Apr 2020 00:51:58 +0900
 Subject: [PATCH 1/2] Add blogsearch in Gemfile
