@@ -87,9 +87,9 @@
 /******/ ({
 
 /***/ "../../blogsearch/lib/sqlite/sqlite3-emscripten.js":
-/*!*********************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/sqlite3-emscripten.js ***!
-  \*********************************************************************************************/
+/*!**********************************************************!*\
+  !*** /build/blogsearch/lib/sqlite/sqlite3-emscripten.js ***!
+  \**********************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -207,6 +207,11 @@ var Module = function () {
     function dynamicAlloc(size) {
       var ret = HEAP32[DYNAMICTOP_PTR >> 2];
       var end = ret + size + 15 & -16;
+
+      if (end > _emscripten_get_heap_size()) {
+        abort();
+      }
+
       HEAP32[DYNAMICTOP_PTR >> 2] = end;
       return ret;
     }
@@ -746,8 +751,8 @@ var Module = function () {
       Module["HEAPF64"] = HEAPF64 = new Float64Array(buf);
     }
 
-    var DYNAMIC_BASE = 5293968,
-        DYNAMICTOP_PTR = 50928;
+    var DYNAMIC_BASE = 5293984,
+        DYNAMICTOP_PTR = 50944;
     var INITIAL_INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 16777216;
 
     if (Module["wasmMemory"]) {
@@ -4108,12 +4113,12 @@ var Module = function () {
       }
     }
 
-    function _emscripten_memcpy_big(dest, src, num) {
-      HEAPU8.copyWithin(dest, src, src + num);
-    }
-
     function _emscripten_get_heap_size() {
       return HEAPU8.length;
+    }
+
+    function _emscripten_memcpy_big(dest, src, num) {
+      HEAPU8.copyWithin(dest, src, src + num);
     }
 
     function emscripten_realloc_buffer(size) {
@@ -4287,9 +4292,9 @@ var Module = function () {
       return 0;
     }
 
-    var ___tm_current = 50944;
+    var ___tm_current = 50960;
 
-    var ___tm_timezone = (stringToUTF8("GMT", 50992, 4), 50992);
+    var ___tm_timezone = (stringToUTF8("GMT", 51008, 4), 51008);
 
     function _gmtime_r(time, tmPtr) {
       var date = new Date(HEAP32[time >> 2] * 1e3);
@@ -4827,45 +4832,45 @@ var Module = function () {
     }
 
     var asmLibraryArg = {
-      "v": ___syscall10,
-      "F": ___syscall15,
-      "t": ___syscall183,
-      "B": ___syscall194,
-      "g": ___syscall195,
-      "J": ___syscall196,
-      "K": ___syscall197,
+      "r": ___syscall10,
+      "H": ___syscall15,
+      "x": ___syscall183,
+      "z": ___syscall194,
+      "f": ___syscall195,
+      "F": ___syscall196,
+      "G": ___syscall197,
       "b": ___syscall20,
-      "z": ___syscall201,
-      "s": ___syscall207,
-      "r": ___syscall212,
+      "w": ___syscall201,
+      "C": ___syscall207,
+      "B": ___syscall212,
       "a": ___syscall221,
-      "D": ___syscall3,
-      "A": ___syscall33,
-      "I": ___syscall39,
-      "E": ___syscall40,
-      "q": ___syscall5,
+      "v": ___syscall3,
+      "D": ___syscall33,
+      "E": ___syscall39,
+      "t": ___syscall40,
+      "K": ___syscall5,
       "u": ___syscall85,
-      "G": ___syscall94,
+      "J": ___syscall94,
       "l": _emscripten_memcpy_big,
       "m": _emscripten_resize_heap,
       "o": _environ_get,
       "p": _environ_sizes_get,
-      "f": _fd_close,
+      "g": _fd_close,
       "n": _fd_fdstat_get,
       "k": _fd_seek,
-      "w": _fd_sync,
-      "C": _fd_write,
+      "A": _fd_sync,
+      "q": _fd_write,
       "R": _gettimeofday,
       "M": _gmtime,
       "memory": wasmMemory,
-      "y": _nanosleep,
+      "s": _nanosleep,
       "P": _sqlite3AlterBeginAddColumn,
       "Q": _sqlite3AlterFinishAddColumn,
       "O": _sqlite3AlterRenameColumn,
       "h": _sqlite3AlterRenameTable,
       "c": _sqlite3Analyze,
       "j": _sqlite3Attach,
-      "x": _sqlite3CreateView,
+      "y": _sqlite3CreateView,
       "i": _sqlite3Detach,
       "d": _sqlite3Reindex,
       "N": _sqlite3RenameTokenRemap,
@@ -4873,7 +4878,7 @@ var Module = function () {
       "L": _strftime,
       "table": wasmTable,
       "S": _time,
-      "H": _utimes
+      "I": _utimes
     };
     var asm = createWasm();
     Module["asm"] = asm;
@@ -5194,9 +5199,9 @@ var Module = function () {
 /***/ }),
 
 /***/ "../../blogsearch/lib/sqlite/sqlite3-types.js":
-/*!****************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/sqlite3-types.js ***!
-  \****************************************************************************************/
+/*!*****************************************************!*\
+  !*** /build/blogsearch/lib/sqlite/sqlite3-types.js ***!
+  \*****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5251,9 +5256,9 @@ var ReturnCode;
 /***/ }),
 
 /***/ "../../blogsearch/lib/sqlite/sqlite3.js":
-/*!**********************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/sqlite3.js ***!
-  \**********************************************************************************/
+/*!***********************************************!*\
+  !*** /build/blogsearch/lib/sqlite/sqlite3.js ***!
+  \***********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5766,9 +5771,9 @@ exports.Database = Database;
 /***/ }),
 
 /***/ "../../node_modules/babel-loader/lib/index.js!../../blogsearch/lib/sqlite/worker.js":
-/*!*********************************************************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/babel-loader/lib!/home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/worker.js ***!
-  \*********************************************************************************************************************************************************/
+/*!***********************************************************************************!*\
+  !*** /build/node_modules/babel-loader/lib!/build/blogsearch/lib/sqlite/worker.js ***!
+  \***********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5945,9 +5950,9 @@ if (typeof WorkerGlobalScope !== 'undefined' && self instanceof WorkerGlobalScop
 /***/ }),
 
 /***/ "../../node_modules/tslib/tslib.es6.js":
-/*!*********************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/tslib/tslib.es6.js ***!
-  \*********************************************************************************/
+/*!**********************************************!*\
+  !*** /build/node_modules/tslib/tslib.es6.js ***!
+  \**********************************************/
 /*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __exportStar, __values, __read, __spread, __spreadArrays, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

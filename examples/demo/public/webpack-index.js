@@ -97,9 +97,9 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ ({
 
 /***/ "../../blogsearch/lib/BlogSearch.js":
-/*!******************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/BlogSearch.js ***!
-  \******************************************************************************/
+/*!*******************************************!*\
+  !*** /build/blogsearch/lib/BlogSearch.js ***!
+  \*******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -216,8 +216,6 @@ class BlogSearch {
   load() {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
       yield this.sqlite.load();
-      const meta = yield this.sqlite.run("SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';");
-      console.log(meta);
       this.startAutoComplete();
       return this;
     });
@@ -298,9 +296,9 @@ exports.default = BlogSearch;
 /***/ }),
 
 /***/ "../../blogsearch/lib/autocomplete.js/index.js":
-/*!*****************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/autocomplete.js/index.js ***!
-  \*****************************************************************************************/
+/*!******************************************************!*\
+  !*** /build/blogsearch/lib/autocomplete.js/index.js ***!
+  \******************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -320,9 +318,9 @@ exports.default = autocomplete_js_1.default;
 /***/ }),
 
 /***/ "../../blogsearch/lib/index.js":
-/*!*************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/index.js ***!
-  \*************************************************************************/
+/*!**************************************!*\
+  !*** /build/blogsearch/lib/index.js ***!
+  \**************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -349,9 +347,9 @@ exports.default = default_1;
 /***/ }),
 
 /***/ "../../blogsearch/lib/sqlite/blogsearch.wasm":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/blogsearch.wasm ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/blogsearch/lib/sqlite/blogsearch.wasm ***!
+  \****************************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -362,9 +360,9 @@ __webpack_require__.r(__webpack_exports__);
 /***/ }),
 
 /***/ "../../blogsearch/lib/sqlite/index.js":
-/*!********************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/index.js ***!
-  \********************************************************************************/
+/*!*********************************************!*\
+  !*** /build/blogsearch/lib/sqlite/index.js ***!
+  \*********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -533,9 +531,9 @@ function escapeXMLCharacters(input) {
 /***/ }),
 
 /***/ "../../blogsearch/lib/templates.js":
-/*!*****************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/templates.js ***!
-  \*****************************************************************************/
+/*!******************************************!*\
+  !*** /build/blogsearch/lib/templates.js ***!
+  \******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -549,10 +547,14 @@ const prefix = 'blogsearch';
 const suggestionPrefix = `${prefix}-suggestion`;
 const templates = {
   suggestion: `
-  <div class="
-    ${suggestionPrefix}
-    ${suggestionPrefix}__main
-  ">
+  <a
+    class="
+      ${suggestionPrefix}
+      ${suggestionPrefix}__main
+      "
+    aria-label="Link to the result"
+    href="{{{url}}}"
+  >
     <div class="${suggestionPrefix}--header">
       <div class="${suggestionPrefix}--title ${suggestionPrefix}--header-item">
         {{{title}}}
@@ -577,7 +579,7 @@ const templates = {
       </div>
       {{/body_highlight}}
     </div>
-  </div>
+  </a>
   `,
   empty: `
   <div class="${suggestionPrefix}">
@@ -596,9 +598,9 @@ exports.default = templates;
 /***/ }),
 
 /***/ "../../blogsearch/lib/zepto/index.js":
-/*!*******************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/zepto/index.js ***!
-  \*******************************************************************************/
+/*!********************************************!*\
+  !*** /build/blogsearch/lib/zepto/index.js ***!
+  \********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -618,9 +620,9 @@ exports.default = zepto_1.default;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/index.js":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/index.js ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/node_modules/autocomplete.js/index.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -633,9 +635,9 @@ module.exports = __webpack_require__(/*! ./src/standalone/ */ "../../node_module
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/css.js":
-/*!******************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/css.js ***!
-  \******************************************************************************************************/
+/*!*******************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/css.js ***!
+  \*******************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -742,9 +744,9 @@ module.exports = css;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/dataset.js":
-/*!**********************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/dataset.js ***!
-  \**********************************************************************************************************/
+/*!***********************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/dataset.js ***!
+  \***********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1061,9 +1063,9 @@ module.exports = Dataset;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/dropdown.js":
-/*!***********************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/dropdown.js ***!
-  \***********************************************************************************************************/
+/*!************************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/dropdown.js ***!
+  \************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1467,9 +1469,9 @@ module.exports = Dropdown;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/event_bus.js":
-/*!************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/event_bus.js ***!
-  \************************************************************************************************************/
+/*!*************************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/event_bus.js ***!
+  \*************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1512,9 +1514,9 @@ module.exports = EventBus;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/event_emitter.js":
-/*!****************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/event_emitter.js ***!
-  \****************************************************************************************************************/
+/*!*****************************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/event_emitter.js ***!
+  \*****************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1626,9 +1628,9 @@ function bindContext(fn, context) {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/html.js":
-/*!*******************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/html.js ***!
-  \*******************************************************************************************************/
+/*!********************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/html.js ***!
+  \********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1647,9 +1649,9 @@ module.exports = {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/input.js":
-/*!********************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/input.js ***!
-  \********************************************************************************************************/
+/*!*********************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/input.js ***!
+  \*********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2000,9 +2002,9 @@ module.exports = Input;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/autocomplete/typeahead.js":
-/*!************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/autocomplete/typeahead.js ***!
-  \************************************************************************************************************/
+/*!*************************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/autocomplete/typeahead.js ***!
+  \*************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2666,9 +2668,9 @@ module.exports = Typeahead;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/common/dom.js":
-/*!************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/common/dom.js ***!
-  \************************************************************************************************/
+/*!*************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/common/dom.js ***!
+  \*************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2683,9 +2685,9 @@ module.exports = {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/common/parseAlgoliaClientVersion.js":
-/*!**********************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/common/parseAlgoliaClientVersion.js ***!
-  \**********************************************************************************************************************/
+/*!***********************************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/common/parseAlgoliaClientVersion.js ***!
+  \***********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2710,9 +2712,9 @@ module.exports = function parseAlgoliaClientVersion(agent) {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/common/utils.js":
-/*!**************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/common/utils.js ***!
-  \**************************************************************************************************/
+/*!***************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/common/utils.js ***!
+  \***************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2853,9 +2855,9 @@ module.exports = {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/sources/hits.js":
-/*!**************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/sources/hits.js ***!
-  \**************************************************************************************************/
+/*!***************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/sources/hits.js ***!
+  \***************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2889,9 +2891,9 @@ module.exports = function search(index, params) {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/sources/index.js":
-/*!***************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/sources/index.js ***!
-  \***************************************************************************************************/
+/*!****************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/sources/index.js ***!
+  \****************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2907,9 +2909,9 @@ module.exports = {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/sources/popularIn.js":
-/*!*******************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/sources/popularIn.js ***!
-  \*******************************************************************************************************/
+/*!********************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/sources/popularIn.js ***!
+  \********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3004,9 +3006,9 @@ module.exports = function popularIn(index, params, details, options) {
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/src/standalone/index.js":
-/*!******************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/src/standalone/index.js ***!
-  \******************************************************************************************************/
+/*!*******************************************************************!*\
+  !*** /build/node_modules/autocomplete.js/src/standalone/index.js ***!
+  \*******************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -3107,9 +3109,9 @@ module.exports = autocomplete;
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/version.js":
-/*!*****************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/version.js ***!
-  \*****************************************************************************************/
+/*!******************************************************!*\
+  !*** /build/node_modules/autocomplete.js/version.js ***!
+  \******************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -3119,9 +3121,9 @@ module.exports = "0.37.1";
 /***/ }),
 
 /***/ "../../node_modules/autocomplete.js/zepto.js":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/autocomplete.js/zepto.js ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/node_modules/autocomplete.js/zepto.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -4449,9 +4451,9 @@ module.exports = "0.37.1";
 /***/ }),
 
 /***/ "../../node_modules/hogan.js/lib/compiler.js":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/hogan.js/lib/compiler.js ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/node_modules/hogan.js/lib/compiler.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4883,9 +4885,9 @@ module.exports = "0.37.1";
 /***/ }),
 
 /***/ "../../node_modules/hogan.js/lib/hogan.js":
-/*!************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/hogan.js/lib/hogan.js ***!
-  \************************************************************************************/
+/*!*************************************************!*\
+  !*** /build/node_modules/hogan.js/lib/hogan.js ***!
+  \*************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -4915,9 +4917,9 @@ module.exports = Hogan;
 /***/ }),
 
 /***/ "../../node_modules/hogan.js/lib/template.js":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/hogan.js/lib/template.js ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/node_modules/hogan.js/lib/template.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5267,9 +5269,9 @@ var Hogan = {};
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/index.js":
-/*!*************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/index.js ***!
-  \*************************************************************************************/
+/*!**************************************************!*\
+  !*** /build/node_modules/immediate/lib/index.js ***!
+  \**************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5375,9 +5377,9 @@ function immediate(task) {
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/messageChannel.js":
-/*!**********************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/messageChannel.js ***!
-  \**********************************************************************************************/
+/*!***********************************************************!*\
+  !*** /build/node_modules/immediate/lib/messageChannel.js ***!
+  \***********************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5405,9 +5407,9 @@ exports.install = function (func) {
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/mutation.js":
-/*!****************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/mutation.js ***!
-  \****************************************************************************************/
+/*!*****************************************************!*\
+  !*** /build/node_modules/immediate/lib/mutation.js ***!
+  \*****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5439,9 +5441,9 @@ exports.install = function (handle) {
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/nextTick.js":
-/*!****************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/nextTick.js ***!
-  \****************************************************************************************/
+/*!*****************************************************!*\
+  !*** /build/node_modules/immediate/lib/nextTick.js ***!
+  \*****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5463,9 +5465,9 @@ exports.install = function (func) {
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/stateChange.js":
-/*!*******************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/stateChange.js ***!
-  \*******************************************************************************************/
+/*!********************************************************!*\
+  !*** /build/node_modules/immediate/lib/stateChange.js ***!
+  \********************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5499,9 +5501,9 @@ exports.install = function (handle) {
 /***/ }),
 
 /***/ "../../node_modules/immediate/lib/timeout.js":
-/*!***************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/immediate/lib/timeout.js ***!
-  \***************************************************************************************/
+/*!****************************************************!*\
+  !*** /build/node_modules/immediate/lib/timeout.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5520,9 +5522,9 @@ exports.install = function (t) {
 /***/ }),
 
 /***/ "../../node_modules/process/browser.js":
-/*!*********************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/process/browser.js ***!
-  \*********************************************************************************/
+/*!**********************************************!*\
+  !*** /build/node_modules/process/browser.js ***!
+  \**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
@@ -5715,9 +5717,9 @@ process.umask = function() { return 0; };
 /***/ }),
 
 /***/ "../../node_modules/tslib/tslib.es6.js":
-/*!*********************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/tslib/tslib.es6.js ***!
-  \*********************************************************************************/
+/*!**********************************************!*\
+  !*** /build/node_modules/tslib/tslib.es6.js ***!
+  \**********************************************/
 /*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __exportStar, __values, __read, __spread, __spreadArrays, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -5994,9 +5996,9 @@ module.exports = g;
 /***/ }),
 
 /***/ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/sqlite/worker.js":
-/*!*****************************************************************************************************************************************************************************************!*\
-  !*** /home/kbumsik/Projects/Current/blogsearch/node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!/home/kbumsik/Projects/Current/blogsearch/blogsearch/lib/sqlite/worker.js ***!
-  \*****************************************************************************************************************************************************************************************/
+/*!*******************************************************************************************************************!*\
+  !*** /build/node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!/build/blogsearch/lib/sqlite/worker.js ***!
+  \*******************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6037,7 +6039,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
     },
     dbPath: '/reactjs.org.crawler-example.db.wasm',
     wasmPath: _blogsearch2.default,
-    inputSelecreactjs.org.crawler-example.db.wasm
+    inputSelector: '#q',
     debug: true // Set debug to true if you want to inspect the dropdown
 
   });
