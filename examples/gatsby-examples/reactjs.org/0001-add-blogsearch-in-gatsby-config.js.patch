@@ -1,7 +1,7 @@
-From de89947d0e979cf43ddf9f0c6cc6526d6ac485f7 Mon Sep 17 00:00:00 2001
+From 02a4edeb9914881f79e8a52d9fb47e0f3d13febf Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Mon, 27 Apr 2020 15:04:16 +0900
-Subject: [PATCH 3/5] add blogsearch in gatsby-config.js
+Subject: [PATCH 1/4] add blogsearch in gatsby-config.js
 
 ---
  gatsby-config.js | 61 ++++++++++++++++++++++++++++++++++++++++++++++++
@@ -80,5 +80,5 @@ index 2637eac9..8a6adde4 100644
      'gatsby-transformer-authors-yaml',
      'gatsby-transformer-home-example-code',
 -- 
-2.20.1
+2.26.2
 
