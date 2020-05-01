@@ -12,4 +12,4 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag kbumsik/emscripten:$(date +%s)
+      run: make -C ${{ github.workspace }} docker-image

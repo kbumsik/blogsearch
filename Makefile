@@ -16,7 +16,7 @@ INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
 		$(if $(CI), , -u $$(id -u):$$(id -g)) \
 		-p 9000:9000 \
 		kbumsik/emscripten \
-		make $(patsubst %-in-docker,%,$@)
+		make $(patsubst %-in-docker, %, $@)
 
 ##############
 # Common tasks
@@ -68,7 +68,7 @@ demo: blogsearch
 # etc.
 ######
 docker-image: Dockerfile
-	docker build --tag kbumsik/emscripten -f $<
+	docker build . --tag kbumsik/emscripten:$$(date +'%Y-%m-%d') --file $<
 
 clean:
 	cd blogsearch && yarn clean
