@@ -14,6 +14,7 @@ jobs:
     - run: make -C ${{ github.workspace }} install-in-docker
     - run: make -C ${{ github.workspace }} blogsearch-in-docker
     - run: make -C ${{ github.workspace }} blogsearch-crawler-in-docker
+    - run: make -C ${{ github.workspace }} crawler-reactjs-in-docker
     - run: make -C ${{ github.workspace }} gatsby-reactjs-in-docker
     - run: make -C ${{ github.workspace }} jekyll-circleci-in-docker
     - run: make -C ${{ github.workspace }} demo-in-docker

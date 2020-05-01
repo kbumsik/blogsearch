@@ -45,15 +45,6 @@ blogsearch_root:
 	cd $(dir $@) && yarn build
 
 # Clean
-.PHONY: clean
-clean: clean-blogsearch clean-database
-
-.PHONY: clean-blogsearch
-clean-blogsearch:
-	rm -rf $(BLOGSEARCH_PUBLIC)
-
-.PHONY: clean-database
-clean-database:
+clean:
 	rm -rf $(DB_PUBLIC)
-	cd ../crawler-examples/reactjs.org && yarn clean
-	cd ../gatsby-examples/reactjs.org && yarn clean
+	rm -rf $(BLOGSEARCH_PUBLIC)

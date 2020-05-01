@@ -33,10 +33,10 @@ start: demo
 	cd examples/demo && yarn start
 
 .PHONY: examples
-examples: gatsby-reactjs jekyll-circleci demo
+examples: crawler-reactjs gatsby-reactjs jekyll-circleci demo
 # override -in-docker command
 .PHONY: examples-in-docker
-examples-in-docker: gatsby-reactjs-in-docker jekyll-circleci demo-in-docker
+examples-in-docker: crawler-reactjs-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker demo-in-docker
 
 #######################
 # Libray build commands
@@ -52,6 +52,9 @@ blogsearch-crawler:
 ################
 # Example builds
 ################
+crawler-reactjs: blogsearch-crawler
+	cd examples/crawler-examples/reactjs.org && yarn build
+
 gatsby-reactjs: blogsearch-crawler
 	cd examples/gatsby-examples/reactjs.org && yarn build
 
@@ -73,6 +76,9 @@ docker-image: Dockerfile
 clean:
 	cd blogsearch && yarn clean
 	cd blogsearch-crawler && yarn clean
+	cd examples/crawler-examples/reactjs.org && yarn clean
+	cd examples/gatsby-examples/reactjs.org && yarn clean
+	cd examples/jekyll-examples/circleci-docs && yarn clean
 	cd examples/demo && yarn clean
 
 # Just to work in the docker container, so you can run bash-in-docker
