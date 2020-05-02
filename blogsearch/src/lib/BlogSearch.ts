@@ -57,12 +57,14 @@ class BlogSearch {
   }: Config & SQL.Config) {
     BlogSearch.checkArguments(arguments[0]);
 
+    let searchReady = false;
+    const autoComplete = getAutoComplete();
     const sqlite = await new SQLite({
       wasmPath,
       dbPath,
       worker: getWorkerFactory(workerFactory)(),
     }).load();
-    const autoComplete = getAutoComplete();
+    searchReady = true;
     return new BlogSearch(sqlite, autoComplete);
 
     function getAutoComplete () {
@@ -124,6 +126,7 @@ class BlogSearch {
           query: string,
           showSearchResult: (suggestion: Suggestion[]) => void
         ) => {
+          if (!searchReady) return;
           const suggestions = <Suggestion[]><unknown[]>await sqlite.search(query, 5);
           showSearchResult(suggestions.map(suggestion => ({
             ...suggestion,
