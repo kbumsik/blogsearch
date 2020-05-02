@@ -34,7 +34,11 @@ export default class SQLite {
   private readonly wasmPath?: string;
   private readonly sqlWorker: Worker;
 
-  public constructor ({ dbPath, wasmPath, worker }: Config & { worker: Worker }) {
+  public constructor ({
+    dbPath,
+    wasmPath,
+    worker
+  }: Config & { worker: Worker }) {
     this.dbPath = dbPath;
     this.wasmPath = wasmPath;
     this.sqlWorker = worker;
@@ -67,11 +71,18 @@ export default class SQLite {
         }
         resolve(this);
       });
-      this.sqlWorker.postMessage({ command: 'open', dbPath: this.dbPath, wasmPath: this.wasmPath });
+      this.sqlWorker.postMessage({
+        command: 'open',
+        dbPath: this.dbPath,
+        wasmPath: this.wasmPath
+      });
     });
   }
 
-  public async search (match: string, top: number): Promise<SearchResult[]> {
+  public async search (
+    match: string,
+    top: number
+  ): Promise<SearchResult[]> {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
@@ -88,6 +99,7 @@ export default class SQLite {
       return [];
     }
     const { columns, values } = raw[0];
+
     return values
       .filter(row => row[1]) // Filter empty title. [TODO] Get the title index in a better way
       .map(row => {
@@ -101,6 +113,7 @@ export default class SQLite {
   }
 
   public async run (query: string): Promise<QueryResult[]> {
+
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'exec') {
@@ -128,9 +141,7 @@ export default class SQLite {
   private handleMessageFromWorker (handler: (response: WorkerMessage.Response) => any) {
     this.sqlWorker.addEventListener(
       'message',
-      e => {
-        handler(e.data);
-      },
+      event => handler(event.data),
       { once: true }
     );
   }
@@ -162,14 +173,10 @@ function * zip (...arrays: any[]) {
 function escapeXMLCharacters (input: string) {
   return input.replace(/[<>&]/g, c => {
     switch (c) {
-      case '&':
-        return '&amp;';
-      case '<':
-        return '&lt;';
-      case '>':
-        return '&gt;';
-      default:
-        throw new Error('Error: XML escape Error.');
+      case '&': return '&amp;';
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      default:  throw new Error('Error: XML escape Error.');
     }
   });
 }
