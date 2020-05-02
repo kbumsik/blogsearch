@@ -115,6 +115,10 @@ export default class SQLite {
       });
     });
   }
+  
+  public close () {
+    this.sqlWorker.terminate();
+  }
 
   /**
    * Wrapper for to narrow usage of worker handler.

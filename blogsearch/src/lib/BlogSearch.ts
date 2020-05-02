@@ -196,6 +196,12 @@ class BlogSearch {
     }
     getInputFromSelector(args.inputSelector);
   }
+
+  public close () {
+    this.sqlite.close();
+    this.autoComplete.autocomplete.destroy();
+    return;
+  }
 }
 
 function getWorkerFactory (factory?: () => Worker) {

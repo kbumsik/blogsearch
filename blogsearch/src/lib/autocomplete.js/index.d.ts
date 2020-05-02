@@ -37,7 +37,17 @@ type autocompleteEvent =
 interface AutocompleteElement {
   on(eventType: autocompleteEvent, callback: () => void): void;
   trigger(eventType: autocompleteEvent): void;
-  autocomplete: any;
+  /**
+   * This is an autocomplete statndalone object.
+   * Reference: https://github.com/algolia/autocomplete.js#standalone-1
+   */
+  autocomplete: {
+    close(): void;
+    getVal(): string;
+    setVal(value: string);
+    destroy(): void;
+    getWrapper(): any;
+  };
 }
 
 type template = ((args: Hogan.Context) => string) | string;
