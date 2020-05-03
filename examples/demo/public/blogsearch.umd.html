@@ -3,9 +3,13 @@
   
   <head>
     <meta charset="utf-8" />
-    <title>BlogSearch playground</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/bootstrap/3.3.6/css/bootstrap.min.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" ></script>
+    <link rel="stylesheet" href="bootstrap-litera.css" >
     <link rel="stylesheet" href="blogsearch.css" />
+    <title>BlogSearch playground</title>
   </head>
   
   <body>
@@ -18,22 +22,108 @@
       </div>
 
       <!-- blogsearch will run in this input tag -->
-      <input type="search" placeholder="BlogSearch input" class="form-control" id="q">
+      <!-- <input type="search" placeholder="BlogSearch input" class="form-control" id="q"> -->
     </div>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="text" placeholder="Search" id="q">
+      </form>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    
+      <div class="collapse navbar-collapse" id="navbarColor03">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Features</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container">
+      Precompiled databases:
+      <div class="btn-group btn-group-toggle" data-toggle="buttons">
+        <label class="btn btn-primary active">
+          <input type="radio" checked="" dbPath="reactjs.org.crawler-example.db.wasm">
+            reactjs.org (using blogsearch-crawler)
+          </input>
+        </label>
+        <label class="btn btn-primary">
+          <input type="radio" dbPath="reactjs.org.gatsby-example.db.wasm">
+            reactjs.org (using gatsby-plugin-blogsearch)
+          </input>
+        </label>
+        <label class="btn btn-primary">
+          <input type="radio" dbPath="circleci-docs.jekyll-example.db.wasm">
+            CircleCI documentation (using jekyll-blogsearch)
+          </input>
+        </label>
+      </div>
+      <label>Your own BlogSearch database file: <input type='file' id='dbfile'></label>
+    </div>
+
 
     <script src="blogsearch.umd.js"></script>
     <!-- You don't need to import it manually
       If worker.umd.js is located in the same directory as blogsearch.umd.js.  -->
     <!-- <script src="worker.umd.js"></script> -->
+
     <script>
-      blogsearch({
-        dbPath: 'reactjs.org.crawler-example.db.wasm',
-        inputSelector: '#q',
-        wasmPath: 'blogsearch.wasm',
-        debug: true // Set debug to true if you want to inspect the dropdown
-      }).then(bs => {
-        console.log('Loaded: ', bs);
-      });
+
+const updateDB = (() => {
+  let searchObj;
+  return (dbPath) => {
+    if (searchObj) searchObj.close();
+    blogsearch({
+      dbPath,
+      inputSelector: '#q',
+      wasmPath: 'blogsearch.wasm',
+      debug: true // Set debug to true if you want to inspect the dropdown
+    }).then(bs => {
+      searchObj = bs;
+      console.log(`Loaded: ${dbPath}`.substr(0, 50) + '...');
+    });
+  }
+})();
+
+// Update database when clicked
+for (const el of document.querySelectorAll('input:not(#q)')) {
+  el.onchange = async function (event) {
+    const dbPath =
+      await (
+        this.type === 'file'
+        ? (async () => {
+          return new Promise((resolve, reject) => {
+            const file = this.files[0];
+            if (!file) resolve('');
+            const reader = new FileReader();
+
+            reader.addEventListener('load', function () {
+              resolve(reader.result);
+            }, { once: true });
+            reader.readAsDataURL(file);
+          })
+        })()
+        : this.getAttribute('dbPath')
+      );
+    if (!dbPath) {
+      console.log('No file selected.');
+      return;
+    }
+    updateDB(dbPath);
+  }
+}
+
+// Manually trigger the first button to load the first database
+const firstEvent = new Event("change");
+const firstElement = document.querySelector('input:not(#q)');
+firstElement.dispatchEvent(firstEvent);
+
     </script>
   </body>
 
