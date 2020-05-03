@@ -32,6 +32,7 @@ type Config = {
   handleShown: typeof defaultHandleShown;
   searchResultTemplate: string,
   noResultTemplate: string,
+  limit: number,
 } & Search.Config;
 
 const usage = `Usage:
@@ -67,6 +68,7 @@ class BlogSearch {
     handleShown = defaultHandleShown,
     searchResultTemplate = templates.suggestion,
     noResultTemplate = templates.empty,
+    limit = 5,
   }: Config) {
     BlogSearch.checkArguments(arguments[0]);
 
@@ -141,7 +143,7 @@ class BlogSearch {
         ) => {
           if (!searchReady) return;
           const suggestions =
-            (<Suggestion[]><unknown[]>await engine.search(query, 5))
+            (<Suggestion[]><unknown[]>await engine.search(query, limit))
             .map(suggestion => ({
               ...suggestion,
               tags: (<string>suggestion.tags ?? '')
