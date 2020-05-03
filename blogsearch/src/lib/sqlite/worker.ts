@@ -21,21 +21,22 @@ export default async function initWorker () {
   const loadWasm = wasmLoader(sqlite3Wasm);
   /** @type {Database} I import Database dynamically as value so I cannot use typeof Database. */
   let db: Database;
+  let wasm: SQLite3Wasm;
 
   onmessage = async function (e: { data: WorkerMessage.Command }) {
     const { data } = e;
     switch (data.command) {
+      case 'init': {
+        wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
+        postMessage({ respondTo: 'init', success: true });
+        break;
+      }
+
       case 'open': {
         if (db) {
           db.close();
         }
-        const dbBuffer = fetch(
-          self.location?.href.startsWith('blob:')
-            ? correctScriptDir() + data.dbPath
-            : data.dbPath
-        ).then(r => r.arrayBuffer());
-        const wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
-        db = new sqlit3API.Database(wasm, new Uint8Array(await dbBuffer));
+        db = new sqlit3API.Database(wasm, new Uint8Array(data.dbBinary));
         postMessage({ respondTo: 'open', success: true });
         break;
       }

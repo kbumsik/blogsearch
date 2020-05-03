@@ -1,7 +1,11 @@
-import { Config, WorkerMessage } from './sqlite/worker-interface';
+import { WorkerMessage } from './sqlite/worker-interface';
 import { QueryResult, ReturnMap } from './sqlite/sqlite3-types';
 
-export { Config } from './sqlite/worker-interface';
+export interface Config {
+  dbPath: string;
+  wasmPath: string;
+  worker: Worker;
+}
 
 enum Db {
   TitleIdx = 0,
@@ -14,33 +18,15 @@ enum Db {
   MaxDisplayedTokens = 10,
 };
 
-declare global {
-  interface Worker {
-    /**
-     * Override postMessage to narrow its usage
-     * from (message: any) to (message: WorkerMessage.Command).
-     */
-    postMessage(message: WorkerMessage.Command, transfer?: Transferable[]): void;
-  }
-}
-
 export type SearchResult = {
   [field in keyof ReturnMap]: string;
 };
 
 export default class SearchEngine {
-  private readonly dbPath: string;
-  private readonly wasmPath?: string;
-  private readonly sqlWorker: Worker;
 
-  public constructor ({
-    dbPath,
-    wasmPath,
-    worker
-  }: Config & { worker: Worker }) {
-    this.dbPath = dbPath;
-    this.wasmPath = wasmPath;
-    this.sqlWorker = worker;
+  private constructor (
+    private readonly sqlWorker: Worker,
+  ) {
     this.sqlWorker.onerror = error => {
       const message = (() => {
         if (error instanceof ErrorEvent) {
@@ -58,7 +44,42 @@ export default class SearchEngine {
     };
   }
 
-  public async load (): Promise<SearchEngine> {
+  public static async create ({
+    dbPath,
+    wasmPath,
+    worker
+  }: Config)
+  : Promise<SearchEngine> {
+    // fetch first to reduce delay
+    const dbBuffer = fetch(dbPath).then(r => r.arrayBuffer());
+
+    const obj = new SearchEngine(worker);
+    await obj.init(wasmPath);
+    await obj.open(await dbBuffer);
+    return obj;
+  }
+
+  private async init (wasmPath: string): Promise<SearchEngine> {
+    return new Promise((resolve, reject) => {
+      this.handleMessageFromWorker(response => {
+        if (response.respondTo !== 'init') {
+          reject(new Error('Internal Error: response is not init'));
+          return;
+        } else if (!response.success) {
+          reject(new Error('Internal Error: init failed'));
+          return;
+        }
+        resolve(this);
+      });
+
+      this.postMessageToWorker({
+        command: 'init',
+        wasmPath,
+      });
+    });
+  }
+
+  private async open (dbBinary: ArrayBuffer): Promise<SearchEngine> {
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'open') {
@@ -70,11 +91,11 @@ export default class SearchEngine {
         }
         resolve(this);
       });
-      this.sqlWorker.postMessage({
+
+      this.postMessageToWorker({
         command: 'open',
-        dbPath: this.dbPath,
-        wasmPath: this.wasmPath
-      });
+        dbBinary
+      }, [dbBinary]);
     });
   }
 
@@ -121,7 +142,8 @@ export default class SearchEngine {
         }
         resolve(response.results);
       });
-      this.sqlWorker.postMessage({
+
+      this.postMessageToWorker({
         command: 'exec',
         sql: query,
       });
@@ -137,12 +159,26 @@ export default class SearchEngine {
    *
    * @param handler Handler for worker response
    */
-  private handleMessageFromWorker (handler: (response: WorkerMessage.Response) => any) {
+  private handleMessageFromWorker (
+    handler: (response: WorkerMessage.Response) => any
+  ) {
     this.sqlWorker.addEventListener(
       'message',
       event => handler(event.data),
       { once: true }
     );
+  }
+
+  /**
+   * Wrapper for to narrow usage of worker postMessage().
+   *
+   * @param message Command to worker
+   */
+  private postMessageToWorker (
+    message: WorkerMessage.Command,
+    transfer: Transferable[] = []
+  ) {
+    this.sqlWorker.postMessage(message, transfer);
   }
 }
 

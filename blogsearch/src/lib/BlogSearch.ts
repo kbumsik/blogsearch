@@ -19,12 +19,12 @@ declare global {
   }
 }
 
-interface Config {
+type Config = {
   workerFactory?: () => Worker;
   inputSelector: string;
   debug?: boolean;
   autocompleteOptions?: AutocompleteOptions;
-}
+} & Search.Config;
 
 const usage = `Usage:
 blogsearch({
@@ -54,16 +54,16 @@ class BlogSearch {
       cssClasses: {},
       ariaLabel: '',
     },
-  }: Config & Search.Config) {
+  }: Config) {
     BlogSearch.checkArguments(arguments[0]);
 
     let searchReady = false;
     const autoComplete = getAutoComplete();
-    const engine = await new SearchEngine({
+    const engine = await SearchEngine.create({
       wasmPath,
       dbPath,
       worker: getWorkerFactory(workerFactory)(),
-    }).load();
+    });
     searchReady = true;
     return new BlogSearch(engine, autoComplete);
 
@@ -189,7 +189,7 @@ class BlogSearch {
     }
   }
 
-  private static checkArguments (args: Config & Search.Config) {
+  private static checkArguments (args: Config) {
     if (
       typeof args.dbPath !== 'string' || !args.dbPath ||
       typeof args.inputSelector !== 'string' || !args.inputSelector ||

@@ -5,11 +5,6 @@ import type {
   ParameterMap,
 } from './sqlite3-types';
 
-export interface Config {
-  dbPath: string;
-  wasmPath?: string;
-}
-
 export interface Query {
   sql: string;
   params?: ParameterArray | ParameterMap;
@@ -17,20 +12,32 @@ export interface Query {
 
 export namespace WorkerMessage {
   export type Command =
+    | InitCommand
     | OpenCommand
     | ExecCommand
     | EachCommand
     | ExportCommand
     | CloseCommand;
   export type Response =
+    | InitResponse
     | OpenResponse
     | ExecResponse
     | EachResponse
     | ExportResponse
     | CloseResponse;
 
-  interface OpenCommand extends Config {
+  interface InitCommand {
+    command: 'init';
+    wasmPath: string;
+  }
+  interface InitResponse {
+    respondTo: InitCommand['command'];
+    success: boolean;
+  }
+
+  interface OpenCommand {
     command: 'open';
+    dbBinary: ArrayBuffer;
   }
   interface OpenResponse {
     respondTo: OpenCommand['command'];
