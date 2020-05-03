@@ -113,8 +113,8 @@ export default class SearchEngine {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
-        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight,
-        *
+        *,
+        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight
       FROM ${Db.DbName}
       WHERE ${Db.DbName} 
         MATCH '${match}'
@@ -125,14 +125,16 @@ export default class SearchEngine {
     if (raw.length === 0) {
       return [];
     }
+    // Only one row because only one SQL query is executed.
     const { columns, values } = raw[0];
 
     return values
-      .filter(row => row[Db.TitleIdx + 1]) // Filter empty title. [TODO] Get the title index in a better way
+      .filter(row => row[Db.TitleIdx]) // Filter empty titles
       .map(row => {
+        const hightlightIdx = row.length - 1;
         // hightlight body string
         // eslint-disable-next-line no-param-reassign
-        row[0] = escapeXMLCharacters(row[0] as string)
+        row[hightlightIdx] = escapeXMLCharacters(row[hightlightIdx] as string)
           .replace(/{{%%%/g, highlightPreTag)
           .replace(/%%%}}/g, highlightPostTag);
         return Object.fromEntries(zip(columns, row)) as Suggestion;
