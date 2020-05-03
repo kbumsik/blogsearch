@@ -27,7 +27,7 @@ export default async function initWorker () {
     const { data } = e;
     switch (data.command) {
       case 'init': {
-        wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
+        wasm = (await loadWasm(data.wasmBinary)) as SQLite3Wasm;
         postMessage({ respondTo: 'init', success: true });
       }
       break;
@@ -99,7 +99,7 @@ export default async function initWorker () {
 /* eslint-disable dot-notation */
 function wasmLoader (wasmModule: SQLite3Wasm) {
   let loadedModule: SQLite3Wasm | null = null;
-  return async function (wasmPath?: string): Promise<Omit<SQLite3Wasm, 'then'>> {
+  return async function (wasmBinary: ArrayBuffer): Promise<Omit<SQLite3Wasm, 'then'>> {
     return new Promise((resolve, reject) => {
       if (loadedModule) {
         resolve(loadedModule);
@@ -109,21 +109,22 @@ function wasmLoader (wasmModule: SQLite3Wasm) {
       moduleOverrides['onAbort'] = function (what: any) {
         reject(what);
       };
-      if (typeof wasmPath === 'string' && wasmPath) {
-        // This allows loading .wasm (wasmPath from index.ts) from cross-site.
-        moduleOverrides['locateFile'] = function (path: string, scriptDirectory: string) {
-          const dir = correctScriptDir(scriptDirectory);
-          return path.match(/.wasm/)
-            ? wasmPath.startsWith('http://') || wasmPath.startsWith('https://')
-              ? wasmPath
-              : dir + wasmPath
-            : (dir + path);
-        };
-      }
+      /**
+       * So the worker doesn't download .wasm directly.
+       * The worker uses WebAssembly.instantiate() rather than
+       * WebAssembly.instantiateStreaming() because the worker itself is large
+       * that it is more time efficient to get the binaray from the host
+       * (before the worker is downloaded and instantiated) and pass it to the
+       * worker.
+       */
+      moduleOverrides['wasmBinary'] = wasmBinary;
 
       try {
-        // [NOTE] Emscripten's then() is NOT really promise-based 'thenable'.
-        //        then() must be deleted otherwise it casues an infinite loop.
+        /**
+         * Emscripten's then() is NOT really promise-based 'thenable'.
+         * then() must be deleted otherwise it casues an infinite loop.
+         * See: https://github.com/emscripten-core/emscripten/issues/5820
+         */
         wasmModule(moduleOverrides).then(wasmModule => {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete wasmModule['then'];
@@ -137,18 +138,6 @@ function wasmLoader (wasmModule: SQLite3Wasm) {
   };
 }
 /* eslint-enable dot-notation */
-
-function correctScriptDir (dir?: string) {
-  /**
-   * When the script (WorkerGlobalScope) is blob-generated, scriptDirectory
-   * of locateFile method (moduleOverrides['locateFile']) is an empty string.
-   * scriptDirectory should be corrected if so.
-   * [TODO] Contribute emscripten
-   */
-  return ((dir || self.location?.href) ?? '')
-    .replace(/^(blob:)/, '')
-    .replace(/\/[^\/]+$/, '/');
-};
 
 /* global WorkerGlobalScope */
 // Run only if it is in web worker environment

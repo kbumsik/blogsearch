@@ -28,7 +28,7 @@ export namespace WorkerMessage {
 
   interface InitCommand {
     command: 'init';
-    wasmPath: string;
+    wasmBinary: ArrayBuffer;
   }
   interface InitResponse {
     respondTo: InitCommand['command'];

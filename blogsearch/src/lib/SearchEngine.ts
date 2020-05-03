@@ -50,16 +50,24 @@ export default class SearchEngine {
     worker
   }: Config)
   : Promise<SearchEngine> {
-    // fetch first to reduce delay
+    /**
+     * The size of the worker is big (~200kb or ~50kb compressed) so it takes
+     * some time to instantiate. Therefore fetch binaraies before the worker
+     * is available. It is especially important for wasmBuffer because this
+     * means that we give up using streaming compilation in the worker side 
+     * (aka. WebAssembly.instantiateStreaming()) because fetching it parallelly
+     * is faster than worker initialization and wasm streaming serially.
+     */
+    const wasmBuffer = fetch(wasmPath).then(r => r.arrayBuffer());
     const dbBuffer = fetch(dbPath).then(r => r.arrayBuffer());
 
     const obj = new SearchEngine(worker);
-    await obj.init(wasmPath);
+    await obj.init(await wasmBuffer);
     await obj.open(await dbBuffer);
     return obj;
   }
 
-  private async init (wasmPath: string): Promise<SearchEngine> {
+  private async init (wasmBinary: ArrayBuffer): Promise<SearchEngine> {
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'init') {
@@ -74,8 +82,8 @@ export default class SearchEngine {
 
       this.postMessageToWorker({
         command: 'init',
-        wasmPath,
-      });
+        wasmBinary,
+      }, [wasmBinary]);
     });
   }
 
