@@ -46,7 +46,7 @@ export class Database {
       CREATE VIRTUAL TABLE ${BLOGSEARCH}
       USING fts5(
         ${[...this.columns.entries()]
-          .map(([field, config]) => `${field}${config.weight < 0.0001 ? ' UNINDEXED' : ''}`)
+          .map(([field, config]) => `${field}${config.indexed ? '' : ' UNINDEXED'}`)
           .join(',')},
         tokenize = 'porter unicode61 remove_diacritics 1',
         content=${BLOGSEARCH_EXT_CONTENT},

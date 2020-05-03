@@ -2,9 +2,9 @@ import type puppeteer from 'puppeteer';
 export type Field = 'title' | 'body' | 'url' | 'categories' | 'tags';
 export interface FieldConfig {
   hasContent?: boolean;
-  weight?: number;
-  parser: Parser;
-  enabled: boolean;
+  indexed?: boolean;
+  parser?: Parser;
+  enabled?: boolean;
 }
 
 type FieldsRecord = Record<Field, FieldConfig>

@@ -5,6 +5,7 @@
  */
 const fs = require('fs');
 const { Database } = require('blogsearch-crawler/lib/database');
+const { defaultFields } = require('blogsearch-crawler/lib/defaultFields');
 
 /**
  * You can uncomment the following line to verify that
@@ -23,13 +24,7 @@ exports.createPages = async ({ graphql, reporter }, options) => {
 
   const db = await Database.create({
     filename,
-    columns: new Map([
-      ['title', { hasContent: true, weight: 10.0, parser: false, enabled: true }],
-      ['body', { hasContent: true, weight: 1.0, parser: false, enabled: true }],
-      ['url', { hasContent: true, weight: 0, parser: false, enabled: true }],
-      ['categories', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
-      ['tags', { hasContent: true, weight: 5.0, parser: false, enabled: true }],
-    ]),
+    columns: defaultFields,
   });
 
   const { siteUrl } = (await graphql(`

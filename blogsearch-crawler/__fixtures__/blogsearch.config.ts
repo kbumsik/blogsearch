@@ -15,13 +15,13 @@ const configExample: UncheckedConfig = {
    * The below an example, of course, you can add more fields as you need.
    *
    * Options for a field
-   *  - weight: number
-   *      The weight of matching score during the search() operation.
+   *  - indexed: boolean
+   *      Set if the field is indexed or not.
    *  - hasContent: boolean
-   *      When enabled the content of this field won't appear in the
-   *      search field. The data still will be "searchable" even if
-   *      content is enabled.
-   *      Recommended for disabled to reduce the size of the output size,
+   *      When disabled (set as false) the content of the field won't
+   *      appear in the search result. The data still will be indexed
+   *      even if hasContent is disabled.
+   *      Recommended to be disabled to reduce the size of the output size,
    */
 
   /**
@@ -37,13 +37,11 @@ const configExample: UncheckedConfig = {
   fields: {
     // These are mandatory fields
     title: {
-      weight: 10.0,
       // The value can be a CSS selector.
       parser: 'article > header',
     },
     body: {
       hasContent: false,
-      weight: 1.0,
       // It can be a function as well.
       parser: (entry, page) => {
         // Use puppeteer page object.
@@ -51,18 +49,19 @@ const configExample: UncheckedConfig = {
       }
     },
     url: {
-      weight: 0,
+      indexed: false,
       parser: (entry, page) => {
         // entry is a string of the path being parsed.
         return entry.replace('./reactjs.org/public', 'https://my_own_blog_website');
       }
     },
     categories: {
-      weight: 5.0,
       parser: false,
+      indexed: false
     },
     tags: {
       enabled: false,
+      indexed: false
     },
   }
 };

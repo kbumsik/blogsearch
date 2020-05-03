@@ -28,14 +28,13 @@ module.exports = {
    *  - tags
    *
    * Options for a field
-   *  - weight: number
-   *      The weight of matching score during the search operation.
-   *      Set 0 if you don't want to search against the field.
+   *  - indexed: boolean
+   *      Set if the field is indexed or not.
    *  - hasContent: boolean
-   *      When disabled (by setting false) the content of this field won't
-   *      appear in the search field. The data still will be "searchable"
+   *      When disabled (set as false) the content of the field won't
+   *      appear in the search result. The data still will be indexed
    *      even if hasContent is disabled.
-   *      Recommended for disabled to reduce the size of the output database.
+   *      Recommended to be disabled to reduce the size of the output size.
    *  - parser:
    *      parser configuration. parser can have the following types:  
    *        - string
@@ -47,14 +46,12 @@ module.exports = {
    */
   fields: {
     title: {
-      weight: 10.0,
       // The value can be a CSS selector.
       parser: 'article > header',
     },
     body: {
       // Set false if you want to reduce the size of the database.
       hasContent: true,
-      weight: 1.0,
       // It can be a function as well.
       parser: (entry, page) => {
         // Use puppeteer page object.
@@ -63,8 +60,8 @@ module.exports = {
       }
     },
     url: {
-      // Set 0 if you don't want to search against the URL string.
-      weight: 0,
+      // By setting this false the search engine won't index the URL.
+      indexed: false,
       parser: (entry, page) => {
         // entry is a string of the path being parsed.
         return entry.replace('./reactjs.org/public', 'https://reactjs.org');
