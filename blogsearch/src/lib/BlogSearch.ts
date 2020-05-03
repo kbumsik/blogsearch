@@ -19,22 +19,6 @@ declare global {
   }
 }
 
-type Config = {
-  workerFactory?: () => Worker;
-  inputSelector: string;
-  debug?: boolean;
-  searchCallback?: (
-    suggestions: Suggestion[],
-    showSearchResult: (suggestion: Suggestion[]) => void
-  ) => void;
-  autocompleteOptions?: AutocompleteOptions;
-  handleSelected: typeof defaultHandleSelected;
-  handleShown: typeof defaultHandleShown;
-  searchResultTemplate: string,
-  noResultTemplate: string,
-  limit: number,
-} & Search.Config;
-
 const usage = `Usage:
 blogsearch({
   dbPath: string,
@@ -43,7 +27,25 @@ blogsearch({
   workerFactory: (optional) function that returns a Web Worker,
 })`;
 
-class BlogSearch {
+export type Config = {
+  dbPath: Search.Config['dbPath'];
+  wasmPath?: Search.Config['wasmPath'];
+  workerFactory?: () => Worker;
+  inputSelector: string;
+  debug?: boolean;
+  searchCallback?: (
+    suggestions: Suggestion[],
+    showSearchResult: (suggestion: Suggestion[]) => void
+  ) => void;
+  autocompleteOptions?: AutocompleteOptions;
+  handleSelected?: typeof defaultHandleSelected;
+  handleShown?: typeof defaultHandleShown;
+  searchResultTemplate?: string;
+  noResultTemplate?: string;
+  limit?: number;
+};
+
+export default class BlogSearch {
 
   private constructor (
     private readonly engine: SearchEngine,
@@ -51,9 +53,9 @@ class BlogSearch {
   ) {}
 
   public static async create ({
-    workerFactory,
-    wasmPath = getCurrentDir('blogsearch.wasm'),
     dbPath = '',
+    wasmPath = getCurrentDir('blogsearch.wasm'),
+    workerFactory,
     inputSelector = '',
     debug = false,
     searchCallback,
@@ -264,5 +266,3 @@ function defaultHandleShown (input: JQuery<HTMLElement>) {
     autocompleteWrapper.removeClass(otherAlignClass);
   }
 }
-
-export default BlogSearch;
