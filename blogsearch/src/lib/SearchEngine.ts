@@ -1,5 +1,6 @@
 import { WorkerMessage } from './sqlite/worker-interface';
-import { QueryResult, ReturnMap } from './sqlite/sqlite3-types';
+import { QueryResult } from './sqlite/sqlite3-types';
+import { Suggestion } from './autocomplete.js';
 
 export interface Config {
   dbPath: string;
@@ -16,10 +17,6 @@ enum Db {
   TagsIdx,
   DbName = 'blogsearch',
   MaxDisplayedTokens = 10,
-};
-
-export type SearchResult = {
-  [field in keyof ReturnMap]: string;
 };
 
 export default class SearchEngine {
@@ -109,8 +106,10 @@ export default class SearchEngine {
 
   public async search (
     match: string,
-    top: number
-  ): Promise<SearchResult[]> {
+    top: number,
+    highlightPreTag: string,
+    highlightPostTag: string,
+  ): Promise<Suggestion[]> {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
@@ -129,14 +128,14 @@ export default class SearchEngine {
     const { columns, values } = raw[0];
 
     return values
-      .filter(row => row[1]) // Filter empty title. [TODO] Get the title index in a better way
+      .filter(row => row[Db.TitleIdx + 1]) // Filter empty title. [TODO] Get the title index in a better way
       .map(row => {
         // hightlight body string
         // eslint-disable-next-line no-param-reassign
         row[0] = escapeXMLCharacters(row[0] as string)
-          .replace(/{{%%%/g, '<span class="blogsearch-suggestion--highlight">')
-          .replace(/%%%}}/g, '</span>');
-        return Object.fromEntries(zip(columns, row));
+          .replace(/{{%%%/g, highlightPreTag)
+          .replace(/%%%}}/g, highlightPostTag);
+        return Object.fromEntries(zip(columns, row)) as Suggestion;
       });
   }
 

@@ -40,9 +40,11 @@ export type Config = {
   autocompleteOptions?: AutocompleteOptions;
   handleSelected?: typeof defaultHandleSelected;
   handleShown?: typeof defaultHandleShown;
-  searchResultTemplate?: string;
-  noResultTemplate?: string;
-  limit?: number;
+  searchResultTemplate?: string,
+  noResultTemplate?: string,
+  highlightPreTag?: string,
+  highlightPostTag?: string,
+  limit?: number,
 };
 
 export default class BlogSearch {
@@ -70,6 +72,8 @@ export default class BlogSearch {
     handleShown = defaultHandleShown,
     searchResultTemplate = templates.suggestion,
     noResultTemplate = templates.empty,
+    highlightPreTag = '<span class="blogsearch-suggestion--highlight">',
+    highlightPostTag = '</span>',
     limit = 5,
   }: Config) {
     BlogSearch.checkArguments(arguments[0]);
@@ -143,16 +147,21 @@ export default class BlogSearch {
         ) => {
           if (!searchReady) return;
           const suggestions =
-            (<Suggestion[]><unknown[]>await engine.search(query, limit))
-            .map(suggestion => ({
-              ...suggestion,
-              tags: (<string>suggestion.tags ?? '')
-                .split(',')
-                .map(str => ({ value: str.trim() })),
-              categories: (<string>suggestion.categories ?? '')
-                .split(',')
-                .map(str => ({ value: str.trim() })),
-            }));
+            (await engine.search(
+              query,
+              limit,
+              highlightPreTag,
+              highlightPostTag
+            ))
+              .map(suggestion => ({
+                ...suggestion,
+                tags: (suggestion.tags as string ?? '')
+                  .split(',')
+                  .map(str => ({ value: str.trim() })),
+                categories: (suggestion.categories as string ?? '')
+                  .split(',')
+                  .map(str => ({ value: str.trim() })),
+              }));
 
           if (searchCallback && typeof searchCallback == 'function') {
             searchCallback(suggestions, showSearchResult);
