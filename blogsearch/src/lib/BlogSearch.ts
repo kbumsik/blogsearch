@@ -4,7 +4,7 @@ import autocomplete, {
   AutocompleteOptions,
   AutocompleteElement,
 } from './autocomplete.js';
-import SQLite, * as SQL from './sqlite';
+import SearchEngine, * as Search from './SearchEngine';
 import templates from './templates';
 import $ from './zepto';
 
@@ -37,7 +37,7 @@ blogsearch({
 class BlogSearch {
 
   private constructor (
-    private readonly sqlite: SQLite,
+    private readonly engine: SearchEngine,
     private readonly autoComplete: AutocompleteElement,
   ) {}
 
@@ -54,18 +54,18 @@ class BlogSearch {
       cssClasses: {},
       ariaLabel: '',
     },
-  }: Config & SQL.Config) {
+  }: Config & Search.Config) {
     BlogSearch.checkArguments(arguments[0]);
 
     let searchReady = false;
     const autoComplete = getAutoComplete();
-    const sqlite = await new SQLite({
+    const engine = await new SearchEngine({
       wasmPath,
       dbPath,
       worker: getWorkerFactory(workerFactory)(),
     }).load();
     searchReady = true;
-    return new BlogSearch(sqlite, autoComplete);
+    return new BlogSearch(engine, autoComplete);
 
     function getAutoComplete () {
       const selector = getInputFromSelector(inputSelector);
@@ -127,7 +127,7 @@ class BlogSearch {
           showSearchResult: (suggestion: Suggestion[]) => void
         ) => {
           if (!searchReady) return;
-          const suggestions = <Suggestion[]><unknown[]>await sqlite.search(query, 5);
+          const suggestions = <Suggestion[]><unknown[]>await engine.search(query, 5);
           showSearchResult(suggestions.map(suggestion => ({
             ...suggestion,
             tags: (<string>suggestion.tags ?? '')
@@ -189,7 +189,7 @@ class BlogSearch {
     }
   }
 
-  private static checkArguments (args: Config & SQL.Config) {
+  private static checkArguments (args: Config & Search.Config) {
     if (
       typeof args.dbPath !== 'string' || !args.dbPath ||
       typeof args.inputSelector !== 'string' || !args.inputSelector ||
@@ -201,7 +201,7 @@ class BlogSearch {
   }
 
   public close () {
-    this.sqlite.close();
+    this.engine.close();
     this.autoComplete.autocomplete.destroy();
     return;
   }

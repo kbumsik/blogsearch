@@ -1,8 +1,7 @@
-import { Config, WorkerMessage } from './worker-interfaces';
-import { QueryResult, ReturnMap } from './sqlite3-types';
+import { Config, WorkerMessage } from './sqlite/worker-interface';
+import { QueryResult, ReturnMap } from './sqlite/sqlite3-types';
 
-export { Config } from './worker-interfaces';
-export { QueryResult, ReturnMap } from './sqlite3-types';
+export { Config } from './sqlite/worker-interface';
 
 enum Db {
   TitleIdx = 0,
@@ -29,7 +28,7 @@ export type SearchResult = {
   [field in keyof ReturnMap]: string;
 };
 
-export default class SQLite {
+export default class SearchEngine {
   private readonly dbPath: string;
   private readonly wasmPath?: string;
   private readonly sqlWorker: Worker;
@@ -59,7 +58,7 @@ export default class SQLite {
     };
   }
 
-  public async load (): Promise<SQLite> {
+  public async load (): Promise<SearchEngine> {
     return new Promise((resolve, reject) => {
       this.handleMessageFromWorker(response => {
         if (response.respondTo !== 'open') {
