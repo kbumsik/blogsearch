@@ -83,14 +83,13 @@ class BlogSearch {
     return new BlogSearch(engine, autoComplete);
 
     function getAutoComplete () {
-      const selector = getInputFromSelector(inputSelector);
+      const input = getInputElementFromSelector(inputSelector);
       const template = Hogan.compile(searchResultTemplate);
       const emptyTemplate = Hogan.compile(noResultTemplate);
       const autoComplete = autocomplete(
-        selector,
-        options(autocompleteOptions, selector, debug),
+        input,
+        options(autocompleteOptions, input, debug),
         [
-          // Autocomplete sources
           {
             source: searchSource(),
             templates: {
@@ -100,17 +99,16 @@ class BlogSearch {
           },
         ]
       );
-      // Reference: https://github.com/algolia/autocomplete.js#events
       autoComplete.on(
         'autocomplete:selected',
         handleSelected.bind(null, autoComplete.autocomplete)
       );
       autoComplete.on(
         'autocomplete:shown',
-        handleShown.bind(null, selector)
+        handleShown.bind(null, input)
       );
       return autoComplete;
-      
+
       function options (
         options: AutocompleteOptions,
         input: JQuery<HTMLElement>,
@@ -128,7 +126,7 @@ class BlogSearch {
           ariaLabel: options.ariaLabel ?? inputAriaLabel ?? 'search input',
         };
       }
-      
+
       /**
        * Returns the `source` method to be passed to autocomplete.js. It will query
        * the Algolia index and call the callbacks with the formatted hits.
@@ -173,7 +171,7 @@ class BlogSearch {
     ) {
       throw new Error(usage);
     }
-    getInputFromSelector(args.inputSelector);
+    getInputElementFromSelector(args.inputSelector);
   }
 
   public close () {
@@ -213,7 +211,7 @@ const getCurrentDir = (() => {
  * @param  {string} selector CSS selector that matches the search
  * input of the page
  */
-function getInputFromSelector (selector: string) {
+function getInputElementFromSelector (selector: string) {
   const input = $(selector).filter('input');
   if (!input?.length) {
     throw new Error(`Error: No input element in the page matches ${selector}`);
