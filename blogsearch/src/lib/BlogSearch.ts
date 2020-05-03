@@ -30,6 +30,8 @@ type Config = {
   autocompleteOptions?: AutocompleteOptions;
   handleSelected: typeof defaultHandleSelected;
   handleShown: typeof defaultHandleShown;
+  searchResultTemplate: string,
+  noResultTemplate: string,
 } & Search.Config;
 
 const usage = `Usage:
@@ -63,6 +65,8 @@ class BlogSearch {
     },
     handleSelected = defaultHandleSelected,
     handleShown = defaultHandleShown,
+    searchResultTemplate = templates.suggestion,
+    noResultTemplate = templates.empty,
   }: Config) {
     BlogSearch.checkArguments(arguments[0]);
 
@@ -78,8 +82,8 @@ class BlogSearch {
 
     function getAutoComplete () {
       const selector = getInputFromSelector(inputSelector);
-      const template = Hogan.compile(templates.suggestion);
-      const emptyTemplate = Hogan.compile(templates.empty);
+      const template = Hogan.compile(searchResultTemplate);
+      const emptyTemplate = Hogan.compile(noResultTemplate);
       const autoComplete = autocomplete(
         selector,
         options(autocompleteOptions, selector, debug),
