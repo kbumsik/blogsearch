@@ -23,7 +23,13 @@ type Config = {
   workerFactory?: () => Worker;
   inputSelector: string;
   debug?: boolean;
+  searchCallback?: (
+    suggestions: Suggestion[],
+    showSearchResult: (suggestion: Suggestion[]) => void
+  ) => void;
   autocompleteOptions?: AutocompleteOptions;
+  handleSelected: typeof defaultHandleSelected;
+  handleShown: typeof defaultHandleShown;
 } & Search.Config;
 
 const usage = `Usage:
@@ -47,6 +53,7 @@ class BlogSearch {
     dbPath = '',
     inputSelector = '',
     debug = false,
+    searchCallback,
     autocompleteOptions = {
       debug: false,
       hint: false,
@@ -54,6 +61,8 @@ class BlogSearch {
       cssClasses: {},
       ariaLabel: '',
     },
+    handleSelected = defaultHandleSelected,
+    handleShown = defaultHandleShown,
   }: Config) {
     BlogSearch.checkArguments(arguments[0]);
 
@@ -127,64 +136,25 @@ class BlogSearch {
           showSearchResult: (suggestion: Suggestion[]) => void
         ) => {
           if (!searchReady) return;
-          const suggestions = <Suggestion[]><unknown[]>await engine.search(query, 5);
-          showSearchResult(suggestions.map(suggestion => ({
-            ...suggestion,
-            tags: (<string>suggestion.tags ?? '')
-              .split(',')
-              .map(str => ({ value: str.trim() })),
-            categories: (<string>suggestion.categories ?? '')
-              .split(',')
-              .map(str => ({ value: str.trim() })),
-          })));
+          const suggestions =
+            (<Suggestion[]><unknown[]>await engine.search(query, 5))
+            .map(suggestion => ({
+              ...suggestion,
+              tags: (<string>suggestion.tags ?? '')
+                .split(',')
+                .map(str => ({ value: str.trim() })),
+              categories: (<string>suggestion.categories ?? '')
+                .split(',')
+                .map(str => ({ value: str.trim() })),
+            }));
+
+          if (searchCallback && typeof searchCallback == 'function') {
+            searchCallback(suggestions, showSearchResult);
+          } else {
+            showSearchResult(suggestions);
+          }
           return;
         };
-      }
-
-      function handleSelected (
-        input: any,
-        _event: any,
-        suggestion: Suggestion,
-        _datasetNumber: any,
-        context: any = {},
-      ) {
-        // Do nothing if click on the suggestion, as it's already a <a href>, the
-        // browser will take care of it. This allow Ctrl-Clicking on results and not
-        // having the main window being redirected as well
-        if (context.selectionMethod === 'click') {
-          return;
-        }
-
-        input.setVal('');
-        window.location.assign(suggestion.url);
-      }
-
-      function handleShown (input: JQuery<HTMLElement>) {
-        // @ts-ignore
-        const middleOfInput = input.offset().left + input.width() / 2;
-        // @ts-ignore
-        let middleOfWindow = $(document).width() / 2;
-
-        if (isNaN(middleOfWindow)) {
-          middleOfWindow = 900;
-        }
-
-        const alignClass =
-          middleOfInput - middleOfWindow >= 0
-            ? 'blogsearch-autocomplete-right'
-            : 'blogsearch-autocomplete-left';
-        const otherAlignClass =
-          middleOfInput - middleOfWindow < 0
-            ? 'blogsearch-autocomplete-right'
-            : 'blogsearch-autocomplete-left';
-        const autocompleteWrapper = $('.blogsearch-autocomplete');
-        if (!autocompleteWrapper.hasClass(alignClass)) {
-          autocompleteWrapper.addClass(alignClass);
-        }
-
-        if (autocompleteWrapper.hasClass(otherAlignClass)) {
-          autocompleteWrapper.removeClass(otherAlignClass);
-        }
       }
     }
   }
@@ -243,6 +213,52 @@ function getInputFromSelector (selector: string) {
     throw new Error(`Error: No input element in the page matches ${selector}`);
   }
   return $(input[0]);
+}
+
+function defaultHandleSelected (
+  input: any,
+  _event: any,
+  suggestion: Suggestion,
+  _datasetNumber: any,
+  context: any = {},
+) {
+  // Do nothing if click on the suggestion, as it's already a <a href>, the
+  // browser will take care of it. This allow Ctrl-Clicking on results and not
+  // having the main window being redirected as well
+  if (context.selectionMethod === 'click') {
+    return;
+  }
+
+  input.setVal('');
+  window.location.assign(suggestion.url);
+}
+
+function defaultHandleShown (input: JQuery<HTMLElement>) {
+  // @ts-ignore
+  const middleOfInput = input.offset().left + input.width() / 2;
+  // @ts-ignore
+  let middleOfWindow = $(document).width() / 2;
+
+  if (isNaN(middleOfWindow)) {
+    middleOfWindow = 900;
+  }
+
+  const alignClass =
+    middleOfInput - middleOfWindow >= 0
+      ? 'blogsearch-autocomplete-right'
+      : 'blogsearch-autocomplete-left';
+  const otherAlignClass =
+    middleOfInput - middleOfWindow < 0
+      ? 'blogsearch-autocomplete-right'
+      : 'blogsearch-autocomplete-left';
+  const autocompleteWrapper = $('.blogsearch-autocomplete');
+  if (!autocompleteWrapper.hasClass(alignClass)) {
+    autocompleteWrapper.addClass(alignClass);
+  }
+
+  if (autocompleteWrapper.hasClass(otherAlignClass)) {
+    autocompleteWrapper.removeClass(otherAlignClass);
+  }
 }
 
 export default BlogSearch;
