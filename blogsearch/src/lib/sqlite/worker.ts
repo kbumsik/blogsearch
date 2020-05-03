@@ -29,8 +29,8 @@ export default async function initWorker () {
       case 'init': {
         wasm = (await loadWasm(data.wasmPath)) as SQLite3Wasm;
         postMessage({ respondTo: 'init', success: true });
-        break;
       }
+      break;
 
       case 'open': {
         if (db) {
@@ -38,8 +38,9 @@ export default async function initWorker () {
         }
         db = new sqlit3API.Database(wasm, new Uint8Array(data.dbBinary));
         postMessage({ respondTo: 'open', success: true });
-        break;
       }
+      break;
+
       case 'exec': {
         if (!db) {
           throw new Error('exec: DB is not initialized.');
@@ -51,8 +52,9 @@ export default async function initWorker () {
           respondTo: 'exec',
           results: db.exec(data.sql),
         });
-        break;
       }
+      break;
+
       case 'each': {
         if (!db) {
           throw new Error('exec: DB is not initialized.');
@@ -66,24 +68,27 @@ export default async function initWorker () {
           (row: ReturnMap) => postMessage({ respondTo: 'each', row, end: false }),
           () => postMessage({ respondTo: 'each', row: {}, end: true })
         );
-        break;
       }
+      break;
+
       case 'export': {
         if (!db) {
           throw new Error('exec: DB is not initialized.');
         }
         const buffer = db.export();
         postMessage({ respondTo: 'export', buffer }, [buffer]);
-        break;
       }
+      break;
+
       case 'close': {
         if (!db) {
           throw new Error('close: DB is not opened yet.');
         }
         db.close();
         postMessage({ respondTo: 'close', success: true });
-        break;
       }
+      break;
+
       default: {
         throw new Error(`Invalid command: ${data}`);
       }
@@ -118,7 +123,7 @@ function wasmLoader (wasmModule: SQLite3Wasm) {
 
       try {
         // [NOTE] Emscripten's then() is NOT really promise-based 'thenable'.
-        //        then() must be deleted otherwise it casues infinite loop.
+        //        then() must be deleted otherwise it casues an infinite loop.
         wasmModule(moduleOverrides).then(wasmModule => {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete wasmModule['then'];
