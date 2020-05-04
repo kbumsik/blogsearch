@@ -7,7 +7,7 @@ require "nokogiri"
 require 'pp'
 
 begin
-  fieldsConfig = {}
+  fields_config = {}
   db = {}
   rowid_counter = 0
   baseurl = ''
@@ -16,9 +16,11 @@ begin
   Jekyll::Hooks.register(:site, :post_read) do |site|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
     # pp site.config
-    fieldsConfig = site.config['blogsearch']['fields']
+    fields_config = site.config['blogsearch']['fields']
     
     db_path = site.config['blogsearch']['output']
+    db_dir = File.dirname(db_path)
+    Dir.mkdir(db_dir) if not Dir.exist?(db_dir)
     File.delete(db_path) if File.exist?(db_path)
     db = SQLite3::Database.new db_path
 
