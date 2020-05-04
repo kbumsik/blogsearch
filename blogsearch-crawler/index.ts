@@ -1,5 +1,6 @@
 import * as glob from 'glob';
 import * as fs from 'fs';
+import * as path from 'path';
 import { Config, UncheckedConfig, FieldConfig } from './configTypes';
 import crawl from './crawler';
 import { defaultFields } from './defaultFields';
@@ -10,6 +11,9 @@ export default async function crawlBlog (uncheckedConfig: UncheckedConfig) {
     const config = checkConfig(uncheckedConfig);
 
     // Override DB file
+    if (!fs.existsSync(path.dirname(config.output))) {
+      fs.mkdirSync(path.dirname(config.output));
+    }
     if (fs.existsSync(config.output)) {
       fs.unlinkSync(config.output);
     }
