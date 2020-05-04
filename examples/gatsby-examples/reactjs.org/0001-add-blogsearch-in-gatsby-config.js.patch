@@ -1,79 +1,94 @@
-From 02a4edeb9914881f79e8a52d9fb47e0f3d13febf Mon Sep 17 00:00:00 2001
+From a34ab2b48d9259cfd07a7f61c33fb028be957547 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Mon, 27 Apr 2020 15:04:16 +0900
 Subject: [PATCH 1/4] add blogsearch in gatsby-config.js
 
 ---
- gatsby-config.js | 61 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 61 insertions(+)
+ gatsby-config.js | 76 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 76 insertions(+)
 
 diff --git a/gatsby-config.js b/gatsby-config.js
-index 2637eac9..8a6adde4 100644
+index 2637eac9..3e5633ff 100644
 --- a/gatsby-config.js
 +++ b/gatsby-config.js
-@@ -17,6 +17,67 @@ module.exports = {
+@@ -17,6 +17,82 @@ module.exports = {
      'MarkdownRemark.frontmatter.author': 'AuthorYaml',
    },
    plugins: [
 +    {
 +      resolve: 'gatsby-plugin-blogsearch',
 +      options: {
-+        // A unique name for the search index. This should be descriptive of
-+        // what the index contains. This is required.
-+        name: 'pages',
-+
-+        // Set the search engine to create the index. This is required.
-+        // The following engines are supported: flexsearch, lunr
-+        engine: 'flexsearch',
-+
-+        // Provide options to the engine. This is optional and only recommended
-+        // for advanced users.
-+        //
-+        // Note: Only the flexsearch engine supports options.
-+        engineOptions: 'speed',
-+
++        // Generated blogsearch database file.
++        output: 'reactjs.org.gatsby-example.db.wasm',
++        // fields configurations
++        fields: {
++          title: {
++            enabled: true,
++            indexed: true,
++            hasContent: true,
++          },
++          body: {
++            enabled: true,
++            indexed: true,
++            hasContent: true,
++          },
++          url: {
++            enabled: true,
++            indexed: true,
++            hasContent: true,
++          },
++          categories: {
++            enabled: true,
++            indexed: true,
++            hasContent: true,
++          },
++          tags: {
++            enabled: true,
++            indexed: true,
++            hasContent: true,
++          },
++        },
 +        // GraphQL query used to fetch all data for the search index. This is
 +        // required.
 +        query: `
-+          {
-+            allMarkdownRemark {
-+              nodes {
-+                id
++        {
++          allMarkdownRemark {
++            edges {
++              node {
++                fields {
++                  slug
++                }
 +                frontmatter {
-+                  path
 +                  title
 +                }
 +                rawMarkdownBody
++                # excerpt
++                # html
 +              }
 +            }
 +          }
++        }
 +        `,
-+
-+        // Field used as the reference value for each document.
-+        // Default: 'id'.
-+        ref: 'id',
-+
-+        // List of keys to index. The values of the keys are taken from the
-+        // normalizer function below.
-+        // Default: all fields
-+        index: ['title', 'body'],
-+
-+        // List of keys to store and make available in your UI. The values of
-+        // the keys are taken from the normalizer function below.
-+        // Default: all fields
-+        store: ['id', 'path', 'title'],
-+
 +        // Function used to map the result from the GraphQL query. This should
 +        // return an array of items to index in the form of flat objects
 +        // containing properties to index. The objects must contain the `ref`
 +        // field above (default: 'id'). This is required.
 +        normalizer: ({ data }) =>
-+          data.allMarkdownRemark.nodes.map(node => ({
-+            id: node.id,
-+            path: node.frontmatter.path,
-+            title: node.frontmatter.title,
-+            body: node.rawMarkdownBody,
-+          })),
++          data.allMarkdownRemark.edges.map(({ node }, siteUrl) => {
++            return {
++              title: node.frontmatter.title,
++              body: node.rawMarkdownBody
++                      .replace(/[#`\[\]]+/g, '')
++                      .replace(/\(.*\)/g, '')
++                      .replace(/\s+/g, ' '),
++              url: siteUrl + node.fields.slug,
++              categories: (() => {
++                const slug = node.fields.slug;
++                return slug ? slug.substring(0, slug.indexOf('/')) : '';
++              })(),
++              tags: '',
++            };
++          }),
 +      },
 +    },
      'gatsby-source-react-error-codes',
