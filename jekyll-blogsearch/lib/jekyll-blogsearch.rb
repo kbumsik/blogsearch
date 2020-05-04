@@ -4,19 +4,31 @@ require 'jekyll/generator'
 require 'sqlite3'
 require 'jekyll/blogsearch/version'
 require "nokogiri"
+require 'pp'
 
 begin
-  db_path = 'circleci-docs.jekyll-example.db.wasm'
-  File.delete(db_path) if File.exist?(db_path)
-  db = SQLite3::Database.new db_path
+  fieldsConfig = {}
+  db = {}
   rowid_counter = 0
-
-  baseurl = Jekyll.configuration({})['baseurl'] ? Jekyll.configuration({})['baseurl']
-    : Jekyll.configuration({})['url'] ? Jekyll.configuration({})['url']
-    : ''
+  baseurl = ''
 
   # Start
   Jekyll::Hooks.register(:site, :post_read) do |site|
+    # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
+    # pp site.config
+    fieldsConfig = site.config['blogsearch']['fields']
+    
+    db_path = site.config['blogsearch']['output']
+    File.delete(db_path) if File.exist?(db_path)
+    db = SQLite3::Database.new db_path
+
+    if site.config['blogsearch']['fields']['url'].key?('base')
+      baseurl = site.config['blogsearch']['fields']['url']['base']
+    else 
+      baseurl = site.config['url'] ? site.config['url'] : ''
+      baseurl += site.config['baseurl'] ? site.config['baseurl'] : ''
+    end
+
     # External content table
     db.execute <<-SQL
       CREATE TABLE blogsearch_ext_content (
@@ -47,24 +59,27 @@ begin
 
   # End
   Jekyll::Hooks.register :site, :post_render do |site|
-    # puts 'heyyyyyy'
-    # puts site.posts
     db.close
   end
 
   # Post and etc.
   Jekyll::Hooks.register :documents, :post_render do |document|
-    next if document.data['draft']
+    # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Document
+    # pp document.data
+    # [TODO] Add support for document.data['excerpt']
+
+    next if not document.published?
     rowid_counter += 1
 
     rowid = rowid_counter
     title = document.data['title']
     body = Nokogiri::HTML(document.content).text.to_s.gsub(/\s+/, ' ')
     url = baseurl + document.url
-    categories = document.data['categories'].join(',')
-    tags = document.data['tags'].join(',')
+    categories = document.data['categories'].join(' , ')
+    tags = document.data['tags'].join(' , ')
 
     # puts rowid, title, url, categories, tags
+    # puts body
 
     # External content table
     db.execute <<-SQL,
