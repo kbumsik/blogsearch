@@ -11,6 +11,6 @@ cd "$REPO_DIR"
 npm install
 npm run webpack-prod
 JEKYLL_UID=$(id -u) JEKYLL_GID=$(id -g) docker-compose up --build
-cp *.db.wasm ../
+cp _site/*.db.wasm ../
 
 cd "$CUR_DIR"

@@ -1,26 +1,30 @@
-From 9d5880107bbf46153f2bc6a5c2e14072c577399f Mon Sep 17 00:00:00 2001
+From 76b65f8a5c761730391aad607e0df820399c84a2 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Thu, 30 Apr 2020 00:52:44 +0900
-Subject: [PATCH 2/2] IGNORE: configure build script
+Subject: [PATCH 3/3] IGNORE: configure build script
 
 ---
- docker-compose.yml | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ docker-compose.yml | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
  mode change 100644 => 100755 docker-compose.yml
 
 diff --git a/docker-compose.yml b/docker-compose.yml
 old mode 100644
 new mode 100755
-index 1bf35384e..ed9589eb3
+index 1bf35384e..9511900a5
 --- a/docker-compose.yml
 +++ b/docker-compose.yml
-@@ -1,10 +1,13 @@
+@@ -1,10 +1,17 @@
  version: "3"
  services:
    jekyll:
 -    command: jekyll serve -s jekyll --incremental --livereload
 -    image: jekyll/jekyll:3.8.6
-+    command: /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build -s jekyll"
++    # Build script is from .circleci/config.yml
++    command: |
++      /bin/bash -c "chmod -R 777 /srv/jekyll &&
++      bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs=4 --retry=3 &&
++      bundle exec jekyll build --config jekyll/_config.yml,jekyll/_config_production.yml --source jekyll --destination jekyll/_site/docs/"
 +    build:
 +      context: .
 +      dockerfile: ../Dockerfile
