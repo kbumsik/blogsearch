@@ -66,7 +66,15 @@ dist/blogsearch.min.css: dist/blogsearch.css
 .PHONY: clean
 
 clean:
-	-rm -rf dist
-	-rm -rf lib
-	-rm -rf lib-test
+	-find ./cache -type f \
+		! -name '.gitignore' \
+		-exec rm -f {} +
+	-find ./dist -type f \
+		! -name '.gitignore' \
+		! -name '.npmignore' \
+		-exec rm -f {} +
+	-find ./lib -type f \
+		! -name '.gitignore' \
+		! -name '.npmignore' \
+		-exec rm -f {} +
 	-rm -f src/lib/sqlite-slim-fts5.wasm
