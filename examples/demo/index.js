@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import blogsearch from 'blogsearch';
-import SearchWorker from 'worker-loader?name=webpack-[name].js!blogsearch/lib/sqlite/worker';
-import SearchWasm from 'blogsearch/lib/sqlite/blogsearch.wasm';
+import SearchWorker from 'worker-loader?name=webpack-[name].js!blogsearch/lib/worker';
+import SearchWasm from 'blogsearch/dist/blogsearch.wasm';
 
 // eslint-disable-next-line dot-notation
 
