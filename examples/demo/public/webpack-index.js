@@ -96,6 +96,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "../../blogsearch/dist/blogsearch.wasm":
+/*!**********************************************!*\
+  !*** /build/blogsearch/dist/blogsearch.wasm ***!
+  \**********************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "webpack-blogsearch.wasm");
+
+/***/ }),
+
 /***/ "../../blogsearch/lib/BlogSearch.js":
 /*!*******************************************!*\
   !*** /build/blogsearch/lib/BlogSearch.js ***!
@@ -116,7 +129,7 @@ const hogan_js_1 = tslib_1.__importDefault(__webpack_require__(/*! hogan.js */ "
 
 const autocomplete_js_1 = tslib_1.__importDefault(__webpack_require__(/*! ./autocomplete.js */ "../../blogsearch/lib/autocomplete.js/index.js"));
 
-const sqlite_1 = tslib_1.__importDefault(__webpack_require__(/*! ./sqlite */ "../../blogsearch/lib/sqlite/index.js"));
+const SearchEngine_1 = tslib_1.__importDefault(__webpack_require__(/*! ./SearchEngine */ "../../blogsearch/lib/SearchEngine.js"));
 
 const templates_1 = tslib_1.__importDefault(__webpack_require__(/*! ./templates */ "../../blogsearch/lib/templates.js"));
 
@@ -131,155 +144,130 @@ blogsearch({
 })`;
 
 class BlogSearch {
-  constructor({
-    workerFactory,
-    wasmPath = getCurrentDir('blogsearch.wasm'),
+  constructor(engine, autoComplete) {
+    this.engine = engine;
+    this.autoComplete = autoComplete;
+  }
+
+  static create({
     dbPath = '',
+    wasmPath = getCurrentDir('blogsearch.wasm'),
+    workerFactory,
     inputSelector = '',
     debug = false,
+    searchCallback,
     autocompleteOptions = {
       debug: false,
       hint: false,
       autoselect: true,
       cssClasses: {},
       ariaLabel: ''
-    }
+    },
+    handleSelected = defaultHandleSelected,
+    handleShown = defaultHandleShown,
+    searchResultTemplate = templates_1.default.suggestion,
+    noResultTemplate = templates_1.default.empty,
+    highlightPreTag = '<span class="blogsearch-suggestion--highlight">',
+    highlightPostTag = '</span>',
+    limit = 5
   }) {
-    checkArguments({
-      workerFactory,
-      wasmPath,
-      dbPath,
-      inputSelector,
-      debug,
-      autocompleteOptions
-    });
-    this.sqlite = new sqlite_1.default({
-      wasmPath,
-      dbPath,
-      worker: getWorkerFactory(workerFactory)()
-    });
+    return tslib_1.__awaiter(this, arguments, void 0, function* () {
+      BlogSearch.checkArguments(arguments[0]);
+      let searchReady = false;
+      const autoComplete = getAutoComplete();
+      const engine = yield SearchEngine_1.default.create({
+        wasmPath,
+        dbPath,
+        worker: getWorkerFactory(workerFactory)()
+      });
+      searchReady = true;
+      return new BlogSearch(engine, autoComplete);
 
-    this.startAutoComplete = (() => {
-      const selector = BlogSearch.getInputFromSelector(inputSelector);
-      const template = hogan_js_1.default.compile(templates_1.default.suggestion);
-      const emptyTemplate = hogan_js_1.default.compile(templates_1.default.empty);
-      const options = getAutocompleteOptions(autocompleteOptions, selector, debug);
-      return () => {
-        const inputHandler = autocomplete_js_1.default(selector, options, [{
-          source: this.getAutocompleteSource(),
+      function getAutoComplete() {
+        const input = getInputElementFromSelector(inputSelector);
+        const template = hogan_js_1.default.compile(searchResultTemplate);
+        const emptyTemplate = hogan_js_1.default.compile(noResultTemplate);
+        const autoComplete = autocomplete_js_1.default(input, options(autocompleteOptions, input, debug), [{
+          source: searchSource(),
           templates: {
             suggestion: suggestion => template.render(suggestion),
             empty: suggestion => emptyTemplate.render(suggestion)
           }
         }]);
-        inputHandler.on('autocomplete:selected', this.handleSelected.bind(null, inputHandler.autocomplete));
-        inputHandler.on('autocomplete:shown', this.handleShown.bind(null, selector));
-      };
-    })();
+        autoComplete.on('autocomplete:selected', handleSelected.bind(null, autoComplete.autocomplete));
+        autoComplete.on('autocomplete:shown', handleShown.bind(null, input));
+        return autoComplete;
 
+        function options(options, input, debugFlag) {
+          var _a, _b, _c;
+
+          const inputAriaLabel = typeof (input === null || input === void 0 ? void 0 : input.attr) === 'function' ? input.attr('aria-label') : undefined;
+          return Object.assign(Object.assign({}, options), {
+            debug: (_a = debugFlag !== null && debugFlag !== void 0 ? debugFlag : options.debug) !== null && _a !== void 0 ? _a : false,
+            cssClasses: Object.assign({
+              root: 'blogsearch-autocomplete',
+              prefix: 'bs'
+            }, options.cssClasses),
+            ariaLabel: (_c = (_b = options.ariaLabel) !== null && _b !== void 0 ? _b : inputAriaLabel) !== null && _c !== void 0 ? _c : 'search input'
+          });
+        }
+
+        function searchSource() {
+          return (query, showSearchResult) => tslib_1.__awaiter(this, void 0, void 0, function* () {
+            if (!searchReady) return;
+            const suggestions = (yield engine.search(query, limit, highlightPreTag, highlightPostTag)).map(suggestion => {
+              var _a, _b;
+
+              return Object.assign(Object.assign({}, suggestion), {
+                tags: ((_a = suggestion.tags) !== null && _a !== void 0 ? _a : '').split(',').map(str => ({
+                  value: str.trim()
+                })),
+                categories: ((_b = suggestion.categories) !== null && _b !== void 0 ? _b : '').split(',').map(str => ({
+                  value: str.trim()
+                }))
+              });
+            });
+
+            if (searchCallback && typeof searchCallback == 'function') {
+              searchCallback(suggestions, showSearchResult);
+            } else {
+              showSearchResult(suggestions);
+            }
+
+            return;
+          });
+        }
+      }
+    });
+  }
+
+  static checkArguments(args) {
+    if (typeof args.dbPath !== 'string' || !args.dbPath || typeof args.inputSelector !== 'string' || !args.inputSelector || typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function') {
+      throw new Error(usage);
+    }
+
+    getInputElementFromSelector(args.inputSelector);
+  }
+
+  close() {
+    this.engine.close();
+    this.autoComplete.autocomplete.destroy();
     return;
-
-    function checkArguments(args) {
-      if (typeof args.dbPath !== 'string' || !args.dbPath || typeof args.inputSelector !== 'string' || !args.inputSelector || typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function') {
-        throw new Error(usage);
-      }
-
-      BlogSearch.getInputFromSelector(args.inputSelector);
-    }
-
-    function getWorkerFactory(factory) {
-      var _a;
-
-      if (typeof factory !== 'undefined') {
-        return factory;
-      }
-
-      const workerDir = typeof ((_a = window === null || window === void 0 ? void 0 : window.blogsearch) === null || _a === void 0 ? void 0 : _a.worker) === 'function' ? URL.createObjectURL(new Blob([`(${window.blogsearch.worker})()`])) : getCurrentDir('worker.umd.js');
-      return () => new Worker(workerDir);
-    }
-
-    function getAutocompleteOptions(options, input, debugFlag) {
-      var _a, _b, _c;
-
-      const inputAriaLabel = typeof (input === null || input === void 0 ? void 0 : input.attr) === 'function' ? input.attr('aria-label') : undefined;
-      return Object.assign(Object.assign({}, options), {
-        debug: (_a = debugFlag !== null && debugFlag !== void 0 ? debugFlag : options.debug) !== null && _a !== void 0 ? _a : false,
-        cssClasses: Object.assign({
-          root: 'blogsearch-autocomplete',
-          prefix: 'bs'
-        }, options.cssClasses),
-        ariaLabel: (_c = (_b = options.ariaLabel) !== null && _b !== void 0 ? _b : inputAriaLabel) !== null && _c !== void 0 ? _c : 'search input'
-      });
-    }
   }
 
-  load() {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-      yield this.sqlite.load();
-      this.startAutoComplete();
-      return this;
-    });
+}
+
+exports.default = BlogSearch;
+
+function getWorkerFactory(factory) {
+  var _a;
+
+  if (typeof factory !== 'undefined') {
+    return factory;
   }
 
-  static getInputFromSelector(selector) {
-    const input = zepto_1.default(selector).filter('input');
-
-    if (!(input === null || input === void 0 ? void 0 : input.length)) {
-      throw new Error(`Error: No input element in the page matches ${selector}`);
-    }
-
-    return zepto_1.default(input[0]);
-  }
-
-  getAutocompleteSource() {
-    return (query, showSearchResult) => tslib_1.__awaiter(this, void 0, void 0, function* () {
-      const suggestions = yield this.sqlite.search(query, 5);
-      showSearchResult(suggestions.map(suggestion => {
-        var _a, _b;
-
-        return Object.assign(Object.assign({}, suggestion), {
-          tags: ((_a = suggestion.tags) !== null && _a !== void 0 ? _a : '').split(',').map(str => ({
-            value: str.trim()
-          })),
-          categories: ((_b = suggestion.categories) !== null && _b !== void 0 ? _b : '').split(',').map(str => ({
-            value: str.trim()
-          }))
-        });
-      }));
-      return;
-    });
-  }
-
-  handleSelected(input, _event, suggestion, _datasetNumber, context = {}) {
-    if (context.selectionMethod === 'click') {
-      return;
-    }
-
-    input.setVal('');
-    window.location.assign(suggestion.url);
-  }
-
-  handleShown(input) {
-    const middleOfInput = input.offset().left + input.width() / 2;
-    let middleOfWindow = zepto_1.default(document).width() / 2;
-
-    if (isNaN(middleOfWindow)) {
-      middleOfWindow = 900;
-    }
-
-    const alignClass = middleOfInput - middleOfWindow >= 0 ? 'blogsearch-autocomplete-right' : 'blogsearch-autocomplete-left';
-    const otherAlignClass = middleOfInput - middleOfWindow < 0 ? 'blogsearch-autocomplete-right' : 'blogsearch-autocomplete-left';
-    const autocompleteWrapper = zepto_1.default('.blogsearch-autocomplete');
-
-    if (!autocompleteWrapper.hasClass(alignClass)) {
-      autocompleteWrapper.addClass(alignClass);
-    }
-
-    if (autocompleteWrapper.hasClass(otherAlignClass)) {
-      autocompleteWrapper.removeClass(otherAlignClass);
-    }
-  }
-
+  const workerDir = typeof ((_a = window === null || window === void 0 ? void 0 : window.blogsearch) === null || _a === void 0 ? void 0 : _a.worker) === 'function' ? URL.createObjectURL(new Blob([`(${window.blogsearch.worker})()`])) : getCurrentDir('worker.umd.js');
+  return () => new Worker(workerDir);
 }
 
 const getCurrentDir = (() => {
@@ -291,7 +279,176 @@ const getCurrentDir = (() => {
   };
 })();
 
-exports.default = BlogSearch;
+function getInputElementFromSelector(selector) {
+  const input = zepto_1.default(selector).filter('input');
+
+  if (!(input === null || input === void 0 ? void 0 : input.length)) {
+    throw new Error(`Error: No input element in the page matches ${selector}`);
+  }
+
+  return zepto_1.default(input[0]);
+}
+
+function defaultHandleSelected(input, _event, suggestion, _datasetNumber, context = {}) {
+  if (context.selectionMethod === 'click') {
+    return;
+  }
+
+  input.setVal('');
+  window.location.assign(suggestion.url);
+}
+
+function defaultHandleShown(input) {
+  const middleOfInput = input.offset().left + input.width() / 2;
+  let middleOfWindow = zepto_1.default(document).width() / 2;
+
+  if (isNaN(middleOfWindow)) {
+    middleOfWindow = 900;
+  }
+
+  const alignClass = middleOfInput - middleOfWindow >= 0 ? 'blogsearch-autocomplete-right' : 'blogsearch-autocomplete-left';
+  const otherAlignClass = middleOfInput - middleOfWindow < 0 ? 'blogsearch-autocomplete-right' : 'blogsearch-autocomplete-left';
+  const autocompleteWrapper = zepto_1.default('.blogsearch-autocomplete');
+
+  if (!autocompleteWrapper.hasClass(alignClass)) {
+    autocompleteWrapper.addClass(alignClass);
+  }
+
+  if (autocompleteWrapper.hasClass(otherAlignClass)) {
+    autocompleteWrapper.removeClass(otherAlignClass);
+  }
+}
+
+/***/ }),
+
+/***/ "../../blogsearch/lib/SearchEngine.js":
+/*!*********************************************!*\
+  !*** /build/blogsearch/lib/SearchEngine.js ***!
+  \*********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+const tslib_1 = __webpack_require__(/*! tslib */ "../../node_modules/tslib/tslib.es6.js");
+
+const WorkerWrapper_1 = tslib_1.__importDefault(__webpack_require__(/*! sqlite-wasm/lib/WorkerWrapper */ "../../node_modules/sqlite-wasm/lib/WorkerWrapper.js"));
+
+var Db;
+
+(function (Db) {
+  Db[Db["TitleIdx"] = 0] = "TitleIdx";
+  Db[Db["BobyIdx"] = 1] = "BobyIdx";
+  Db[Db["UrlIdx"] = 2] = "UrlIdx";
+  Db[Db["CategoriesIdx"] = 3] = "CategoriesIdx";
+  Db[Db["TagsIdx"] = 4] = "TagsIdx";
+  Db["DbName"] = "blogsearch";
+  Db[Db["MaxDisplayedTokens"] = 10] = "MaxDisplayedTokens";
+})(Db || (Db = {}));
+
+;
+
+class SearchEngine {
+  constructor(sqlite) {
+    this.sqlite = sqlite;
+  }
+
+  static create({
+    dbPath,
+    wasmPath,
+    worker
+  }) {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
+      const wasmBuffer = fetch(wasmPath).then(r => r.arrayBuffer());
+      const dbBuffer = fetch(dbPath).then(r => r.arrayBuffer());
+      const sqlite = yield WorkerWrapper_1.default.init({
+        wasmBinary: yield wasmBuffer,
+        worker
+      });
+      yield sqlite.open({
+        dbBinary: yield dbBuffer
+      });
+      return new SearchEngine(sqlite);
+    });
+  }
+
+  search(match, top, highlightPreTag, highlightPostTag) {
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
+      const query = `
+      SELECT
+        *,
+        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight
+      FROM ${Db.DbName}
+      WHERE ${Db.DbName} 
+        MATCH '${match}'
+      ORDER BY bm25(${Db.DbName})
+      LIMIT ${top};
+    `;
+      const raw = yield this.sqlite.run({
+        query
+      });
+
+      if (raw.length === 0) {
+        return [];
+      }
+
+      const {
+        columns,
+        values
+      } = raw[0];
+      return values.filter(row => row[Db.TitleIdx]).map(row => {
+        const hightlightIdx = row.length - 1;
+        row[hightlightIdx] = escapeXMLCharacters(row[hightlightIdx]).replace(/{{%%%/g, highlightPreTag).replace(/%%%}}/g, highlightPostTag);
+        return Object.fromEntries(zip(columns, row));
+      });
+    });
+  }
+
+  close() {
+    this.sqlite.terminate();
+  }
+
+}
+
+exports.default = SearchEngine;
+
+function* zip(...arrays) {
+  const numOfArrays = arrays.length;
+  const arrayLength = arrays[0].length;
+
+  for (let i = 0; i < arrayLength; i++) {
+    const row = [];
+
+    for (let j = 0; j < numOfArrays; j++) {
+      row.push(arrays[j][i]);
+    }
+
+    yield row;
+  }
+}
+
+function escapeXMLCharacters(input) {
+  return input.replace(/[<>&]/g, c => {
+    switch (c) {
+      case '&':
+        return '&amp;';
+
+      case '<':
+        return '&lt;';
+
+      case '>':
+        return '&gt;';
+
+      default:
+        throw new Error('Error: XML escape Error.');
+    }
+  });
+}
 
 /***/ }),
 
@@ -337,196 +494,11 @@ const BlogSearch_1 = tslib_1.__importDefault(__webpack_require__(/*! ./BlogSearc
 
 function default_1(args) {
   return tslib_1.__awaiter(this, void 0, void 0, function* () {
-    const blogsearch = new BlogSearch_1.default(args);
-    return blogsearch.load();
+    return BlogSearch_1.default.create(args);
   });
 }
 
 exports.default = default_1;
-
-/***/ }),
-
-/***/ "../../blogsearch/lib/sqlite/blogsearch.wasm":
-/*!****************************************************!*\
-  !*** /build/blogsearch/lib/sqlite/blogsearch.wasm ***!
-  \****************************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "webpack-blogsearch.wasm");
-
-/***/ }),
-
-/***/ "../../blogsearch/lib/sqlite/index.js":
-/*!*********************************************!*\
-  !*** /build/blogsearch/lib/sqlite/index.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-const tslib_1 = __webpack_require__(/*! tslib */ "../../node_modules/tslib/tslib.es6.js");
-
-var Db;
-
-(function (Db) {
-  Db[Db["TitleIdx"] = 0] = "TitleIdx";
-  Db[Db["BobyIdx"] = 1] = "BobyIdx";
-  Db[Db["UrlIdx"] = 2] = "UrlIdx";
-  Db[Db["CategoriesIdx"] = 3] = "CategoriesIdx";
-  Db[Db["TagsIdx"] = 4] = "TagsIdx";
-  Db["DbName"] = "blogsearch";
-  Db[Db["MaxDisplayedTokens"] = 10] = "MaxDisplayedTokens";
-})(Db || (Db = {}));
-
-;
-
-class SQLite {
-  constructor({
-    dbPath,
-    wasmPath,
-    worker
-  }) {
-    this.dbPath = dbPath;
-    this.wasmPath = wasmPath;
-    this.sqlWorker = worker;
-
-    this.sqlWorker.onerror = error => {
-      const message = (() => {
-        if (error instanceof ErrorEvent) {
-          return [`FileName: ${error.filename}`, `LineNumber: ${error.lineno}`, `Message: ${error.message}`].join(' - ');
-        } else {
-          return error;
-        }
-      })();
-
-      console.error(message);
-    };
-  }
-
-  load() {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve, reject) => {
-        this.handleMessageFromWorker(response => {
-          if (response.respondTo !== 'open') {
-            reject(new Error('Internal Error: response is not open'));
-            return;
-          } else if (!response.success) {
-            reject(new Error('Internal Error: open failed'));
-            return;
-          }
-
-          resolve(this);
-        });
-        this.sqlWorker.postMessage({
-          command: 'open',
-          dbPath: this.dbPath,
-          wasmPath: this.wasmPath
-        });
-      });
-    });
-  }
-
-  search(match, top) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-      const query = `
-      SELECT
-        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight,
-        *
-      FROM ${Db.DbName}
-      WHERE ${Db.DbName} 
-        MATCH '${match}'
-      ORDER BY bm25(${Db.DbName})
-      LIMIT ${top};
-    `;
-      const raw = yield this.run(query);
-
-      if (raw.length === 0) {
-        return [];
-      }
-
-      const {
-        columns,
-        values
-      } = raw[0];
-      return values.filter(row => row[1]).map(row => {
-        row[0] = escapeXMLCharacters(row[0]).replace(/{{%%%/g, '<span class="blogsearch-suggestion--highlight">').replace(/%%%}}/g, '</span>');
-        return Object.fromEntries(zip(columns, row));
-      });
-    });
-  }
-
-  run(query) {
-    return tslib_1.__awaiter(this, void 0, void 0, function* () {
-      return new Promise((resolve, reject) => {
-        this.handleMessageFromWorker(response => {
-          if (response.respondTo !== 'exec') {
-            reject(new Error('Internal Error: response is not exec'));
-            return;
-          }
-
-          resolve(response.results);
-        });
-        this.sqlWorker.postMessage({
-          command: 'exec',
-          sql: query
-        });
-      });
-    });
-  }
-
-  handleMessageFromWorker(handler) {
-    this.sqlWorker.addEventListener('message', e => {
-      handler(e.data);
-    }, {
-      once: true
-    });
-  }
-
-}
-
-exports.default = SQLite;
-
-function* zip(...arrays) {
-  const numOfArrays = arrays.length;
-  const arrayLength = arrays[0].length;
-
-  for (let i = 0; i < arrayLength; i++) {
-    const row = [];
-
-    for (let j = 0; j < numOfArrays; j++) {
-      row.push(arrays[j][i]);
-    }
-
-    yield row;
-  }
-}
-
-function escapeXMLCharacters(input) {
-  return input.replace(/[<>&]/g, c => {
-    switch (c) {
-      case '&':
-        return '&amp;';
-
-      case '<':
-        return '&lt;';
-
-      case '>':
-        return '&gt;';
-
-      default:
-        throw new Error('Error: XML escape Error.');
-    }
-  });
-}
 
 /***/ }),
 
@@ -5716,6 +5688,111 @@ process.umask = function() { return 0; };
 
 /***/ }),
 
+/***/ "../../node_modules/sqlite-wasm/lib/WorkerWrapper.js":
+/*!************************************************************!*\
+  !*** /build/node_modules/sqlite-wasm/lib/WorkerWrapper.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const tslib_1 = __webpack_require__(/*! tslib */ "../../node_modules/tslib/tslib.es6.js");
+class WorkerWrapper {
+    constructor(sqlWorker) {
+        this.sqlWorker = sqlWorker;
+        this.sqlWorker.onerror = error => {
+            const message = (() => {
+                if (error instanceof ErrorEvent) {
+                    return [
+                        `FileName: ${error.filename}`,
+                        `LineNumber: ${error.lineno}`,
+                        `Message: ${error.message}`,
+                    ].join(' - ');
+                }
+                else {
+                    return error;
+                }
+            })();
+            console.error(message);
+        };
+    }
+    static init({ wasmBinary, worker, }) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            const obj = new WorkerWrapper(worker);
+            return new Promise((resolve, reject) => {
+                obj.handleMessageFromWorker(response => {
+                    if (response.respondTo !== 'init') {
+                        reject(new Error('Internal Error: response is not init'));
+                        return;
+                    }
+                    else if (!response.success) {
+                        reject(new Error('Internal Error: init failed'));
+                        return;
+                    }
+                    resolve(obj);
+                });
+                obj.postMessageToWorker({
+                    command: 'init',
+                    wasmBinary,
+                }, [wasmBinary]);
+            });
+        });
+    }
+    open({ dbBinary }) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.handleMessageFromWorker(response => {
+                    if (response.respondTo !== 'open') {
+                        reject(new Error('Internal Error: response is not open'));
+                        return;
+                    }
+                    else if (!response.success) {
+                        reject(new Error('Internal Error: open failed'));
+                        return;
+                    }
+                    resolve(this);
+                });
+                this.postMessageToWorker({
+                    command: 'open',
+                    dbBinary
+                }, [dbBinary]);
+            });
+        });
+    }
+    run({ query }) {
+        return tslib_1.__awaiter(this, void 0, void 0, function* () {
+            return new Promise((resolve, reject) => {
+                this.handleMessageFromWorker(response => {
+                    if (response.respondTo !== 'exec') {
+                        reject(new Error('Internal Error: response is not exec'));
+                        return;
+                    }
+                    resolve(response.results);
+                });
+                this.postMessageToWorker({
+                    command: 'exec',
+                    sql: query,
+                });
+            });
+        });
+    }
+    terminate() {
+        this.sqlWorker.terminate();
+    }
+    handleMessageFromWorker(handler) {
+        this.sqlWorker.addEventListener('message', event => handler(event.data), { once: true });
+    }
+    postMessageToWorker(message, transfer = []) {
+        this.sqlWorker.postMessage(message, transfer);
+    }
+}
+exports.default = WorkerWrapper;
+//# sourceMappingURL=WorkerWrapper.js.map
+
+/***/ }),
+
 /***/ "../../node_modules/tslib/tslib.es6.js":
 /*!**********************************************!*\
   !*** /build/node_modules/tslib/tslib.es6.js ***!
@@ -5995,10 +6072,10 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/sqlite/worker.js":
-/*!*******************************************************************************************************************!*\
-  !*** /build/node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!/build/blogsearch/lib/sqlite/worker.js ***!
-  \*******************************************************************************************************************/
+/***/ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/worker.js":
+/*!************************************************************************************************************!*\
+  !*** /build/node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!/build/blogsearch/lib/worker.js ***!
+  \************************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -6017,7 +6094,7 @@ module.exports = function() {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (global, factory) {
   if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! blogsearch */ "../../blogsearch/lib/index.js"), __webpack_require__(/*! worker-loader?name=webpack-[name].js!blogsearch/lib/sqlite/worker */ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/sqlite/worker.js"), __webpack_require__(/*! blogsearch/lib/sqlite/blogsearch.wasm */ "../../blogsearch/lib/sqlite/blogsearch.wasm")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! blogsearch */ "../../blogsearch/lib/index.js"), __webpack_require__(/*! worker-loader?name=webpack-[name].js!blogsearch/lib/worker */ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/worker.js"), __webpack_require__(/*! blogsearch/dist/blogsearch.wasm */ "../../blogsearch/dist/blogsearch.wasm")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
