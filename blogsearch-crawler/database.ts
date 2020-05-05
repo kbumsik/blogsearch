@@ -31,12 +31,13 @@ export class Database {
   }
 
   private async init () {
-    // const thisFunc = db.run.bind(db);
+    // const thisFunc = this.db.run.bind(this.db);
     // // @ts-ignore
-    // db.run = async (...args: any[]) => {
+    // this.db.run = async (...args: any[]) => {
     //   console.log(args[0].toString());
     //   await thisFunc(...args);
     // };
+
     // Reference: https://www.sqlite.org/fts5.html
     /**
      * Create a virtual table 'blogsearch'
