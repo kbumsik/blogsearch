@@ -35,6 +35,7 @@ type autocompleteEvent =
   | 'autocomplete:redrawn';
 
 interface AutocompleteElement {
+  // Reference: https://github.com/algolia/autocomplete.js#events
   on(eventType: autocompleteEvent, callback: () => void): void;
   trigger(eventType: autocompleteEvent): void;
   /**
