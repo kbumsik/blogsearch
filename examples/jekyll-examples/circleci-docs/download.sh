@@ -17,6 +17,7 @@ fi
 cd "$REPO_DIR"
 git config user.email "k.bumsik@gmail.com"
 git config user.name "Bumsik Kim"
+git stash
 git checkout -b "patch-$DATE" "$VERSION"
 git am $CUR_DIR/*.patch
 
