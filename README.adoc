@@ -1,5 +1,4 @@
 = BlogSearch
-:toc:
 
 // Asciidoc references
 // Documentation: https://asciidoctor.org/docs/user-manual/
@@ -19,50 +18,62 @@ image::https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/b
 
 https://kbumsik.io/blogsearch/[Try it!]
 
-A pure client-side full-text search engine for static websites, using WebAssembly.
+A pure client-side full-text search engine for static websites, powered by SQLite compiled to WebAssembly 
 
 .Features:
 * Purely client-side search
 * No server to maintain. No service cost.
 * Easy. It's built for blogs and static websites in mind.
-* A wide range of frameworks supported:
-** Jekyll
-** Gatsby
-** Hugo
-** My framewrok is not on the list? No worries! Use a general-purpose crawler, blogsearch-crawler.
+* Supports popular blog frameworks:
+** https://jekyllrb.com/[Jekyll]
+** https://www.gatsbyjs.org/[Gatsby]
+** https://gohugo.io/[Hugo]
+** Your framewrok is not on the list? No worries! Use a crawler designed for BlogSearch.
 
 .Companion project:
 * https://github.com/kbumsik/sqlite-wasm[sqlite-wasm]: Run SQLite on the web, using WebAssembly. This project is made for blogsearch's needs.
 
-
 == Concepts
 
+=== Summary
+
 [.table.table-striped]
-[cols=2*, options="header,unbreakable,autowidth", stripes=even]
+[cols=2*, options="header,unbreakable", stripes=even]
 [cols="5,5"]
 |===
-| 1. Build a database file 
+2+| The workflow is consist of two steps: **1.** You build an index file `.db.wasm`, then pass it to the client. **2.** The engine in the webpage will read the index file and enable the search.
+
+| 1. Build an index file 
 | 2. Enable the search
 
-2+| First, you build a database file `.db.wasm`, then pass it to the web server. The engine will read the database file and enables the search.
-
 a|
+The index file `.db.wasm` is a small database file that contains the contents of your website. You can collect the contents to build the index file using simple, easy-to-use tools: 
+
 * Jekyll (link:./jekyll-blogsearch[jekyll-blogsearch])
 * Gatsby (link:./gatsby-plugin-blogsearch[gatsby-plugin-blogsearch])
 * Hugo (link:./blogsearch-crawler[blogsearch-crawler])
 * Generic crawler (link:./blogsearch-crawler[blogsearch-crawler])
 
+Then you deploy the `.db.wasm` in the public directory of the server.
+
 a|
-* Search engine (link:./blogsearch[blogsearch])
+
+Your webpage should include the engine (link:./blogsearch[blogsearch]) using <script> tag or in JavaScript file.
+
+Once the engine fetch the `.db.wasm` file correctly, you have a fully working searchable webpage! 
 
 |===
 
-=== Building a database
+NOTE: Throught the project, the terms "index" and "database" are oftern mixed, but they mean same SQLite `.db.wasm` file in the most of the case.
 
-==== Fields
+=== Building an index file
+==== Installation
+
+==== Configuration
+====== Fields
 Explanations of the fields
 
-==== Attributes
+====== Attributes
 disabled
 
 indexed
@@ -80,7 +91,7 @@ hasContent
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/worker.umd.js"></script>
 <script>
   blogsearch({
-    dbPath: 'your_database_file.db.wasm',
+    dbPath: 'your_index_file.db.wasm',
     inputSelector: '#q',
   });
 </script>
@@ -89,9 +100,15 @@ hasContent
 For the further details and options, go to link:./blogsearch[the subdirectory of blogsearch].
 
 == QnA
-=== Why `.db.wasm` is recommended file type for database? It's not a WebAssembly binary file. Why not just `.db`?
+=== Which search engine technology used in this project?
+The search engine basically is SQLite with https://www.sqlite.org/fts5.html[the FTS5 extension], compiled to WebAssembly. The SQLite FTS5 offers https://www.sqlite.org/fts5.html#the_bm25_function[the built-in BM25 ranking algorithm] for the search functionality. As SQLite is the most portable database engine, you can open any SQLite database files on the web too! Thanks to SQLite, we can easily write plugins for BlogSearch with link:./blogsearch-crawler/database.ts[just a few SQL queries] in different programming languages.
 
-It is because we want the database file to get gzip-compressed by the web server.
+=== Why BlogSearch when https://lunrjs.com/[Lunr.js] is availble?
+
+[TODO] The size of data is smaller...
+
+=== Why `.db.wasm` is recommended file type for index? It's not a WebAssembly binary file. Why not just `.db`?
+It is because we want the index file to get gzip-compressed by the web server.
 Popular web services (especially GitHub Pages) usually serve a `.db` file as
 `application/octet-stream` and do not compress the file. By lying that it is
 a WebAssembly binary file `.wasm`, the servers recognize it as `application/wasm` and ship it compressed.
