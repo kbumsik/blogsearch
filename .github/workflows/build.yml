@@ -24,11 +24,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: make -C ${{ github.workspace }} install-in-docker
-    - run: make -C ${{ github.workspace }} all-in-docker
+    - run: make -C ${{ github.workspace }} all-in-docker -j4 --output-sync=target
 
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
     - run: make -C ${{ github.workspace }} install-in-docker
-    - run: make -C ${{ github.workspace }} test-in-docker
+    - run: make -C ${{ github.workspace }} test-in-docker -j4 --output-sync=target

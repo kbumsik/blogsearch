@@ -4,19 +4,23 @@ all: lib-in-docker examples-in-docker
 .PHONY: all-in-docker
 all-in-docker: all
 
+# Docker configuration
+# When multiple jobs running (e.g. make -j2) The interactive TTY is not available
+NUM_JOBS = $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS)))
+INTERACTIVE = $(if $(NUM_JOBS),,$(shell [ -t 0 ] && echo 1))
+DOCKER_OPT = \
+	--rm \
+	-v $$(pwd):/build \
+	$(if $(INTERACTIVE),-it,) \
+	$(if $(CI),,-u $$(id -u):$$(id -g))
+
 # Every commands can be run in a docker container when *-in-docker is appended.
 # e.g make start => make start-in-docker,
 #			make test => make test-docker
-# Port 9000 is used by the webserver of examples/demo
-INTERACTIVE:=$(shell [ -t 0 ] && echo 1)
-
 %-in-docker:
-	docker run --rm $(if $(INTERACTIVE), -it, ) \
-		-v $$(pwd):/build \
-		$(if $(CI), , -u $$(id -u):$$(id -g)) \
-		-p 9000:9000 \
+	docker run $(DOCKER_OPT) \
 		kbumsik/emscripten \
-		make $(patsubst %-in-docker, %, $@)
+		make $(patsubst %-in-docker,%,$@)
 
 ##############
 # Common tasks
@@ -25,12 +29,16 @@ install:
 	yarn install
 
 lib: blogsearch blogsearch-crawler
+.PHONY: lib-in-docker
+lib-in-docker: blogsearch-in-docker blogsearch-crawler-in-docker
 
 test: blogsearch
 	cd blogsearch && yarn test
 
 start: demo
 	cd examples/demo && yarn start
+# Port 9000 is used by the webserver of examples/demo
+start-in-docker: DOCKER_OPT += -p 9000:9000
 
 .PHONY: examples
 examples: crawler-reactjs gatsby-reactjs jekyll-circleci demo
