@@ -1,35 +1,100 @@
 = BlogSearch
+:toc:
 
-![Build and Test CI](https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/badge.svg)
+// Asciidoc references
+// Documentation: https://asciidoctor.org/docs/user-manual/
+// Quick reference: https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/
+// Asciidoc vs Markdown: https://asciidoctor.org/docs/user-manual/#comparison-by-example
+// GitHub Flavored Asciidoc (GFA): https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74
 
-[Try it!](https://kbumsik.io/blogsearch/)
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+image::https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/badge.svg[link="https://github.com/kbumsik/blogsearch/actions?query=workflow%3A%22Build+and+Test+CI%22"]
+
+https://kbumsik.io/blogsearch/[Try it!]
 
 A pure client-side full-text search engine for static websites, using WebAssembly.
 
-Features:
-
+.Features:
 * Purely client-side search
-* No server/service configurations.
-* No database to maintain in the backend.
-* Easy. It's built for blogs in mind.
-* Wide range of frameworks supported:
-  * Jekyll
-  * Gatsby
-  * Hugo
-* My framewrok not on the list? No worries! Use a general-purpose crawler, blogsearch-crawler!
+* No server to maintain. No service cost.
+* Easy. It's built for blogs and static websites in mind.
+* A wide range of frameworks supported:
+** Jekyll
+** Gatsby
+** Hugo
+** My framewrok is not on the list? No worries! Use a general-purpose crawler, blogsearch-crawler.
 
-Companion projects:
-
+.Companion project:
 * https://github.com/kbumsik/sqlite-wasm[sqlite-wasm]: Run SQLite on the web, using WebAssembly. This project is made for blogsearch's needs.
+
+
+== Concepts
+
+[.table.table-striped]
+[cols=2*, options="header,unbreakable,autowidth", stripes=even]
+[cols="5,5"]
+|===
+| 1. Build a database file 
+| 2. Enable the search
+
+2+| First, you build a database file `.db.wasm`, then pass it to the web server. The engine will read the database file and enables the search.
+
+a|
+* Jekyll (link:./jekyll-blogsearch[jekyll-blogsearch])
+* Gatsby (link:./gatsby-plugin-blogsearch[gatsby-plugin-blogsearch])
+* Hugo (link:./blogsearch-crawler[blogsearch-crawler])
+* Generic crawler (link:./blogsearch-crawler[blogsearch-crawler])
+
+a|
+* Search engine (link:./blogsearch[blogsearch])
+
+|===
+
+=== Building a database
+
+==== Fields
+Explanations of the fields
+
+==== Attributes
+disabled
+
+indexed
+
+hasContent
+
+=== Enabling the search engine on the web
+
+.It's as simple as:
+[source,html,options="nowrap"]
+----
+<input id="q" type="search" placeholder="Search Text" class="form-control">
+
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/worker.umd.js"></script>
+<script>
+  blogsearch({
+    dbPath: 'your_database_file.db.wasm',
+    inputSelector: '#q',
+  });
+</script>
+----
+
+For the further details and options, go to link:./blogsearch[the subdirectory of blogsearch].
 
 == QnA
 === Why `.db.wasm` is recommended file type for database? It's not a WebAssembly binary file. Why not just `.db`?
 
 It is because we want the database file to get gzip-compressed by the web server.
 Popular web services (especially GitHub Pages) usually serve a `.db` file as
-an application/octet-stream and do not compress the file. By lying that it is
-a WebAssembly binary file `.wasm`, the servers recognize it as application/wasm
-and ship it compressed.
+`application/octet-stream` and do not compress the file. By lying that it is
+a WebAssembly binary file `.wasm`, the servers recognize it as `application/wasm` and ship it compressed.
 
 Compression is important because it signficantly reduce the size. I saw the size
 is reduced up to 1/3.
@@ -38,31 +103,33 @@ is reduced up to 1/3.
 
 === Workflow
 
-To avoid "But it works on my machine" problem, it is strongly recommended to use Docker for building tasks.
+To avoid "`But it works on my machine`" problem, it is strongly recommended to use Docker for building tasks.
 
-Although this repository is a monorepo where each subprojects has own build scripts, you can easily run tasks in the root directory. If you want to build a specific subproject only, go to the subdirectory and run [yarn](https://classic.yarnpkg.com/en/docs/usage) commands.
+Although this repository is a monorepo where each subprojects has own build scripts, you can easily run tasks in the root directory. 
+
+TIP: If you want to build a specific subproject only, go to the subdirectory and run https://classic.yarnpkg.com/en/docs/usage[yarn] commands.
 
 The required tools are the following:
 
-* GNU Make ([v4.2 or higher is recommended](https://stackoverflow.com/a/48873146/4661625), be warned for macOS users!)
+* GNU Make (https://stackoverflow.com/a/48873146/4661625[v4.2 or higher is recommended], be warned for macOS users!)
 * docker
 * docker-compose
 * yarn
 
 Although it is a JS project Makefile is used because it is much more configuratble and supports building in parallel.
 
-For specific NodeJS versions used in thie project, please look at [the Dockerfile](./Dockerfile).
+For specific NodeJS versions used in thie project, please look at link:./Dockerfile[the Dockerfile].
 
 ==== Prepare
-
-```bash
+[source,bash]
+----
 # Or yarn install, without docker
 make install-in-docker
-```
+----
 
 ==== Build
-
-```bash
+[source,bash]
+----
 # Or make all, without docker
 make all-in-docker
 
@@ -70,46 +137,46 @@ make all-in-docker
 
 # Parallel builds. This reduces the build time almost an half on my machine. 
 make all-in-docker -j4 --output-sync=target
-```
+----
 
 ==== Run a demo server
-
-```bash
+[source,bash]
+----
 make start-in-docker # Or make start, without docker
 
 # You can access the demo page via 0.0.0.0:9000
-```
+----
 
 ==== Testing
-
-```bash
+[source,bash]
+----
 # Or make test, without docker
 make test-in-docker
 
 # Run it in parallel
 make test-in-docker -j4 --output-sync=target
-```
+----
 
 ==== Rebuild everything
-
-```bash
+[source,bash]
+----
 make clean
 
 # Then run any commands above
-```
+----
 
 ==== Get into a bash session in the container
-
-```bash
+[source,bash]
+----
 make bash-in-docker
-```
+----
 
 == Credits & License
 
-This project is inspired by [DocSearch](https://docsearch.algolia.com/) and is
+This project is inspired by https://docsearch.algolia.com/[DocSearch] and is
 a reimplementation of it in TypeScript with SQLite backend. (MIT license)
 
-The SQLite backend has a reimplementation of [sql.js](https://github.com/sql-js/sql.js)
+The SQLite backend has a reimplementation of https://github.com/sql-js/sql.js[sql.js]
 in TypeScript. (MIT license)
 
-Other than the above two, the project is MIT License. See [LICENSE](./LICENSE)
+Other than the above two, the project is MIT License. See link:./LICENSE[LICENSE]
