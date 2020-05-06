@@ -1,0 +1,115 @@
+= BlogSearch
+
+![Build and Test CI](https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/badge.svg)
+
+[Try it!](https://kbumsik.io/blogsearch/)
+
+A pure client-side full-text search engine for static websites, using WebAssembly.
+
+Features:
+
+* Purely client-side search
+* No server/service configurations.
+* No database to maintain in the backend.
+* Easy. It's built for blogs in mind.
+* Wide range of frameworks supported:
+  * Jekyll
+  * Gatsby
+  * Hugo
+* My framewrok not on the list? No worries! Use a general-purpose crawler, blogsearch-crawler!
+
+Companion projects:
+
+* https://github.com/kbumsik/sqlite-wasm[sqlite-wasm]: Run SQLite on the web, using WebAssembly. This project is made for blogsearch's needs.
+
+== QnA
+=== Why `.db.wasm` is recommended file type for database? It's not a WebAssembly binary file. Why not just `.db`?
+
+It is because we want the database file to get gzip-compressed by the web server.
+Popular web services (especially GitHub Pages) usually serve a `.db` file as
+an application/octet-stream and do not compress the file. By lying that it is
+a WebAssembly binary file `.wasm`, the servers recognize it as application/wasm
+and ship it compressed.
+
+Compression is important because it signficantly reduce the size. I saw the size
+is reduced up to 1/3.
+
+== Building from source
+
+=== Workflow
+
+To avoid "But it works on my machine" problem, it is strongly recommended to use Docker for building tasks.
+
+Although this repository is a monorepo where each subprojects has own build scripts, you can easily run tasks in the root directory. If you want to build a specific subproject only, go to the subdirectory and run [yarn](https://classic.yarnpkg.com/en/docs/usage) commands.
+
+The required tools are the following:
+
+* GNU Make ([v4.2 or higher is recommended](https://stackoverflow.com/a/48873146/4661625), be warned for macOS users!)
+* docker
+* docker-compose
+* yarn
+
+Although it is a JS project Makefile is used because it is much more configuratble and supports building in parallel.
+
+For specific NodeJS versions used in thie project, please look at [the Dockerfile](./Dockerfile).
+
+==== Prepare
+
+```bash
+# Or yarn install, without docker
+make install-in-docker
+```
+
+==== Build
+
+```bash
+# Or make all, without docker
+make all-in-docker
+
+# Or
+
+# Parallel builds. This reduces the build time almost an half on my machine. 
+make all-in-docker -j4 --output-sync=target
+```
+
+==== Run a demo server
+
+```bash
+make start-in-docker # Or make start, without docker
+
+# You can access the demo page via 0.0.0.0:9000
+```
+
+==== Testing
+
+```bash
+# Or make test, without docker
+make test-in-docker
+
+# Run it in parallel
+make test-in-docker -j4 --output-sync=target
+```
+
+==== Rebuild everything
+
+```bash
+make clean
+
+# Then run any commands above
+```
+
+==== Get into a bash session in the container
+
+```bash
+make bash-in-docker
+```
+
+== Credits & License
+
+This project is inspired by [DocSearch](https://docsearch.algolia.com/) and is
+a reimplementation of it in TypeScript with SQLite backend. (MIT license)
+
+The SQLite backend has a reimplementation of [sql.js](https://github.com/sql-js/sql.js)
+in TypeScript. (MIT license)
+
+Other than the above two, the project is MIT License. See [LICENSE](./LICENSE)
