@@ -569,6 +569,19 @@ exports.default = templates;
 
 /***/ }),
 
+/***/ "../../blogsearch/lib/worker.js":
+/*!***************************************!*\
+  !*** /build/blogsearch/lib/worker.js ***!
+  \***************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "webpack-worker.js");
+
+/***/ }),
+
 /***/ "../../blogsearch/lib/zepto/index.js":
 /*!********************************************!*\
   !*** /build/blogsearch/lib/zepto/index.js ***!
@@ -6072,19 +6085,6 @@ module.exports = g;
 
 /***/ }),
 
-/***/ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/worker.js":
-/*!************************************************************************************************************!*\
-  !*** /build/node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!/build/blogsearch/lib/worker.js ***!
-  \************************************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = function() {
-  return new Worker(__webpack_require__.p + "webpack-worker.js");
-};
-
-/***/ }),
-
 /***/ "./index.js":
 /*!******************!*\
   !*** ./index.js ***!
@@ -6094,7 +6094,7 @@ module.exports = function() {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;(function (global, factory) {
   if (true) {
-    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! blogsearch */ "../../blogsearch/lib/index.js"), __webpack_require__(/*! worker-loader?name=webpack-[name].js!blogsearch/lib/worker */ "../../node_modules/worker-loader/dist/cjs.js?name=webpack-[name].js!../../blogsearch/lib/worker.js"), __webpack_require__(/*! blogsearch/dist/blogsearch.wasm */ "../../blogsearch/dist/blogsearch.wasm")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+    !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! blogsearch */ "../../blogsearch/lib/index.js"), __webpack_require__(/*! blogsearch/lib/worker */ "../../blogsearch/lib/worker.js"), __webpack_require__(/*! blogsearch/dist/blogsearch.wasm */ "../../blogsearch/dist/blogsearch.wasm")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
 				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
 				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
 				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));

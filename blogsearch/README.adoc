@@ -1,0 +1,226 @@
+# blogsearch Engine
+
+// Asciidoc references
+// Documentation: https://asciidoctor.org/docs/user-manual/
+// Quick reference: https://asciidoctor.org/docs/asciidoc-syntax-quick-reference/
+// Asciidoc vs Markdown: https://asciidoctor.org/docs/user-manual/#comparison-by-example
+// GitHub Flavored Asciidoc (GFA): https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74
+
+:project-version: 0.0.3
+:rootdir: https://github.com/kbumsik/blogsearch
+
+ifdef::env-github[]
+// Emoji
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+// URL
+:imagesdir: https://gist.githubusercontent.com/path/to/gist/revision/dir/with/all/images
+endif::[]
+
+CAUTION: This is a part of link:{rootdir}[BlogSearch project]. If you would
+like to know the overall concept, go to link:{rootdir}[the parent directory].
+
+## 1. Building a search index file
+
+There are tools available to build a search index file for your website.
+Go to link:{rootdir}/#building-index[the parent directory]
+
+## 2. Enabling the search engine
+
+### Using <script> tag (Recommended)
+
+.your-page.html
+[source,html,options="nowrap",subs="verbatim,attributes"]
+----
+// You may remove this if you want to use your own CSS.
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
+
+// These must be included in the right order
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js"></script>
+
+// Your input element
+<input id="blogsearch_input" type="search" placeholder="Type to search" class="form-control" />
+
+<script>
+blogsearch({
+  dbPath: 'your_index_file.db.wasm',
+  inputSelector: '#blogsearch_input',
+  // When using jsDelivr, you don't need to define wasmPath
+  // wasmPath: 'https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.wasm',
+});
+</script>
+----
+
+### Using ES6 (with Webpack)
+
+[source,bash]
+npm install blogsearch
+
+Optionally install related webpack modules
+[source,bash]
+npm install worker-loader file-loader
+
+.your-page.html
+[source,html,options="nowrap",subs="verbatim,attributes"]
+----
+// You may remove this if you want to use your own CSS.
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
+
+// Your input element
+<input id="blogsearch_input" type="search" placeholder="Type to search" class="form-control" />
+----
+
+blogsearch uses WebAssembly and Web Worker. So extra configurations are required.
+
+.your-app.js
+[source,javascript,options="nowrap"]
+----
+import blogsearch from 'blogsearch';
+// WARNING: This uses worker-loader
+import SearchWorker from 'blogsearch/lib/worker.js';
+// WARNING: This uses file-loader
+import SearchWasm from 'blogsearch/dist/blogsearch.wasm';
+
+blogsearch({
+  workerFactory: () => new SearchWorker(),
+  dbPath: 'your_index_file.db.wasm',
+  wasmPath: SearchWasm,
+  inputSelector: '#blogsearch_input',
+});
+----
+
+.webpack.config.js
+[source,diff,options="nowrap"]
+----
+module.exports = {
+
+  ...other options...
+
+  module: {
+    rules: [
++      {
++        test: new RegExp('blogsearch/lib/worker.js'),
++        type: 'javascript/auto',
++        loader: 'worker-loader',
++      },
++      {
++        test: new RegExp('blogsearch/dist/blogsearch.wasm'),
++        type: 'javascript/auto',
++        loader: 'file-loader',
++      },
+
+      ...other rules...
+
+    ],
+  }
+};
+----
+
+## Full usage example
+
+[source,javascript,options="nowrap",subs="verbatim,attributes"]
+----
+blogsearch({
+  // [Mandatory] Path to the index .db.wasm file.
+  dbPath: 'your_index_file.db.wasm',
+  // [Mandatory] CSS Selector to a desired input element.
+  inputSelector: '#blogsearch_input',
+  // [Mandatory for ES6] Path to dist/blogsearch.wasm of the package
+  wasmPath: 'https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.wasm',
+  // [Mandatory for ES6] A function that creates blogsearch web worker.
+  // The worker file is either lib/worker.js or dist/worker.umd.js.
+  // Be warned that you can't use a CDN path directly (https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js)
+  // because of the the same-origin policy. See https://stackoverflow.com/questions/23953543/cross-domain-web-workers
+  workerFactory: () => new Worker('worker.js'),
+  // [Optional] Debugging mode switch.
+  debug: false,
+  searchCallback: function (suggestions, showSearchResult) {
+    // [Optional] Override the default search result display behavior.
+
+    // suggestions is an array of the search result.
+    // Write your own code with suggestions...
+    console.log(suggestions);
+    // This function must be called in order to display the suggestion result.
+    // Don't call this if you don't want to display it.
+    showSearchResult(suggestions);
+  },
+  // [Optional] Override autocomplete.js options.
+  // See the autocomplete.js documentation for the options: https://github.com/algolia/autocomplete.js/#global-options
+  autocompleteOptions = { ... },
+  handleSelected: function (input, event, suggestion, datasetNumber, context) {
+    // [Optional] Override the default behavior when the a suggestion in a search suggestion is selected.
+    // See https://github.com/kbumsik/blogsearch/blob/66f1aa72b84cdf360d3fb4fcbd919c0b2b148b40/blogsearch/src/lib/BlogSearch.ts#L233
+  },
+  handleShown: function (input, event, suggestion, datasetNumber, context) {
+    // [Optional] Override the default behavior when the suggestions is shown.
+    // See https://github.com/kbumsik/blogsearch/blob/66f1aa72b84cdf360d3fb4fcbd919c0b2b148b40/blogsearch/src/lib/BlogSearch.ts#L233
+  },
+  // [Optional] Override the default search result template.
+  // The template uses a mustache template: http://mustache.github.io/mustache.5.html
+  // The following value is the default template from https://github.com/kbumsik/blogsearch/blob/master/blogsearch/src/lib/templates.ts
+  searchResultTemplate: `
+  <a
+    class="
+      blogsearch-suggestion
+      blogsearch-suggestion__main
+      "
+    aria-label="Link to the result"
+    href="{{{url}}}"
+  >
+    <div class="blogsearch-suggestion--header">
+      <div class="blogsearch-suggestion--title blogsearch-suggestion--header-item">
+        {{{title}}}
+      </div>
+      <div>
+        {{#categories}}
+        <span class="blogsearch-suggestion--header-category blogsearch-suggestion--header-item">
+          {{{value}}}
+        </span>
+        {{/categories}}
+        {{#tags}}
+        <span class="blogsearch-suggestion--header-tag blogsearch-suggestion--header-item">
+          {{{value}}}
+        </span>
+        {{/tags}}
+      </div>
+    </div>
+    <div class="blogsearch-suggestion--wrapper">
+      {{#body_highlight}}
+      <div class="blogsearch-suggestion--content">
+        <div class="blogsearch-suggestion--text">{{{body_highlight}}}</div>
+      </div>
+      {{/body_highlight}}
+    </div>
+  </a>
+  `,
+  // [Optional] Override the default template when there is no result.
+  // The template uses a mustache template: http://mustache.github.io/mustache.5.html
+  // The following value is the default template from https://github.com/kbumsik/blogsearch/blob/master/blogsearch/src/lib/templates.ts
+  noResultTemplate: `
+  <div class="blogsearch-suggestion">
+    <div class="blogsearch-suggestion--wrapper">
+        <div class="blogsearch-suggestion--content blogsearch-suggestion--no-results">
+          <div class="blogsearch-suggestion--text">
+              No results found for query <b>"{{query}}"</b>
+          </div>
+        </div>
+    </div>
+  </div>
+  `,
+  // [Optional] Override the text to insert before each matching (highlight) phrase. 
+  highlightPreTag: '<span class="blogsearch-suggestion--highlight">',
+  // [Optional] Override the text to insert after each matching (highlight) phrase.
+  highlightPostTag: '</span>',
+  // [Optional] The maximum number of suggestions to display.
+  limit: 5
+});
+----
+
+## QnA
+
+### Why ES6 is not most recommended?
+

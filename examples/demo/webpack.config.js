@@ -14,7 +14,15 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.wasm$/,
+        test: new RegExp('blogsearch/lib/worker.js'),
+        type: 'javascript/auto',
+        loader: 'worker-loader',
+        options: {
+          name: 'webpack-[name].[ext]',
+        },
+      },
+      {
+        test: new RegExp('blogsearch/dist/blogsearch.wasm'),
         type: 'javascript/auto',
         loader: 'file-loader',
         options: {

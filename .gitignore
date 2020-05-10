@@ -1,2 +1,7 @@
 node_modules
 
+samples
+.vscode
+sql.js
+/jekyll-algolia
+/searchyll

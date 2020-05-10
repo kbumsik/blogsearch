@@ -79,6 +79,7 @@ const updateDB = (() => {
   let searchObj;
   return (dbPath) => {
     if (searchObj) searchObj.close();
+    // This is the most important.
     blogsearch({
       dbPath,
       inputSelector: '#q',
@@ -94,28 +95,31 @@ const updateDB = (() => {
 // Update database when clicked
 for (const el of document.querySelectorAll('input:not(#q)')) {
   el.onchange = async function (event) {
-    const dbPath =
-      await (
-        this.type === 'file'
-        ? (async () => {
-          return new Promise((resolve, reject) => {
-            const file = this.files[0];
-            if (!file) resolve('');
-            const reader = new FileReader();
-
-            reader.addEventListener('load', function () {
-              resolve(reader.result);
-            }, { once: true });
-            reader.readAsDataURL(file);
-          })
-        })()
-        : this.getAttribute('dbPath')
-      );
+    const dbPath = await getDBPath(this);
     if (!dbPath) {
       console.log('No file selected.');
       return;
     }
     updateDB(dbPath);
+  }
+}
+
+async function getDBPath(element) {
+  if (element.type === 'file') {
+    // When you select your own db file.
+    return new Promise((resolve, reject) => {
+      const file = element.files[0];
+      if (!file) resolve('');
+      const reader = new FileReader();
+
+      reader.addEventListener('load', function () {
+        resolve(reader.result);
+      }, { once: true });
+      reader.readAsDataURL(file);
+    });
+  } else {
+    // e.g. "radio" type for pre-compiled db files.
+    return element.getAttribute('dbPath');
   }
 }
 

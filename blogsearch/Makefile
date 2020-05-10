@@ -32,7 +32,7 @@ lib/%.js: src/lib/%.ts
 	cp $< $@
 
 src/lib/sqlite-slim-fts5.wasm:
-	curl -LsSf 'https://cdn.jsdelivr.net/npm/sqlite-wasm@0.0.1/dist/sqlite-slim-fts5.wasm' -o $@
+	curl -LsSf 'https://cdn.jsdelivr.net/npm/sqlite-wasm@0.0.2/dist/sqlite-slim-fts5.wasm' -o $@
 	# cp ../node_modules/sqlite-wasm/dist/sqlite-slim-fts5.wasm
 
 #### UMD

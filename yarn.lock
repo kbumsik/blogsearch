@@ -8254,10 +8254,10 @@ sql-template-strings@^2.2.2:
   resolved "https://registry.yarnpkg.com/sql-template-strings/-/sql-template-strings-2.2.2.tgz#3f11508a25addfce217a3042a9d300c3193b96ff"
   integrity sha1-PxFQiiWt384hejBCqdMAwxk7lv8=
 
-sqlite-wasm@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/sqlite-wasm/-/sqlite-wasm-0.0.1.tgz#223002342b7ecf791c6903c8d630e180ea196088"
-  integrity sha512-2ihR11uDLkQhqyUQ7nHPQNqnSfr3sLLyhMpofrvFXjWbLjluQkjRXXKbvRolBuH6GtbbmnqB2TKecs5l3QMYgg==
+sqlite-wasm@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/sqlite-wasm/-/sqlite-wasm-0.0.2.tgz#0380501ad198b5d7643322dbfa82a19bba6b22d8"
+  integrity sha512-r1MDdC1/VJKymdLlMmg2EtHnZS4rEPrj1+4blo4KVailJ/Oj77DMrbwmdDOFOkN7ftFKeQqMlQ4y8ET/V04DjQ==
 
 sqlite3@^4.0.0, sqlite3@^4.1.1:
   version "4.1.1"

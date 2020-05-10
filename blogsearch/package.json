@@ -24,7 +24,7 @@
     "lib/"
   ],
   "dependencies": {
-    "sqlite-wasm": "^0.0.1",
+    "sqlite-wasm": "^0.0.2",
     "autocomplete.js": "^0.37.1",
     "hogan.js": "^3.0.2"
   },

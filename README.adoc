@@ -6,6 +6,8 @@
 // Asciidoc vs Markdown: https://asciidoctor.org/docs/user-manual/#comparison-by-example
 // GitHub Flavored Asciidoc (GFA): https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74
 
+:project-version: 0.0.3
+
 ifdef::env-github[]
 :tip-caption: :bulb:
 :note-caption: :information_source:
@@ -66,7 +68,8 @@ Once the engine fetch the `.db.wasm` file correctly, you have a fully working se
 
 NOTE: Throught the project, the terms "index" and "database" are oftern mixed, but they mean same SQLite `.db.wasm` file in the most of the case.
 
-=== Building an index file
+[#building-index]
+=== Building a search index file
 ==== Installation
 
 ==== Configuration
@@ -83,16 +86,16 @@ hasContent
 === Enabling the search engine on the web
 
 .It's as simple as:
-[source,html,options="nowrap"]
+[source,html,options="nowrap",subs="verbatim,attributes"]
 ----
-<input id="q" type="search" placeholder="Search Text" class="form-control">
+<input id="blogsearch_input_element" type="search" placeholder="Search Text" class="form-control" />
 
-<script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.umd.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/worker.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js"></script>
 <script>
   blogsearch({
     dbPath: 'your_index_file.db.wasm',
-    inputSelector: '#q',
+    inputSelector: '#blogsearch_input_element',
   });
 </script>
 ----

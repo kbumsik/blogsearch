@@ -231,6 +231,19 @@ describe('BlogSearch', () => {
         // [TODO] URL.createObjectURL() not provided by JSDOM figure out a workaround.
       });
     });
+    // describe('startAutoComplete', () => {
+    //   it('should compile the suggestion template', () => {
+    //     // Given
+
+    //     // When
+    //     // @ts-ignore
+    //     BlogSearch.getSuggestionTemplate();
+
+    //     // Then
+    //     expect(Hogan.compile).toBeCalledTimes(1);
+    //     expect(Hogan.compile).toHaveBeenLastCalledWith('<div></div>');
+    //   });
+    // })
   });
 
   describe('load', () => {
@@ -359,5 +372,60 @@ describe('BlogSearch', () => {
       });
     });
   });
+
+  // describe('getSuggestionTemplate', () => {
+  //   it('should return a function', () => {
+  //     // Given
+
+  //     // When
+  //     // @ts-ignore
+  //     const actual = BlogSearch.getSuggestionTemplate();
+
+  //     // Then
+  //     expect(actual).toBeInstanceOf(Function);
+  //   });
+  //   describe('returned function', () => {
+  //     it('should call render on a Hogan template', () => {
+  //       // Given
+  //       // @ts-ignore
+  //       const actual = BlogSearch.getSuggestionTemplate();
+
+  //       // When
+  //       actual({ foo: 'bar' });
+
+  //       // Then
+  //       expect(mockHoganRender).toBeCalledTimes(1);
+  //       expect(mockHoganRender.mock.calls[0][0].foo).toBe('bar');
+  //     });
+  //     it('should convert tags to an array', () => {
+  //       // Given
+  //       // @ts-ignore
+  //       const actual = BlogSearch.getSuggestionTemplate();
+
+  //       // When
+  //       actual({ tags: ' tag-1, tag-2 ' });
+
+  //       // Then
+  //       expect(mockHoganRender).toBeCalledTimes(1);
+  //       expect(mockHoganRender.mock.calls[0][0]).toStrictEqual({
+  //         tags: [{ value: 'tag-1' }, { value: 'tag-2' }]
+  //       });
+  //     });
+  //     it('should convert categories to an array', () => {
+  //       // Given
+  //       // @ts-ignore
+  //       const actual = BlogSearch.getSuggestionTemplate();
+
+  //       // When
+  //       actual({ categories: ' category-1, category-2 ' });
+
+  //       // Then
+  //       expect(mockHoganRender).toBeCalledTimes(1);
+  //       expect(mockHoganRender.mock.calls[0][0]).toStrictEqual({
+  //         categories: [{ value: 'category-1' }, { value: 'category-2' }]
+  //       });
+  //     });
+  //   });
+  // });
 });
 /* eslint-enable no-new, @typescript-eslint/no-empty-function */
