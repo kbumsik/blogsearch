@@ -53,9 +53,9 @@ export default class SearchEngine {
 
   public async search (
     match: string,
-    top: number,
-    highlightPreTag: string,
-    highlightPostTag: string,
+    top: number = 5,
+    highlightPreTag: string = '<span class="blogsearch-suggestion--highlight">',
+    highlightPostTag: string = '</span>',
   ): Promise<Suggestion[]> {
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
@@ -85,7 +85,16 @@ export default class SearchEngine {
           .replace(/{{%%%/g, highlightPreTag)
           .replace(/%%%}}/g, highlightPostTag);
         return Object.fromEntries(zip(columns, row)) as Suggestion;
-      });
+      })
+      .map(row => ({
+        ...row,
+        tags: (row.tags as string ?? '')
+          .split(',')
+          .map(str => ({ value: str.trim() })),
+        categories: (row.categories as string ?? '')
+          .split(',')
+          .map(str => ({ value: str.trim() })),
+      }));
   }
   
   public close () {

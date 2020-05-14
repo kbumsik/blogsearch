@@ -72,19 +72,20 @@ export default class BlogSearch {
     handleShown = defaultHandleShown,
     searchResultTemplate = templates.suggestion,
     noResultTemplate = templates.empty,
-    highlightPreTag = '<span class="blogsearch-suggestion--highlight">',
-    highlightPostTag = '</span>',
-    limit = 5,
+    highlightPreTag,
+    highlightPostTag,
+    limit,
   }: Config) {
-    BlogSearch.checkArguments(arguments[0]);
+    // Check arguments
+    if (
+      typeof inputSelector !== 'string' || !inputSelector
+    ) {
+      throw new Error(usage);
+    }
 
     let searchReady = false;
     const autoComplete = getAutoComplete();
-    const engine = await SearchEngine.create({
-      wasmPath,
-      dbPath,
-      worker: getWorkerFactory(workerFactory)(),
-    });
+    const engine = await BlogSearch.createEngine({ wasmPath, dbPath, workerFactory });
     searchReady = true;
     return new BlogSearch(engine, autoComplete);
 
@@ -146,22 +147,7 @@ export default class BlogSearch {
           showSearchResult: (suggestion: Suggestion[]) => void
         ) => {
           if (!searchReady) return;
-          const suggestions =
-            (await engine.search(
-              query,
-              limit,
-              highlightPreTag,
-              highlightPostTag
-            ))
-              .map(suggestion => ({
-                ...suggestion,
-                tags: (suggestion.tags as string ?? '')
-                  .split(',')
-                  .map(str => ({ value: str.trim() })),
-                categories: (suggestion.categories as string ?? '')
-                  .split(',')
-                  .map(str => ({ value: str.trim() })),
-              }));
+          const suggestions = await engine.search(query, limit, highlightPreTag, highlightPostTag);
 
           if (searchCallback && typeof searchCallback == 'function') {
             searchCallback(suggestions, showSearchResult);
@@ -174,15 +160,24 @@ export default class BlogSearch {
     }
   }
 
-  private static checkArguments (args: Config) {
+  public static createEngine ({
+    dbPath = '',
+    wasmPath = getCurrentDir('blogsearch.wasm'),
+    workerFactory,
+  }: Pick<Config, 'dbPath' | 'wasmPath' | 'workerFactory'>) {
+    // Check arguments
     if (
-      typeof args.dbPath !== 'string' || !args.dbPath ||
-      typeof args.inputSelector !== 'string' || !args.inputSelector ||
-      (typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function')
+      typeof dbPath !== 'string' || !dbPath ||
+      (typeof workerFactory !== 'undefined' && typeof workerFactory !== 'function')
     ) {
       throw new Error(usage);
     }
-    getInputElementFromSelector(args.inputSelector);
+
+    return SearchEngine.create({
+      wasmPath,
+      dbPath,
+      worker: getWorkerFactory(workerFactory)(),
+    });
   }
 
   public close () {

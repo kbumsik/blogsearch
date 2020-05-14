@@ -220,6 +220,29 @@ blogsearch({
 });
 ----
 
+## Using Engine only without UI
+
+.your-page.html
+[source,html,options="nowrap"]
+----
+// You don't need them if you use ES6.
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js"></script> 
+----
+
+.your-app.js
+[source,javascript,options="nowrap"]
+----
+// For workerFactory and wasmPath, refer usage for ES6 or others.
+const engine = await blogsearch.engine({
+  dbPath: 'your_index_file.db.wasm',
+  // workerFactory,
+  // wasmPath,
+});
+
+console.log(await engine.search('your-search-text'));
+----
+
 ## QnA
 
 ### Why ES6 is not most recommended?
