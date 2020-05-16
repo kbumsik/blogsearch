@@ -212,11 +212,20 @@ blogsearch({
   </div>
   `,
   // [Optional] Override the text to insert before each matching (highlight) phrase. 
-  highlightPreTag: '<span class="blogsearch-suggestion--highlight">',
+  highlightPreTag: '<span class="blogsearch-suggestion--highlight">', // Default value
   // [Optional] Override the text to insert after each matching (highlight) phrase.
-  highlightPostTag: '</span>',
+  highlightPostTag: '</span>', // Default value
   // [Optional] The maximum number of suggestions to display.
-  limit: 5
+  limit: 5,
+  // [Optional] Override the default search rank weight of each field.
+  // The following is the default values of each field.
+  weights: {
+    title: 5,
+    body: 1,
+    url: 1,
+    categories: 3,
+    tags: 3,
+  }
 });
 ----
 
