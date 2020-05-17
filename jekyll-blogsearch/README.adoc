@@ -1,4 +1,4 @@
-# Jekyll plugin for BlogSearch
+# BlogSearch index building tool for Jekyll
 
 // Asciidoc references
 // Documentation: https://asciidoctor.org/docs/user-manual/
@@ -39,8 +39,10 @@ end
 
 ### Configuration
 
+CAUTION: Go to link:{rootdir}#whats-in-the-index[the "What's in the index file" section of the main project]. For more details on how to configure fields.
+
 ._config.yml
-[source,yml,options="nowrap"]
+[source,yml,options="nowrap",subs="verbatim,attributes"]
 ----
 titie: your-blog-website
 email: your-email@example.com
@@ -53,8 +55,8 @@ Other jekyll config
 ...
 
 blogsearch:
-  output: your_website_index.db.wasm
-  fields:
+  output: your_website_index.db.wasm # Generated blogsearch database file.
+  fields: # See: {rootdir}#whats-in-the-index
     title:
       enabled: true
       indexed: true
@@ -64,7 +66,7 @@ blogsearch:
       indexed: true
       hasContent: true
     url:
-      base: https://your-website/blog
+      base: https://your-website/blog # url field has a special 'base' option to set the baseurl.
       enabled: true
       indexed: false
       hasContent: true
@@ -77,45 +79,9 @@ blogsearch:
       indexed: false
       hasContent: false
 ----
-<1> This must be 'simple'.
-<2> output
-Generated blogsearch database file.
-Note that you might not want to use .db instead of .wasm (or .db.wasm).
-Setting improper file extension may lead file format corruption. .wasm.db is recommended. compressed by web servers.
-Make sure that web servers compress the file extension you choose.
-(e.g. Content-Encoding: gzip included in the response) 
-<3> List of entries to parse. The crawler uses glob pattern internally.
-How to use glob: https://github.com/isaacs/node-glob
-<4> Field configurations of the database.
-<5> Selector
-
-.There are 5 fields you need to configure:
-* title
-* body
-* url
-* categories
-* tags
-
-.Options for a field
-* indexed: boolean
-**  Set if the field is indexed or not.
-* hasContent: boolean
-**  When disabled (set as false) the content of the field won't
-    appear in the search result. The data still will be indexed
-    even if hasContent is disabled.
-    Recommended to be disabled to reduce the size of the output size.
-* parser:
-**  parser configuration. parser can have the following types:  
-***   string
-****    This is considered as a CSS selector.
-*** function (entry, page: puppeteer::page) => string | Promise<string>
-****    This is a generic parser function when a CSS selector is not available.
-*** false
-****    This can be use if you don't want to parse the field.
-
 
 ## 2. Enabling the search engine in the webpage
 
 You need to enable the search engine in the web page. Go to link:../blogsearch[blogsearch Engine].
 
-Again, if you would like to understand the concept of BlogSearch, go to link:../[the parent directory].
+Again, if you would like to understand the concept of BlogSearch, go to link:{rootdir}[the parent directory].

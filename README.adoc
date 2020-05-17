@@ -7,20 +7,28 @@
 // GitHub Flavored Asciidoc (GFA): https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74
 
 :project-version: 0.0.3
+:rootdir: https://github.com/kbumsik/blogsearch
 
 ifdef::env-github[]
+// Emoji
 :tip-caption: :bulb:
 :note-caption: :information_source:
 :important-caption: :heavy_exclamation_mark:
 :caution-caption: :fire:
 :warning-caption: :warning:
+// URL
+:imagesdir: https://gist.githubusercontent.com/path/to/gist/revision/dir/with/all/images
 endif::[]
 
 image::https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/badge.svg[link="https://github.com/kbumsik/blogsearch/actions?query=workflow%3A%22Build+and+Test+CI%22"]
 
 https://kbumsik.io/blogsearch/[Try it!]
 
-A pure client-side full-text search engine for static websites, powered by SQLite compiled to WebAssembly 
+[.lead]
+BlogSearch is a blogging tool that enables a search engine without any external
+service.
+
+More technically, BlogSearch is a pure client-side full-text search engine for static websites, powered by SQLite compiled to WebAssembly.
 
 .Features:
 * Purely client-side search
@@ -37,61 +45,154 @@ A pure client-side full-text search engine for static websites, powered by SQLit
 
 == Concepts
 
-=== Summary
+=== Workflow overview
 
-[.table.table-striped]
-[cols=2*, options="header,unbreakable", stripes=even]
-[cols="5,5"]
+[cols="50%,50%", options="noheader"]
 |===
-2+| The workflow is consist of two steps: **1.** You build an index file `.db.wasm`, then pass it to the client. **2.** The engine in the webpage will read the index file and enable the search.
+2+| The workflow is consist of two steps: **1.** You build an index file `.db.wasm`, then copy it to the public directory. **2.** The engine in the webpage will read the index file and enables the search.
 
-| 1. Build an index file 
-| 2. Enable the search
+| 1. Build an index file | 2. Enable the search
 
 a|
-The index file `.db.wasm` is a small database file that contains the contents of your website. You can collect the contents to build the index file using simple, easy-to-use tools: 
+The index file `.db.wasm` is a small database file that contains the contents of your website. You can use easy-to-use index building tools: 
 
 * Jekyll (link:./jekyll-blogsearch[jekyll-blogsearch])
 * Gatsby (link:./gatsby-plugin-blogsearch[gatsby-plugin-blogsearch])
 * Hugo (link:./blogsearch-crawler[blogsearch-crawler])
 * Generic crawler (link:./blogsearch-crawler[blogsearch-crawler])
 
-Then you deploy the `.db.wasm` in the public directory of the server.
+Then you copy the generated `.db.wasm` to the public directory (where index.html located) of website.
 
 a|
+Your webpage should load the blogsearch engine. There is only one engine available:
 
-Your webpage should include the engine (link:./blogsearch[blogsearch]) using <script> tag or in JavaScript file.
+* BlogSearch Engine (link:./blogsearch[blogsearch])
 
-Once the engine fetch the `.db.wasm` file correctly, you have a fully working searchable webpage! 
+Load the engine using <script> tag or in JavaScript file.
+Once the engine fetch the `.db.wasm` file correctly, now you have a fully working searchable webpage! 
 
 |===
 
-NOTE: Throught the project, the terms "index" and "database" are oftern mixed, but they mean same SQLite `.db.wasm` file in the most of the case.
+NOTE: Throughout the project, the terms "index" and "database" are often mixed, but they mean same SQLite `.db.wasm` file in the most of the case.
 
 [#building-index]
-=== Building a search index file
-==== Installation
+=== 1. Building a search index file
+==== Installing an index building tool
 
-==== Configuration
-====== Fields
-Explanations of the fields
+* Jekyll (link:./jekyll-blogsearch[jekyll-blogsearch])
+* Gatsby (link:./gatsby-plugin-blogsearch[gatsby-plugin-blogsearch])
+* Hugo (link:./blogsearch-crawler[blogsearch-crawler])
+* Generic crawler (link:./blogsearch-crawler[blogsearch-crawler])
 
-====== Attributes
-disabled
+[#whats-in-the-index]
+==== What's in the index file
+Users should configure an index building tool to collect the value of fields
+in order to work the search engine properly.
 
-indexed
+The index building tool should collect the following default fields for each posts:
 
-hasContent
+fields::
+* `title`: The title of the post.
+* `body`: The content of the post.
+* `url`: The URL link to the post.
+* `categories`: A comma-separated (`,`) list of categories that the post belongs to.
+* `tags`: A comma-separated (`,`) list of tags that the post has.
 
-=== Enabling the search engine on the web
+Users can configure every fields using the following properties:
+
+[cols="50%,50%", options="header,unbreakable", stripes=even]
+.Common options for the field
+|===
+
+| Example | Result
+
+2+| `disabled`: If set `true`, completely disable the field.
+
+a|
+[source,diff]
+----
+{
+  ...other field options...
+  categories: {
++    disabled: true,
+  },
+}
+----
+
+a|
+
+[source,diff]
+----
+{
+  ...other field options...
+  categories: {
++    disabled: true,
+  },
+}
+----
+
+
+
+2+| `hasContent`: If set `false`, the index building tool won't store the value of the field, but still indexes its value. This can be used to reduce the size of a generated index file by the tool. This is useful especially when the size of `body` field contents is big.
+
+In the following example, the size of the index file `.db.wasm` is decreased *from adslkf;alsdflasdl;fjMB to alsdfjl;asdjfawjeiojiejMB*.
+
+a| 
+[source,diff]
+----
+{
+  ...other field options...
+  body: {
++    hasContent: false,
+  },
+}
+----
+
+a|
+
+[source,diff]
+----
+{
+  ...other field options...
+  categories: {
++    disabled: true,
+  },
+}
+----
+
+2+| `indexed`: If set `false`, disable indexing for the field. Its value will still appears in the search result. It is especially useful for `url` field, whose value is not meaningful for search.
+
+a|
+[source,diff]
+----
+{
+  ...other field options...
+  url: {
++    indexed: false,
+  },
+}
+----
+
+a|
+
+N/A
+
+|===
+
+NOTE: Your index building tool may has tool-specific options for the field (e.g. `parser` option for link:./blogsearch-crawler[blogsearch-crawler]). See the documentation of your index building tool for details.
+
+=== 2. Enabling the search engine on the web
 
 .It's as simple as:
 [source,html,options="nowrap",subs="verbatim,attributes"]
 ----
-<input id="blogsearch_input_element" type="search" placeholder="Search Text" class="form-control" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
 
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js"></script>
+
+<input id="blogsearch_input_element" type="search" placeholder="Search Text" class="form-control" />
+
 <script>
   blogsearch({
     dbPath: 'your_index_file.db.wasm',
