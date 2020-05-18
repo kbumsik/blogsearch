@@ -64,20 +64,23 @@ export default class SearchEngine {
     }))[0].values
       // Columns: ['name'(table name), 'sql'(SQL that created the table)]
       .find(row => row[0] === DbName);
-    if (typeof meta === 'undefined') throw new Error("Failed to retrive columns information of 'blogsearch'.");
+    if (typeof meta === 'undefined') throw new Error("Failed to retrive table of 'blogsearch'.");
+
     // Extract columns from a sql SELECT statement.
     // Example statement: CREATE VIRTUAL TABLE blogsearch USING fts5( title,body,url UNINDEXED, tokenize = 'porter unicode61 remove_diacritics 1', content=blogsearch_ext_content, content_rowid=rowid)
     const columns: Column[]= meta[1]?.toString()
       .replace(/UNINDEXED/g, '') // Remove UNINDEXED column option. The column's weights are ignored anyway.
       .replace(/[\n|\s]+/g, ' ') // Remove newline
-      .match(/fts5\((.+)\)/)![1]
+      .match(/fts5\s?\((.+)\)/)![1]
       .split(',')
-      .filter(column => !column.includes('=')) // column containing '=' are fts5 option specifiers
+      .filter(column => !column.includes('=')) // Columns containing '=' are the fts5 options
       .map(column => column.trim() as Column);
+
     const weightMap = new Map();
     for (const column of columns) {
       weightMap.set(column, weights[column] ?? 1);
     }
+
     return new SearchEngine(sqlite, weightMap);
   }
 
