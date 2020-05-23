@@ -1,5 +1,4 @@
-const prefix = 'blogsearch';
-const suggestionPrefix = `${prefix}-suggestion`;
+const suggestionPrefix = `blogsearch-suggestion`;
 
 const templates = {
   suggestion: `
@@ -10,6 +9,7 @@ const templates = {
       "
     aria-label="Link to the result"
     href="{{{url}}}"
+    style="text-decoration: none; color: inherit;"
   >
     <div class="${suggestionPrefix}--header">
       <div class="${suggestionPrefix}--title ${suggestionPrefix}--header-item">
@@ -31,7 +31,9 @@ const templates = {
     <div class="${suggestionPrefix}--wrapper">
       {{#body_highlight}}
       <div class="${suggestionPrefix}--content">
-        <div class="${suggestionPrefix}--text">{{{body_highlight}}}</div>
+        <div class="${suggestionPrefix}--text">
+          {{{body_highlight}}}
+        </div>
       </div>
       {{/body_highlight}}
     </div>
