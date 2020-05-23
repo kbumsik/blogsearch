@@ -4,7 +4,6 @@ require 'jekyll/generator'
 require 'sqlite3'
 require 'jekyll/blogsearch/version'
 require "nokogiri"
-require 'pp'
 
 begin
   fields_config = {}
@@ -15,7 +14,6 @@ begin
   # Start
   Jekyll::Hooks.register(:site, :post_read) do |site|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
-    # pp site.config
     fields_config = site.config['blogsearch']['fields']
     
     db_path = site.config['blogsearch']['output']
@@ -67,7 +65,6 @@ begin
   # Post and etc.
   Jekyll::Hooks.register :documents, :post_render do |document|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Document
-    # pp document.data
     # [TODO] Add support for document.data['excerpt']
 
     next if not document.published?
@@ -79,9 +76,6 @@ begin
     url = baseurl + document.url
     categories = document.data['categories'].join(' , ')
     tags = document.data['tags'].join(' , ')
-
-    # puts rowid, title, url, categories, tags
-    # puts body
 
     # External content table
     db.execute <<-SQL,

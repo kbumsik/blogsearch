@@ -5,23 +5,18 @@ Gem::Specification.new do |spec|
   spec.name          = 'jekyll-blogsearch'
   spec.version       = Jekyll::BlogSearch::VERSION
   spec.authors       = ['Bumsik Kim']
-  spec.email         = ['k.bumsik@gmail.com']
+  spec.email         = 'k.bumsik@gmail.com'
 
-  spec.summary       = 'A simple search engine for your Jekyll website.'
+  spec.summary       = 'BlogSearch index building tool for Jekyll'
   spec.homepage      = 'https://github.com/kbumsik/blogsearch'
-  spec.licenses      = ['MIT']
+  spec.licenses      = 'MIT'
 
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rspec'
-  spec.add_development_dependency 'guard-rspec'
-
-  spec.add_dependency 'jekyll'
-  spec.add_dependency 'sqlite3'
-  spec.add_dependency 'nokogiri'
+  spec.add_runtime_dependency 'jekyll'
+  spec.add_runtime_dependency 'sqlite3', '~> 1.4'
+  spec.add_runtime_dependency 'nokogiri', '~> 1.10'
 
   spec.files = Dir[
     'lib/**/*.rb',
-    'README.md',
-    'LICENSE.txt',
+    'README.adoc',
   ]
 end

@@ -26,6 +26,7 @@ CAUTION: This is a part of link:{rootdir}[BlogSearch project]. If you would like
 
 ### Installation
 
+.Gemfile
 [source,ruby]
 ----
 group :jekyll_plugins do
