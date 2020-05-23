@@ -69,9 +69,9 @@ export default class SearchEngine {
     // Extract columns from a sql SELECT statement.
     // Example statement: CREATE VIRTUAL TABLE blogsearch USING fts5( title,body,url UNINDEXED, tokenize = 'porter unicode61 remove_diacritics 1', content=blogsearch_ext_content, content_rowid=rowid)
     const columns: Column[]= meta[1]?.toString()
-      .replace(/UNINDEXED/g, '') // Remove UNINDEXED column option. The column's weights are ignored anyway.
+      .replace(/UNINDEXED/ig, '') // Remove UNINDEXED column option. The column's weights are ignored anyway.
       .replace(/[\n|\s]+/g, ' ') // Remove newline
-      .match(/fts5\s?\((.+)\)/)![1]
+      .match(/fts5\s?\((.+)\)/i)![1]
       .split(',')
       .filter(column => !column.includes('=')) // Columns containing '=' are the fts5 options
       .map(column => column.trim() as Column);
