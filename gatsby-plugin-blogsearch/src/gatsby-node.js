@@ -1,25 +1,11 @@
-/**
- * Implement Gatsby's Node APIs in this file.
- *
- * See: https://www.gatsbyjs.org/docs/node-apis/
- */
 const fs = require('fs');
 const path = require('path');
 const { Database } = require('blogsearch-crawler/lib/database');
 const { defaultFields } = require('blogsearch-crawler/lib/defaultFields');
 
-/**
- * You can uncomment the following line to verify that
- * your plugin is being loaded in your site.
- *
- * See: https://www.gatsbyjs.org/docs/creating-a-local-plugin/#developing-a-local-plugin-that-is-outside-your-project
- */
-
 // Implement the Gatsby API “createPages”. This is called once the
 // data layer is bootstrapped to let plugins create pages from data.
 exports.createPages = async ({ graphql, reporter }, options) => {
-  console.log(options);
-
   // Override existing database
   const filename = options.output;
   if (!fs.existsSync(path.dirname(filename))) {

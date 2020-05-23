@@ -1,7 +1,7 @@
 {
   "name": "gatsby-plugin-blogsearch",
   "version": "0.0.1",
-  "description": "Gatsby plugin for BlogSearch, a pure client-side full-text search engine for static websites",
+  "description": "BlogSearch index building tool for Gatsby",
   "main": "./index.js",
   "files": [
     "./"
