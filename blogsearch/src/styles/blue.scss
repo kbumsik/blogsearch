@@ -1,0 +1,21 @@
+@import 'dropdown';
+
+$blue: #458ee1;
+
+// DROPDOWN
+$dropdown-config: (
+  layout-width: normal,
+  layout-alignment: align,
+  background-color: #fff,
+  border-radius: 4,
+  border-width: 1,
+  border-color: #d9d9d9,
+  spacing: normal,
+  font-size: normal,
+  cursor-background-color: rgba($blue, 0.05), // When the cursor is on the item 
+  // Font color of fields
+  title-color: $blue,
+  body-hightlight-underline-color: rgba($blue, 0.8),
+) !default;
+
+@include dropdown($dropdown-config...);

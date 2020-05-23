@@ -1,5 +1,14 @@
+TARGET = \
+	dist/blogsearch.umd.js \
+	dist/worker.umd.js \
+	dist/blogsearch.wasm \
+	$(CSS_THEME)
+CSS_THEME = \
+	dist/basic.css \
+	dist/blue.css
+
 # Top level build targets
-all: dist/blogsearch.umd.js dist/worker.umd.js dist/blogsearch.wasm dist/blogsearch.min.css
+all: $(TARGET)
 	@$(foreach target, $^, $(call print_size, $(target)))
 
 define print_size
@@ -52,13 +61,10 @@ dist/worker.umd.js: $(JS_SRC)
 ################################################################################
 # Building CSS
 ################################################################################
-dist/blogsearch.css: src/styles/main.scss $(wildcard src/styles/*.scss)
+dist/%.css: src/styles/%.scss src/styles/_dropdown.scss
 	node-sass --output-style expanded $< \
-  	| postcss --use autoprefixer -o $@
-
-dist/blogsearch.min.map: dist/blogsearch.min.css
-dist/blogsearch.min.css: dist/blogsearch.css
-	postcss $< --use cssnano --map $(@:.css=.min.css) -o $@
+  	| postcss --use autoprefixer --map -o $(basename $@).css
+	postcss $(basename $@).css --use cssnano --map -o $(basename $@).min.css
 
 ################################################################################
 # Etc.

@@ -36,7 +36,7 @@ Go to link:{rootdir}/#building-index[the parent directory]
 [source,html,options="nowrap",subs="verbatim,attributes"]
 ----
 // You may remove this if you want to use your own CSS.
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/basic.css" />
 
 // These must be included in the right order
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
@@ -68,7 +68,7 @@ npm install worker-loader file-loader
 [source,html,options="nowrap",subs="verbatim,attributes"]
 ----
 // You may remove this if you want to use your own CSS.
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/basic.css" />
 
 // Your input element
 <input id="blogsearch_input" type="search" placeholder="Type to search" class="form-control" />

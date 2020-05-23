@@ -161,7 +161,7 @@ NOTE: Your index building tool may has tool-specific options for the field (e.g.
 .It's as simple as:
 [source,html,options="nowrap",subs="verbatim,attributes"]
 ----
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/basic.css" />
 
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/blogsearch.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/blogsearch@{project-version}/dist/worker.umd.js"></script>

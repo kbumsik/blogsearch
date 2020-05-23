@@ -74,19 +74,23 @@
 }
 
 @mixin dropdown(
-  $main-color: #458ee1,
   $layout-width: normal,
   $layout-alignment: 'align',
-  $background-color: #ffffff,
+  $background-color: inherit,
   $border-radius: 4,
   $border-width: 1,
   $border-color: #d9d9d9,
   $spacing: normal,
   $font-size: normal,
-  $header-color: #33363d,
-  $title-color: #02060c,
-  $subtitle-color: #a4a7ae,
-  $text-color: #63676d
+  $cursor-background-color: rgba(grey, 0.05), // When the cursor is on the item 
+  // Font color of fields
+  $title-color: inherit,
+  $category-color: inherit,
+  $tag-color: inherit,
+  $body-color: inherit,
+  $body-background-color: inherit,
+  $body-hightlight-color: inherit,
+  $body-hightlight-underline-color: inherit,
 ) {
   $header-size: 1em;
   $title-size: 0.9em;
@@ -165,7 +169,7 @@
 
         &.bs-cursor {
           .blogsearch-suggestion {
-            background-color: rgba($main-color, 0.05);
+            background-color: $cursor-background-color;
           }
         }
       }
@@ -191,7 +195,6 @@
       position: relative;
       padding: $padding/2;
       background: $background-color;
-      color: $title-color;
       overflow: hidden;
       border-bottom: solid 1px #eee;
       margin: 0;
@@ -216,25 +219,14 @@
 
       &--title {
         padding: 0 $padding/4;
-        color: $main-color;
+        // color: $title-color;
         font-size: $header-size;
         font-weight: bold;
-
-        &::before {
-          content: '';
-          font-weight: bold;
-          color: $main-color;
-          display: inline-block;
-        }
       }
 
       &--content {
         width: 100%;
         padding: 0;
-
-        &::before {
-          display: none;
-        }
       }
 
       &--wrapper {
@@ -248,15 +240,17 @@
         display: block;
         line-height: 1.4em;
         padding: $padding/3 $padding/2;
-        background: #f8f8f8;
+        // color: $body-color;
+        background: $body-background-color;
         font-size: $text-size;
         opacity: 0.8;
         
         .blogsearch-suggestion--highlight {
           padding: 0 0 1px;
           background: inherit;
-          box-shadow: inset 0 -2px 0 0 rgba($main-color, 0.8);
-          color: inherit;
+          color: $body-hightlight-color;
+          text-decoration: underline;
+          text-decoration-color: $body-hightlight-underline-color;
         }
       }
 
@@ -265,10 +259,6 @@
         padding: $padding/2 0;
         text-align: center;
         font-size: 1.2em;
-
-        &::before {
-          display: none;
-        }
       }
     }
   }

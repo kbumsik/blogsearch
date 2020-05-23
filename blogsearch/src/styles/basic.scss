@@ -2,7 +2,6 @@
 
 // DROPDOWN
 $dropdown-config: (
-  main-color: #458ee1,
   layout-width: normal,
   layout-alignment: align,
   background-color: #fff,
@@ -11,12 +10,7 @@ $dropdown-config: (
   border-color: #d9d9d9,
   spacing: normal,
   font-size: normal,
-  header-color: #33363d,
-  title-color: #02060c,
-  subtitle-color: #a4a7ae,
-  text-color: #63676d
+  // Font color of fields
 ) !default;
-
-$builder-height: 260px;
 
 @include dropdown($dropdown-config...);

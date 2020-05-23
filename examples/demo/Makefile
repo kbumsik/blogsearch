@@ -3,7 +3,9 @@ BLOGSEARCH = \
 	blogsearch.umd.js \
 	worker.umd.js \
 	blogsearch.wasm \
-	blogsearch.css
+	basic.css \
+	blue.css
+
 BLOGSEARCH_ROOT = $(addprefix ../../blogsearch/dist/, $(BLOGSEARCH))
 BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 
