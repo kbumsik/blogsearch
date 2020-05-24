@@ -25,7 +25,9 @@ blogsearch({
   inputSelector: string (CSS selector),
   wasmPath: (optional) string,
   workerFactory: (optional) function that returns a Web Worker,
-})`;
+})
+
+Visit https://github.com/kbumsik/blogsearch/tree/master/blogsearch`;
 
 export type Config = {
   dbPath: Search.Config['dbPath'];
@@ -81,9 +83,7 @@ export default class BlogSearch {
     weights,
   }: Config) {
     // Check arguments
-    if (
-      typeof inputSelector !== 'string' || !inputSelector
-    ) {
+    if (typeof inputSelector !== 'string' || !inputSelector) {
       throw new Error(usage);
     }
 

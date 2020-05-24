@@ -37,20 +37,18 @@ export default class SearchEngine {
     weights = {
       title: 5,
       body: 1,
-      url: 1, // URL is usually UNINDEXED, therefore this value usually ignored.
+      url: 1, // URL is usually UNINDEXED, therefore this value gets ignored.
       categories: 3,
       tags: 3,
     }
   }: Config)
   : Promise<SearchEngine> {
-    /**
-     * The size of the worker is big (~200kb or ~50kb compressed) so it takes
-     * some time to instantiate. Therefore fetch binaraies before the worker
-     * is available. It is especially important for wasmBuffer because this
-     * means that we give up using streaming compilation in the worker side 
-     * (aka. WebAssembly.instantiateStreaming()) because fetching it parallelly
-     * is faster than worker initialization and wasm streaming serially.
-     */
+    // The size of the worker is big (~200kb or ~50kb compressed) so it takes
+    // some time to instantiate. Therefore fetch binaries before the worker
+    // is available. It is especially important for wasmBuffer because this
+    // means that we give up using streaming compilation in the worker side 
+    // (aka. WebAssembly.instantiateStreaming()) because fetching it in parallel
+    // is faster than worker initialization and wasm streaming serially.
     const wasmBuffer = fetch(wasmPath).then(r => r.arrayBuffer());
     const dbBuffer = fetch(dbPath).then(r => r.arrayBuffer());
 
