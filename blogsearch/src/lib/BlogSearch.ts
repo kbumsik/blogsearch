@@ -46,6 +46,7 @@ export type Config = {
   highlightPostTag?: string,
   displayedBodyWords?: number,
   limit?: number,
+  weights?: Record<Search.Column, number>,
 };
 
 export default class BlogSearch {
@@ -77,6 +78,7 @@ export default class BlogSearch {
     highlightPostTag,
     displayedBodyWords,
     limit,
+    weights,
   }: Config) {
     // Check arguments
     if (
@@ -87,7 +89,7 @@ export default class BlogSearch {
 
     let searchReady = false;
     const autoComplete = getAutoComplete();
-    const engine = await BlogSearch.createEngine({ wasmPath, dbPath, workerFactory });
+    const engine = await BlogSearch.createEngine({ wasmPath, dbPath, workerFactory, weights });
     searchReady = true;
     return new BlogSearch(engine, autoComplete);
 
@@ -166,7 +168,8 @@ export default class BlogSearch {
     dbPath = '',
     wasmPath = getCurrentDir('blogsearch.wasm'),
     workerFactory,
-  }: Pick<Config, 'dbPath' | 'wasmPath' | 'workerFactory'>) {
+    weights,
+  }: Pick<Config, 'dbPath' | 'wasmPath' | 'workerFactory' | 'weights'>) {
     // Check arguments
     if (
       typeof dbPath !== 'string' || !dbPath ||
@@ -179,6 +182,7 @@ export default class BlogSearch {
       wasmPath,
       dbPath,
       worker: getWorkerFactory(workerFactory)(),
+      weights,
     });
   }
 

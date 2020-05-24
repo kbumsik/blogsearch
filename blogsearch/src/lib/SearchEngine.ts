@@ -2,7 +2,7 @@ import SQLite from 'sqlite-wasm/lib/WorkerWrapper';
 import { Suggestion } from './autocomplete.js';
 
 const DbName = 'blogsearch';
-enum Column {
+export enum Column {
   Title = 'title',
 
   Body = 'body',
@@ -15,7 +15,7 @@ export interface Config {
   dbPath: string;
   wasmPath: string;
   worker: Worker;
-  weights?: Record<Column, number>
+  weights?: Record<Column, number>;
 }
 
 export default class SearchEngine {
