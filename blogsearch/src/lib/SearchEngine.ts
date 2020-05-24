@@ -2,7 +2,6 @@ import SQLite from 'sqlite-wasm/lib/WorkerWrapper';
 import { Suggestion } from './autocomplete.js';
 
 const DbName = 'blogsearch';
-const MaxDisplayedTokens = 10;
 enum Column {
   Title = 'title',
 
@@ -89,13 +88,14 @@ export default class SearchEngine {
     top: number = 5,
     highlightPreTag: string = '<span class="blogsearch-suggestion--highlight">',
     highlightPostTag: string = '</span>',
+    displayedBodyWords = 10,
   ): Promise<Suggestion[]> {
     const bodyExists = this.weightMap.get(Column.Body) ? true : false;
     // Source: https://www.sqlite.org/fts5.html#the_snippet_function
     const query = `
       SELECT
         *
-        ${bodyExists ? `, snippet(${DbName}, ${this.indexes[Column.Body]}, '{{%%%', '%%%}}', '', ${MaxDisplayedTokens}) as body_highlight` : ''}
+        ${bodyExists ? `, snippet(${DbName}, ${this.indexes[Column.Body]}, '{{%%%', '%%%}}', '', ${displayedBodyWords}) as body_highlight` : ''}
       FROM ${DbName}
       WHERE ${DbName} 
         MATCH '${match}'

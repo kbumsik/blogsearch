@@ -44,6 +44,7 @@ export type Config = {
   noResultTemplate?: string,
   highlightPreTag?: string,
   highlightPostTag?: string,
+  displayedBodyWords?: number,
   limit?: number,
 };
 
@@ -74,6 +75,7 @@ export default class BlogSearch {
     noResultTemplate = templates.empty,
     highlightPreTag,
     highlightPostTag,
+    displayedBodyWords,
     limit,
   }: Config) {
     // Check arguments
@@ -147,7 +149,7 @@ export default class BlogSearch {
           showSearchResult: (suggestion: Suggestion[]) => void
         ) => {
           if (!searchReady) return;
-          const suggestions = await engine.search(query, limit, highlightPreTag, highlightPostTag);
+          const suggestions = await engine.search(query, limit, highlightPreTag, highlightPostTag, displayedBodyWords);
 
           if (searchCallback && typeof searchCallback == 'function') {
             searchCallback(suggestions, showSearchResult);

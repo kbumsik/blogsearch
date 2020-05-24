@@ -215,6 +215,8 @@ blogsearch({
   highlightPreTag: '<span class="blogsearch-suggestion--highlight">', // Default value
   // [Optional] Override the text to insert after each matching (highlight) phrase.
   highlightPostTag: '</span>', // Default value
+  // [Optional] Number of word tokens to display in the highlighted body field.
+  displayedBodyWords: 10, // Default value
   // [Optional] The maximum number of suggestions to display.
   limit: 5,
   // [Optional] Override the default search rank weight of each field.
