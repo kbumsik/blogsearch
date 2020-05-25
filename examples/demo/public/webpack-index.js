@@ -141,7 +141,9 @@ blogsearch({
   inputSelector: string (CSS selector),
   wasmPath: (optional) string,
   workerFactory: (optional) function that returns a Web Worker,
-})`;
+})
+
+Visit https://github.com/kbumsik/blogsearch/tree/master/blogsearch`;
 
 class BlogSearch {
   constructor(engine, autoComplete) {
@@ -167,18 +169,24 @@ class BlogSearch {
     handleShown = defaultHandleShown,
     searchResultTemplate = templates_1.default.suggestion,
     noResultTemplate = templates_1.default.empty,
-    highlightPreTag = '<span class="blogsearch-suggestion--highlight">',
-    highlightPostTag = '</span>',
-    limit = 5
+    highlightPreTag,
+    highlightPostTag,
+    displayedBodyWords,
+    limit,
+    weights
   }) {
-    return tslib_1.__awaiter(this, arguments, void 0, function* () {
-      BlogSearch.checkArguments(arguments[0]);
+    return tslib_1.__awaiter(this, void 0, void 0, function* () {
+      if (typeof inputSelector !== 'string' || !inputSelector) {
+        throw new Error(usage);
+      }
+
       let searchReady = false;
       const autoComplete = getAutoComplete();
-      const engine = yield SearchEngine_1.default.create({
+      const engine = yield BlogSearch.createEngine({
         wasmPath,
         dbPath,
-        worker: getWorkerFactory(workerFactory)()
+        workerFactory,
+        weights
       });
       searchReady = true;
       return new BlogSearch(engine, autoComplete);
@@ -215,18 +223,7 @@ class BlogSearch {
         function searchSource() {
           return (query, showSearchResult) => tslib_1.__awaiter(this, void 0, void 0, function* () {
             if (!searchReady) return;
-            const suggestions = (yield engine.search(query, limit, highlightPreTag, highlightPostTag)).map(suggestion => {
-              var _a, _b;
-
-              return Object.assign(Object.assign({}, suggestion), {
-                tags: ((_a = suggestion.tags) !== null && _a !== void 0 ? _a : '').split(',').map(str => ({
-                  value: str.trim()
-                })),
-                categories: ((_b = suggestion.categories) !== null && _b !== void 0 ? _b : '').split(',').map(str => ({
-                  value: str.trim()
-                }))
-              });
-            });
+            const suggestions = yield engine.search(query, limit, highlightPreTag, highlightPostTag, displayedBodyWords);
 
             if (searchCallback && typeof searchCallback == 'function') {
               searchCallback(suggestions, showSearchResult);
@@ -241,12 +238,22 @@ class BlogSearch {
     });
   }
 
-  static checkArguments(args) {
-    if (typeof args.dbPath !== 'string' || !args.dbPath || typeof args.inputSelector !== 'string' || !args.inputSelector || typeof args.workerFactory !== 'undefined' && typeof args.workerFactory !== 'function') {
+  static createEngine({
+    dbPath = '',
+    wasmPath = getCurrentDir('blogsearch.wasm'),
+    workerFactory,
+    weights
+  }) {
+    if (typeof dbPath !== 'string' || !dbPath || typeof workerFactory !== 'undefined' && typeof workerFactory !== 'function') {
       throw new Error(usage);
     }
 
-    getInputElementFromSelector(args.inputSelector);
+    return SearchEngine_1.default.create({
+      wasmPath,
+      dbPath,
+      worker: getWorkerFactory(workerFactory)(),
+      weights
+    });
   }
 
   close() {
@@ -339,30 +346,45 @@ const tslib_1 = __webpack_require__(/*! tslib */ "../../node_modules/tslib/tslib
 
 const WorkerWrapper_1 = tslib_1.__importDefault(__webpack_require__(/*! sqlite-wasm/lib/WorkerWrapper */ "../../node_modules/sqlite-wasm/lib/WorkerWrapper.js"));
 
-var Db;
+const DbName = 'blogsearch';
+var Column;
 
-(function (Db) {
-  Db[Db["TitleIdx"] = 0] = "TitleIdx";
-  Db[Db["BobyIdx"] = 1] = "BobyIdx";
-  Db[Db["UrlIdx"] = 2] = "UrlIdx";
-  Db[Db["CategoriesIdx"] = 3] = "CategoriesIdx";
-  Db[Db["TagsIdx"] = 4] = "TagsIdx";
-  Db["DbName"] = "blogsearch";
-  Db[Db["MaxDisplayedTokens"] = 10] = "MaxDisplayedTokens";
-})(Db || (Db = {}));
+(function (Column) {
+  Column["Title"] = "title";
+  Column["Body"] = "body";
+  Column["Url"] = "url";
+  Column["Categories"] = "categories";
+  Column["Tags"] = "tags";
+})(Column = exports.Column || (exports.Column = {}));
 
 ;
 
 class SearchEngine {
-  constructor(sqlite) {
+  constructor(sqlite, weightMap, indexes = {}) {
     this.sqlite = sqlite;
+    this.weightMap = weightMap;
+    this.indexes = indexes;
+    let index = 0;
+
+    for (const [column] of this.weightMap) {
+      this.indexes[column] = index++;
+    }
   }
 
   static create({
     dbPath,
     wasmPath,
-    worker
+    worker,
+    weights = {
+      title: 5,
+      body: 1,
+      url: 1,
+      categories: 3,
+      tags: 3
+    }
   }) {
+    var _a, _b;
+
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
       const wasmBuffer = fetch(wasmPath).then(r => r.arrayBuffer());
       const dbBuffer = fetch(dbPath).then(r => r.arrayBuffer());
@@ -373,38 +395,64 @@ class SearchEngine {
       yield sqlite.open({
         dbBinary: yield dbBuffer
       });
-      return new SearchEngine(sqlite);
+      const meta = (yield sqlite.run({
+        query: "SELECT `name`, `sql` FROM `sqlite_master` WHERE type='table';"
+      }))[0].values.find(row => row[0] === DbName);
+      if (typeof meta === 'undefined') throw new Error("Failed to retrive table of 'blogsearch'.");
+      const columns = ((_a = meta[1]) === null || _a === void 0 ? void 0 : _a.toString().replace(/UNINDEXED/ig, '').replace(/[\n|\s]+/g, ' ').match(/fts5\s?\((.+)\)/i))[1].split(',').filter(column => !column.includes('=')).map(column => column.trim());
+      const weightMap = new Map();
+
+      for (const column of columns) {
+        weightMap.set(column, (_b = weights[column]) !== null && _b !== void 0 ? _b : 1);
+      }
+
+      return new SearchEngine(sqlite, weightMap);
     });
   }
 
-  search(match, top, highlightPreTag, highlightPostTag) {
+  search(match, top = 5, highlightPreTag = '<span class="blogsearch-suggestion--highlight">', highlightPostTag = '</span>', displayedBodyWords = 10) {
     return tslib_1.__awaiter(this, void 0, void 0, function* () {
+      const bodyExists = this.weightMap.get(Column.Body) ? true : false;
       const query = `
       SELECT
-        *,
-        snippet(${Db.DbName}, ${Db.BobyIdx}, '{{%%%', '%%%}}', '', ${Db.MaxDisplayedTokens}) as body_highlight
-      FROM ${Db.DbName}
-      WHERE ${Db.DbName} 
+        *
+        ${bodyExists ? `, snippet(${DbName}, ${this.indexes[Column.Body]}, '{{%%%', '%%%}}', '', ${displayedBodyWords}) as body_highlight` : ''}
+      FROM ${DbName}
+      WHERE ${DbName} 
         MATCH '${match}'
-      ORDER BY bm25(${Db.DbName})
+      ORDER BY bm25(${DbName}, ${[...this.weightMap.values()].join(',')})
       LIMIT ${top};
     `;
-      const raw = yield this.sqlite.run({
+      const raw = (yield this.sqlite.run({
         query
-      });
-
-      if (raw.length === 0) {
-        return [];
-      }
-
+      }))[0];
+      if (typeof raw === 'undefined') return [];
       const {
         columns,
         values
-      } = raw[0];
-      return values.filter(row => row[Db.TitleIdx]).map(row => {
-        const hightlightIdx = row.length - 1;
-        row[hightlightIdx] = escapeXMLCharacters(row[hightlightIdx]).replace(/{{%%%/g, highlightPreTag).replace(/%%%}}/g, highlightPostTag);
+      } = raw;
+      return values.filter(row => {
+        var _a;
+
+        return (_a = row[this.indexes[Column.Title]]) !== null && _a !== void 0 ? _a : true;
+      }).map(row => {
+        if (bodyExists) {
+          const hightlightIdx = row.length - 1;
+          row[hightlightIdx] = escapeXMLCharacters(row[hightlightIdx]).replace(/{{%%%/g, highlightPreTag).replace(/%%%}}/g, highlightPostTag);
+        }
+
         return Object.fromEntries(zip(columns, row));
+      }).map(row => {
+        var _a, _b;
+
+        return Object.assign(Object.assign({}, row), {
+          tags: ((_a = row.tags) !== null && _a !== void 0 ? _a : '').split(',').map(str => ({
+            value: str.trim()
+          })),
+          categories: ((_b = row.categories) !== null && _b !== void 0 ? _b : '').split(',').map(str => ({
+            value: str.trim()
+          }))
+        });
       });
     });
   }
@@ -445,7 +493,7 @@ function escapeXMLCharacters(input) {
         return '&gt;';
 
       default:
-        throw new Error('Error: XML escape Error.');
+        throw new Error('XML escape Error.');
     }
   });
 }
@@ -492,13 +540,17 @@ const tslib_1 = __webpack_require__(/*! tslib */ "../../node_modules/tslib/tslib
 
 const BlogSearch_1 = tslib_1.__importDefault(__webpack_require__(/*! ./BlogSearch */ "../../blogsearch/lib/BlogSearch.js"));
 
-function default_1(args) {
+function blogsearch(args) {
   return tslib_1.__awaiter(this, void 0, void 0, function* () {
     return BlogSearch_1.default.create(args);
   });
 }
 
-exports.default = default_1;
+blogsearch.engine = function (args) {
+  return BlogSearch_1.default.createEngine(args);
+};
+
+exports.default = blogsearch;
 
 /***/ }),
 
@@ -515,8 +567,7 @@ exports.default = default_1;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-const prefix = 'blogsearch';
-const suggestionPrefix = `${prefix}-suggestion`;
+const suggestionPrefix = `blogsearch-suggestion`;
 const templates = {
   suggestion: `
   <a
@@ -526,6 +577,7 @@ const templates = {
       "
     aria-label="Link to the result"
     href="{{{url}}}"
+    style="text-decoration: none; color: inherit;"
   >
     <div class="${suggestionPrefix}--header">
       <div class="${suggestionPrefix}--title ${suggestionPrefix}--header-item">
@@ -547,7 +599,9 @@ const templates = {
     <div class="${suggestionPrefix}--wrapper">
       {{#body_highlight}}
       <div class="${suggestionPrefix}--content">
-        <div class="${suggestionPrefix}--text">{{{body_highlight}}}</div>
+        <div class="${suggestionPrefix}--text">
+          {{{body_highlight}}}
+        </div>
       </div>
       {{/body_highlight}}
     </div>
@@ -573,12 +627,12 @@ exports.default = templates;
 /*!***************************************!*\
   !*** /build/blogsearch/lib/worker.js ***!
   \***************************************/
-/*! exports provided: default */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = (__webpack_require__.p + "webpack-worker.js");
+module.exports = function() {
+  return new Worker(__webpack_require__.p + "webpack-worker.js");
+};
 
 /***/ }),
 

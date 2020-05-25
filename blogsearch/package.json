@@ -1,7 +1,7 @@
 {
   "name": "blogsearch",
-  "version": "0.0.4",
-  "description": "A pure client-side full-text search engine for static websites",
+  "version": "0.0.5",
+  "description": "A search engine for blogs without any external services",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",
   "license": "MIT",
