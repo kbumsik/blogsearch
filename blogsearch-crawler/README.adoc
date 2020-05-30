@@ -27,15 +27,9 @@ npx blogsearch-crawler
 
 ### The formal way
 [source,bash]
-npm install blogsearch-crawler
-
-[source,javascript]
 ----
-npm run blogsearch-crawler
-
-# or
-
-yarn run blogsearch-cralwer
+npm install -g blogsearch-crawler
+blogsearch-crawler
 ----
 
 ### Configuration
