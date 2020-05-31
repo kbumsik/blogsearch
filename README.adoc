@@ -22,8 +22,8 @@ endif::[]
 
 image::https://github.com/kbumsik/blogsearch/workflows/Build%20and%20Test%20CI/badge.svg[link="https://github.com/kbumsik/blogsearch/actions?query=workflow%3A%22Build+and+Test+CI%22"]
 
-image::docs/demo.gif[]
-https://kbumsik.io/blogsearch/[Try it!]
+image::docs/demo.gif[link=https://kbumsik.io/blogsearch]
+https://kbumsik.io/blogsearch[Try it!]
 
 [.lead]
 BlogSearch is a blogging tool that enables a search engine without any external
