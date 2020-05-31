@@ -1,12 +1,3 @@
-// Detect lightness
-@function detectLightness($color) {
-  @if (lightness($color) > 60) {
-    @return mix($color, #000, 90%);
-  } @else {
-    @return mix($color, #fff, 90%);
-  }
-}
-
 // Spacing
 @function spacing($type) {
   @if $type == 'compact' {
@@ -33,15 +24,6 @@
     left: 0 !important;
     right: 0 !important;
     margin: auto !important;
-  }
-}
-
-// Mixin - highlight
-@function set-highlight($highlight, $color) {
-  @if $highlight == 1 and lightness($color) < 60 {
-    @return mix(#fff, $color, 90%);
-  } @else {
-    @return darken(detectLightness($color), 30%);
   }
 }
 
