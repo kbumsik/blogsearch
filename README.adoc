@@ -234,7 +234,7 @@ make all-in-docker -j4 --output-sync=target
 ==== Run a demo server
 [source,bash]
 ----
-make start-in-docker # Or make start, without docker
+make demo-in-docker && make start-in-docker
 
 # You can access the demo page via 0.0.0.0:9000
 ----

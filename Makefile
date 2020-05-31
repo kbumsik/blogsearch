@@ -35,7 +35,7 @@ lib-in-docker: blogsearch-in-docker blogsearch-crawler-in-docker
 test: blogsearch
 	cd blogsearch && yarn test
 
-start: demo
+start:
 	cd examples/demo && yarn start
 # Port 9000 is used by the webserver of examples/demo
 start-in-docker: DOCKER_OPT += -p 9000:9000
