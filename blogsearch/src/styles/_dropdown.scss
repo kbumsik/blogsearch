@@ -43,7 +43,7 @@
   $body-color: inherit,
   $body-background-color: inherit,
   $body-hightlight-color: inherit,
-  $body-hightlight-underline-color: inherit,
+  $body-hightlight-underline-color: rgba(black, 0.4),
 ) {
   $header-size: 1em;
   $title-size: 0.9em;
@@ -165,7 +165,7 @@
 
       &--title {
         padding: 0 $padding/4;
-        // color: $title-color;
+        color: $title-color;
         font-size: $header-size;
         font-weight: bold;
       }
@@ -195,8 +195,7 @@
           padding: 0 0 1px;
           background: inherit;
           color: $body-hightlight-color;
-          text-decoration: underline;
-          text-decoration-color: $body-hightlight-underline-color;
+          box-shadow: inset 0 -2px 0 0 $body-hightlight-underline-color;
         }
       }
 
