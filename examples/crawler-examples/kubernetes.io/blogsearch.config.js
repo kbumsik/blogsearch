@@ -16,7 +16,8 @@ module.exports = {
    * How to use glob: https://github.com/isaacs/node-glob
    */
   entries: [
-    './kubernetes.io/public/docs/**/!(test|sitemap|search)/**/!(v[0-9]\.[0-9]*)/!(kubectl-commands)*.html',
+    './kubernetes.io/public/docs/!(test|home|sitemap|search)/*/*/index.html',
+    './kubernetes.io/public/blog/!(page)/**/*.html',
   ],
   /**
    * Field configurations of the database.
@@ -46,17 +47,31 @@ module.exports = {
    */
   fields: {
     title: {
-      // The value can be a CSS selector.
-      parser: 'section > h1',
+      parser: (entry, page) => {
+        if (entry.includes('public/docs')) {
+          return page.$eval('#docsContent > h1', el => el.textContent);
+        } else if (entry.includes('public/blog')) {
+          return page.$eval('.post-title', el => el.textContent);
+        }
+      }
     },
     body: {
       // Set false if you want to reduce the size of the database.
       hasContent: true,
-      // It can be a function as well.
-      parser: (entry, page) => {
+      // It can be a async function as well.
+      parser: async (entry, page) => {
         // Use puppeteer page object.
         // It's okay to return a promise.
-        return page.$eval('#docsContent', el => el.textContent);
+        if (entry.includes('public/docs')) {
+          return (await page.$$eval(
+            '#docsContent > *',
+            els => els.slice(els.findIndex(el => el.tagName.toLowerCase() === 'h1') + 1,
+                             els.findIndex(el => el.textContent.trim().toLowerCase() === 'feedback'))
+                      .map(el => el.textContent)
+          )).join(' ');
+        } else if (entry.includes('public/blog')) {
+          return page.$eval('div.blog-content', el => el.textContent);
+        }
       }
     },
     url: {
@@ -74,8 +89,6 @@ module.exports = {
           return 'Documentation';
         } else if (entry.includes('public/blog')) {
           return 'Blog';
-        } else if (entry.includes('public/case-studies')) {
-          return 'Case Studies';
         }
       },
     },
