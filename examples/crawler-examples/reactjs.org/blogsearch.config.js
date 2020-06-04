@@ -16,7 +16,8 @@ module.exports = {
    * How to use glob: https://github.com/isaacs/node-glob
    */
   entries: [
-    './reactjs.org/public/docs/**/*.html'
+    './reactjs.org/public/docs/**/*.html',
+    './reactjs.org/public/blog/!(all.html)/**/*.html',
   ],
   /**
    * Field configurations of the database.
@@ -69,9 +70,14 @@ module.exports = {
     },
     categories: {
       // This is disabled because the target website doesn't have categories.
-      enabled: false,
-      // This is a dummy parser. This is unused because the field is disabled.
-      parser: () => 'categories-1, categories-2',
+      enabled: true,
+      parser: (entry, page) => {
+        if (entry.includes('public/docs')) {
+          return 'Documentation';
+        } else if (entry.includes('public/blog')) {
+          return 'Blog';
+        }
+      },
     },
     tags: {
       // This is disabled because the target website doesn't have tags.
