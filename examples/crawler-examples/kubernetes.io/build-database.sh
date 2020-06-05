@@ -4,7 +4,7 @@ set -e
 REPO="kubernetes.io"
 CUR_DIR=$(pwd)
 REPO_DIR="$CUR_DIR/$REPO"
-VERSION="ec822d9408e7824429e5396d045a564919392062"
+VERSION="042df6cef526e54bb724fd02ac80277506548291"
 DATE="$(date +'%Y-%m-%d-%H-%M-%S')"
 
 # Build website using hugo command
