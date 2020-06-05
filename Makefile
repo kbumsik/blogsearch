@@ -41,10 +41,10 @@ start:
 start-in-docker: DOCKER_OPT += -p 9000:9000
 
 .PHONY: examples
-examples: crawler-reactjs gatsby-reactjs jekyll-circleci demo
+examples: crawler-reactjs crawler-kubernetes gatsby-reactjs jekyll-circleci demo
 # override -in-docker command
 .PHONY: examples-in-docker
-examples-in-docker: crawler-reactjs-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker demo-in-docker
+examples-in-docker: crawler-reactjs-in-docker crawler-kubernetes-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker demo-in-docker
 
 #######################
 # Libray build commands
@@ -63,7 +63,10 @@ blogsearch-crawler:
 crawler-reactjs: blogsearch-crawler
 	cd examples/crawler-examples/reactjs.org && yarn build
 
-gatsby-reactjs: blogsearch-crawler
+crawler-kubernetes: blogsearch-crawler
+	cd examples/crawler-examples/kubernetes.io && yarn build
+
+gatsby-reactjs:
 	cd examples/gatsby-examples/reactjs.org && yarn build
 
 jekyll-circleci:
@@ -85,6 +88,7 @@ clean:
 	cd blogsearch && yarn clean
 	cd blogsearch-crawler && yarn clean
 	cd examples/crawler-examples/reactjs.org && yarn clean
+	cd examples/crawler-examples/kubernetes.io && yarn clean
 	cd examples/gatsby-examples/reactjs.org && yarn clean
 	cd examples/jekyll-examples/circleci-docs && yarn clean
 	cd examples/demo && yarn clean

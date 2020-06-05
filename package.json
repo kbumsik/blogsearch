@@ -5,7 +5,8 @@
     "blogsearch-crawler",
     "gatsby-plugin-blogsearch",
     "examples/demo",
-    "examples/crawler-examples/reactjs.org"
+    "examples/crawler-examples/reactjs.org",
+    "examples/crawler-examples/kubernetes.io"
   ],
   "scripts": {
     "build": "make all",

@@ -1,7 +1,8 @@
 INDEX_FILES = \
 	circleci-docs.jekyll-example.db.wasm \
 	reactjs.org.crawler-example.db.wasm \
-	reactjs.org.gatsby-example.db.wasm
+	reactjs.org.gatsby-example.db.wasm \
+	kubernetes.io.crawler-example.db.wasm
 
 ASSET_FILES = \
 	bootstrap-litera.css

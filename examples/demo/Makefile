@@ -12,7 +12,8 @@ BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 DB = \
 	reactjs.org.crawler-example.db.wasm \
 	reactjs.org.gatsby-example.db.wasm \
-	circleci-docs.jekyll-example.db.wasm
+	circleci-docs.jekyll-example.db.wasm \
+	kubernetes.io.crawler-example.db.wasm
 DB_PUBLIC = $(addprefix ./public/, $(DB))
 
 # Build targests
@@ -35,6 +36,9 @@ blogsearch_root:
 
 # Database build
 ./public/reactjs.org.crawler-example.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.crawler-example.db.wasm
+	cp $< $@
+
+./public/kubernetes.io.crawler-example.db.wasm: ../crawler-examples/kubernetes.io/kubernetes.io.crawler-example.db.wasm
 	cp $< $@
 
 ./public/reactjs.org.gatsby-example.db.wasm: ../gatsby-examples/reactjs.org/reactjs.org.gatsby-example.db.wasm
