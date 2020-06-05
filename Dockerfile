@@ -24,6 +24,11 @@ RUN apt-get update && apt install -y \
       fonts-liberation libappindicator1 libnss3 xdg-utils \
  && rm -rf /var/lib/apt/lists/*
 
+# install example build tool
+RUN apt-get update && apt-get install -y \
+      hugo \
+ && rm -rf /var/lib/apt/lists/*
+
 # build directory
 RUN mkdir /build \
  && chmod 777 /build
