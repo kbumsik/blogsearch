@@ -1,4 +1,4 @@
-all: lib-in-docker examples-in-docker
+all: lib-in-docker examples-in-docker docs
 
 # override -in-docker commond
 .PHONY: all-in-docker
@@ -45,6 +45,10 @@ examples: crawler-reactjs crawler-kubernetes gatsby-reactjs jekyll-circleci demo
 # override -in-docker command
 .PHONY: examples-in-docker
 examples-in-docker: crawler-reactjs-in-docker crawler-kubernetes-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker demo-in-docker
+
+.PHONY: docs
+docs:
+	cd docs && make all
 
 #######################
 # Libray build commands
