@@ -50,7 +50,6 @@ export default async function (config: Config) {
         await page.goto(resolveEntry(entry), {
           waitUntil: 'networkidle2'
         });
-        await page.waitForNavigation();
       } catch (error) {
         throw new Error(`Failed to open a page of ${entry}: ${error}`);
       }
