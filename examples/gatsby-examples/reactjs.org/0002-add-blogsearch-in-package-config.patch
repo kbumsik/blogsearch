@@ -1,4 +1,4 @@
-From 7036a93e1741252fc90c9218d45c3dfb5bfe8b41 Mon Sep 17 00:00:00 2001
+From 594a2b57bf7b9d15b89a050c7bfe6568610288b2 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Wed, 29 Apr 2020 20:58:01 +0900
 Subject: [PATCH 2/4] add blogsearch in package config
