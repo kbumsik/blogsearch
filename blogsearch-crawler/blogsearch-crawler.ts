@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-import * as path from 'path';
-import crawlBlog from './index';
 import * as fs from 'fs';
+import * as path from 'path';
 import template from './blogsearch.config.js.template';
+import { UncheckedConfig } from './configTypes';
+import checkConfig from './checkers';
+import crawl from './crawler';
 
 const configPath = path.resolve(process.cwd(), 'blogsearch.config.js');
 if (!fs.existsSync(configPath)) {
@@ -25,3 +27,23 @@ crawlBlog(require(configPath))
     console.log('Parsing failed.');
     process.exit(1);
   });
+
+// Load configuration
+async function crawlBlog (uncheckedConfig: UncheckedConfig) {
+  try {
+    const config = checkConfig(uncheckedConfig);
+
+    // Override DB file
+    if (!fs.existsSync(path.dirname(config.output))) {
+      fs.mkdirSync(path.dirname(config.output));
+    }
+    if (fs.existsSync(config.output)) {
+      fs.unlinkSync(config.output);
+    }
+
+    await crawl(config);
+  } catch (error) {
+    // [TODO] Add doc
+    throw new Error(`${error}`);
+  }
+}
