@@ -21,17 +21,6 @@ exports.createPages = async ({ graphql, reporter }, options) => {
     columns: defaultFields,
   });
 
-  // Get siteUrl
-  const { siteUrl } = (await graphql(`
-    {
-      site {
-        siteMetadata {
-          siteUrl
-        }
-      }
-    }
-  `)).data.site.siteMetadata;
-
   // Query for markdown nodes to use in creating pages.
   const result = await graphql(options.query);
   // Handle errors
@@ -41,7 +30,7 @@ exports.createPages = async ({ graphql, reporter }, options) => {
   }
 
   // Index contents in the database
-  options.normalizer(result, siteUrl)
+  options.normalizer(result)
     .map((node, rowid) => {
       db.insert(rowid, node);
     });
