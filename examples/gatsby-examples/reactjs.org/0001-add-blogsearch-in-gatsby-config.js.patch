@@ -1,4 +1,4 @@
-From 259ebbd6e88fe969a597f093b485d6d64778b12c Mon Sep 17 00:00:00 2001
+From fa12c4c4c13680b38a326993f6be333f3d4bf328 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Mon, 27 Apr 2020 15:04:16 +0900
 Subject: [PATCH 1/4] add blogsearch in gatsby-config.js
@@ -8,7 +8,7 @@ Subject: [PATCH 1/4] add blogsearch in gatsby-config.js
  1 file changed, 77 insertions(+)
 
 diff --git a/gatsby-config.js b/gatsby-config.js
-index 2637eac9..2936583e 100644
+index 2637eac9..0d8dcfb7 100644
 --- a/gatsby-config.js
 +++ b/gatsby-config.js
 @@ -17,6 +17,83 @@ module.exports = {
@@ -34,7 +34,7 @@ index 2637eac9..2936583e 100644
 +          },
 +          url: {
 +            enabled: true,
-+            indexed: true,
++            indexed: false,
 +            hasContent: true,
 +          },
 +          categories: {
@@ -43,7 +43,7 @@ index 2637eac9..2936583e 100644
 +            hasContent: true,
 +          },
 +          tags: {
-+            enabled: true,
++            enabled: false,
 +            indexed: true,
 +            hasContent: true,
 +          },
