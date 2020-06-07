@@ -10,7 +10,7 @@ module.exports = {
    * Make sure that web servers compress the file extension you choose.
    * (e.g. Content-Encoding: gzip included in the response) 
    */
-  output: './reactjs.org.crawler-example.db.wasm',
+  output: './reactjs.org.crawler-example.slim.db.wasm',
   /**
    * List of entries to parse. The crawler uses glob pattern internally.
    * How to use glob: https://github.com/isaacs/node-glob
@@ -52,7 +52,8 @@ module.exports = {
     },
     body: {
       // Set false if you want to reduce the size of the database.
-      hasContent: true,
+      // Set as false for slim version.
+      hasContent: false,
       // It can be a function as well.
       parser: (entry, page) => {
         // Use puppeteer page object.
@@ -69,7 +70,8 @@ module.exports = {
       },
     },
     categories: {
-      enabled: true,
+      // Disabled for slim version.
+      enabled: false,
       parser: (entry, page) => {
         if (entry.includes('public/docs')) {
           return 'Documentation';

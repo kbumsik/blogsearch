@@ -4,7 +4,7 @@
   "description": "blogsearch-crawler usage example with reactjs.org",
   "private": true,
   "scripts": {
-    "build": "./download.sh && ./build-database.sh",
+    "build": "./download.sh && ./build.sh && ./build-slim.sh",
     "clean": "rm -rf *.db.wasm reactjs.org",
     "update-patches": "./upgrade-yarn.sh"
   }
