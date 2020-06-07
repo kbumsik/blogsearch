@@ -27,6 +27,7 @@ export class Database {
         verbose: true
       }
     );
+    columns = filterMap(columns, field => field.enabled);
     return (new Database(db, columns)).init();
   }
 
@@ -121,4 +122,14 @@ export class Database {
   public async close () {
     await this.db.close();
   }
+}
+
+function filterMap<K, V> (map: Map<K, V>, callback: (value: V) => boolean) {
+  const newMap = new Map();
+  for (const [key, value] of map) {
+    if (callback(value)) {
+      newMap.set(key, value);
+    }
+  }
+  return newMap;
 }

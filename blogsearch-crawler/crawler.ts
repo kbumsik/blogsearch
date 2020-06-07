@@ -8,8 +8,6 @@ import {
 import { Database } from './database';
 
 export default async function (config: Config) {
-  config.fields = filterMap(config.fields, field => field.enabled);
-
   /**
    * I disable sandbox because our docker image facing "No usable sandbox!"
    * issue.I think it is okay because blogsearch-crawler crawls trusted websites
@@ -99,14 +97,4 @@ function checkParser (parser: Parser): GenericParser<string | null> {
   } else {
     return parser;
   }
-}
-
-function filterMap<K, V> (map: Map<K, V>, callback: (value: V) => boolean) {
-  const newMap = new Map();
-  for (const [key, value] of map) {
-    if (callback(value)) {
-      newMap.set(key, value);
-    }
-  }
-  return newMap;
 }
