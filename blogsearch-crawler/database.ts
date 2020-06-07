@@ -44,10 +44,8 @@ export class Database {
     }
 
     // Reference: https://www.sqlite.org/fts5.html
-    /**
-     * Create a virtual table 'blogsearch'
-     * We use the fts5 extension to support full-text search out of the box.
-     */
+    // Create a virtual table 'blogsearch'
+    // We use the fts5 extension to support full-text search out of the box.
     await this.db.run(`
       CREATE VIRTUAL TABLE ${BLOGSEARCH}
       USING fts5(
@@ -59,11 +57,9 @@ export class Database {
         content_rowid=rowid
       );
     `);
-    /**
-     * Create table 'blogsearch_ext_content'. This is an external content table
-     * for FTS5. External content table is used to support "hasConent" feature
-     * that helps reducing the size of the output db file.
-     */
+    // Create table 'blogsearch_ext_content'. This is an external content table
+    // for FTS5. External content table is used to support "hasConent" feature
+    // that helps reducing the size of the output db file.
     await this.db.run(`
       CREATE TABLE ${BLOGSEARCH_EXT_CONTENT} (
         rowid INTEGER PRIMARY KEY,
@@ -98,9 +94,7 @@ export class Database {
       }
     }
 
-    /**
-     * Insert the parsed content first.
-     */
+    // Insert the parsed content first.
     await this.db.run(`
       INSERT INTO ${BLOGSEARCH_EXT_CONTENT}
       VALUES (
@@ -111,10 +105,8 @@ export class Database {
           .join(',')}
       );
     `);
-    /**
-     * When inserting a row in the fts table, it only indexes content but does
-     * not actually store content.
-     */
+    // When inserting a row in the fts table, it only indexes content but does
+    // not actually store content.
     await this.db.run(`
       INSERT INTO ${BLOGSEARCH} (
         rowid,
