@@ -1,7 +1,7 @@
-From c5ababbb2f3347df3b4fe34b86bd1bdc74341cf8 Mon Sep 17 00:00:00 2001
+From 639ae39f7bbc7265f3198e364e325cf00a739aad Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Wed, 29 Apr 2020 19:58:41 +0900
-Subject: [PATCH 4/4] IGNORE: change name of the project
+Subject: [PATCH 4/5] IGNORE: change name of the project
 
 ---
  package.json | 2 +-

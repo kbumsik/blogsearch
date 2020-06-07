@@ -19,5 +19,12 @@ yarn blogsearch-crawler
 
 3. Move `reactjs.org.gatsby-example.db.wasm` to [the demo folder](../../demo) and test it.
 
+## How to update the example patches (for maintainers)
+
+1. Go to [./reactjs.org] to edit files.
+2. `git add` and `git commit` the editied files.
+3. If you want to edit the existing files, use `git rebase --interactive upstream` to rebase. The original branch will always be `upstream`.
+4. Go back to this directory and then run `./update-patches.sh`.
+
 [reactjs.org]: https://github.com/reactjs/reactjs.org
 [blogsearch.config.js]: ./blogsearch.config.js

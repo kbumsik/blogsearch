@@ -1,0 +1,43 @@
+From 06ea41968f62e25aabba809027f5a48e0d469bcd Mon Sep 17 00:00:00 2001
+From: Bumsik Kim <k.bumsik@gmail.com>
+Date: Sat, 6 Jun 2020 17:45:56 +0900
+Subject: [PATCH 5/5] slim version
+
+---
+ gatsby-config.js | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/gatsby-config.js b/gatsby-config.js
+index 0d8dcfb7..f7b86c9f 100644
+--- a/gatsby-config.js
++++ b/gatsby-config.js
+@@ -21,7 +21,7 @@ module.exports = {
+       resolve: 'gatsby-plugin-blogsearch',
+       options: {
+         // Generated blogsearch database file.
+-        output: 'reactjs.org.gatsby-example.db.wasm',
++        output: 'reactjs.org.gatsby-example.slim.db.wasm',
+         // Fields configurations
+         fields: {
+           title: {
+@@ -32,7 +32,7 @@ module.exports = {
+           body: {
+             enabled: true,
+             indexed: true,
+-            hasContent: true,
++            hasContent: false,
+           },
+           url: {
+             enabled: true,
+@@ -40,7 +40,7 @@ module.exports = {
+             hasContent: true,
+           },
+           categories: {
+-            enabled: true,
++            enabled: false,
+             indexed: true,
+             hasContent: true,
+           },
+-- 
+2.26.2
+
