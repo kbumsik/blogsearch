@@ -15,10 +15,12 @@ export class Database {
 
   public static async create ({
     filename,
-    columns
+    columns,
+    debug = false,
   }: {
     filename: string;
     columns: FieldsMap;
+    debug?: boolean;
   }) {
     const db = await sqlite.open(
       filename,
@@ -28,16 +30,18 @@ export class Database {
       }
     );
     columns = filterMap(columns, field => field.enabled);
-    return (new Database(db, columns)).init();
+    return (new Database(db, columns)).init({ debug });
   }
 
-  private async init () {
-    // const thisFunc = this.db.run.bind(this.db);
-    // // @ts-ignore
-    // this.db.run = async (...args: any[]) => {
-    //   console.log(args[0].toString());
-    //   await thisFunc(...args);
-    // };
+  private async init ({ debug = false }) {
+    if (debug) {
+      const thisFunc = this.db.run.bind(this.db);
+      // @ts-ignore
+      this.db.run = async (...args: any[]) => {
+        console.log(args[0].toString());
+        await thisFunc(...args);
+      };
+    }
 
     // Reference: https://www.sqlite.org/fts5.html
     /**
@@ -75,8 +79,15 @@ export class Database {
     rowid: number,
     columns: ParsedFields | ParsedFieldsMap
   ) {
-    // if object, construct a map with the correct order.
-    if (!(columns instanceof Map)) {
+    if (columns instanceof Map) {
+      // If map, filter out disabled keys
+      const originalColumns = columns; 
+      columns = new Map();
+      for (const [field] of this.columns) {
+        columns.set(field, originalColumns.get(field)!);
+      }
+    } else {
+      // If object, construct a map with the correct order.
       const columnsObj = columns;
       columns = new Map();
       for (const [field, config] of this.columns) {
