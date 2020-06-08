@@ -15,7 +15,7 @@ begin
   Jekyll::Hooks.register(:site, :post_read) do |site|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
     fields_config = site.config['blogsearch']['fields']
-                        .keep_if{ |_, config| config['enabled'] }
+                        .keep_if { |_, config| config['enabled'] }
 
     db_path = site.config['blogsearch']['output']
     db_dir = File.dirname(db_path)
@@ -34,7 +34,7 @@ begin
     db.execute <<-SQL
       CREATE TABLE blogsearch_ext_content (
         rowid INTEGER PRIMARY KEY,
-        #{fields_config.keys.map{ |field| field + (fields_config[field]['indexed'] ? '' : ' UNINDEXED')}.join(',')}
+        #{fields_config.keys.map{ |field| field + (fields_config[field]['indexed'] ? '' : ' UNINDEXED') }.join(',')}
       );
     SQL
 
@@ -42,7 +42,7 @@ begin
     db.execute <<-SQL
       CREATE VIRTUAL TABLE blogsearch
       USING fts5 (
-        #{fields_config.keys.join(',')},
+        #{ fields_config.keys.join(',') },
         tokenize = 'porter unicode61 remove_diacritics 1',
         content=blogsearch_ext_content,
         content_rowid=rowid
@@ -85,7 +85,7 @@ begin
         #{ contents.keys.join(',') }
       )
       VALUES (
-        #{contents.keys.map{ |_| '?' }.join(',')}
+        #{ contents.keys.map { |_| '?' }.join(',') }
       );
     SQL
     contents.values
@@ -95,7 +95,7 @@ begin
     db.execute <<-SQL,
       INSERT INTO blogsearch_ext_content
       VALUES (
-        #{contents.keys.map{ |_| '?' }.join(',')}
+        #{ contents.keys.map { |_| '?' }.join(',') }
       );
     SQL
     contents.values
