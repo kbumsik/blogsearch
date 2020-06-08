@@ -41,13 +41,17 @@ start:
 start-in-docker: DOCKER_OPT += -p 9000:9000
 
 .PHONY: examples
-examples: crawler-reactjs crawler-kubernetes gatsby-reactjs jekyll-circleci demo
+examples: crawler-reactjs crawler-kubernetes gatsby-reactjs jekyll-circleci
 # override -in-docker command
 .PHONY: examples-in-docker
-examples-in-docker: crawler-reactjs-in-docker crawler-kubernetes-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker demo-in-docker
+examples-in-docker: crawler-reactjs-in-docker crawler-kubernetes-in-docker gatsby-reactjs-in-docker jekyll-circleci-in-docker
 
 .PHONY: docs
-docs:
+docs: examples-in-docker
+	cd docs && make all
+
+.PHONY: docs-in-docker
+docs-in-docker:
 	cd docs && make all
 
 #######################
