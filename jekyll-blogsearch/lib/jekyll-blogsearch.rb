@@ -10,12 +10,39 @@ begin
   db = {}
   rowid_counter = 0
   baseurl = ''
+  default_config = {
+    'title' => {
+      'enabled' => true,
+      'indexed' => true,
+      'hasContent' => true,
+    },
+    'body' => {
+      'enabled' => true,
+      'indexed' => true,
+      'hasContent' => true,
+    },
+    'url' => {
+      'enabled' => true,
+      'indexed' => false,
+      'hasContent' => true,
+    },
+    'categories' => {
+      'enabled' => true,
+      'indexed' => true,
+      'hasContent' => true,
+    },
+    'tags' => {
+      'enabled' => true,
+      'indexed' => true,
+      'hasContent' => true,
+    },
+  }
 
   # Start
   Jekyll::Hooks.register(:site, :post_read) do |site|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
-    fields_config = site.config['blogsearch']['fields']
-                        .keep_if { |_, config| config['enabled'] }
+    fields_config = default_config.merge(site.config['blogsearch']['fields'])
+                                  .keep_if { |_, config| config['enabled'] }
 
     db_path = site.config['blogsearch']['output']
     db_dir = File.dirname(db_path)
