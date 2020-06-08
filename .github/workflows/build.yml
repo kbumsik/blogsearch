@@ -9,7 +9,7 @@ on:
       - '*'
 
 jobs:
-  build-parts:
+  build-each:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -20,6 +20,14 @@ jobs:
     - run: make -C ${{ github.workspace }} crawler-kubernetes-in-docker
     - run: make -C ${{ github.workspace }} gatsby-reactjs-in-docker
     - run: make -C ${{ github.workspace }} jekyll-circleci-in-docker
+    - run: make -C ${{ github.workspace }} demo-in-docker
+    - run: make -C ${{ github.workspace }} docs-in-docker
+
+  build-examples:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: make -C ${{ github.workspace }} install-in-docker
     - run: make -C ${{ github.workspace }} examples-in-docker
     - run: make -C ${{ github.workspace }} demo-in-docker
     - run: make -C ${{ github.workspace }} docs-in-docker
