@@ -1,0 +1,42 @@
+From 4b70307a8e911cad9b96dbaea9975ee5ed60dc1a Mon Sep 17 00:00:00 2001
+From: Bumsik Kim <k.bumsik@gmail.com>
+Date: Mon, 8 Jun 2020 13:42:17 +0900
+Subject: [PATCH 4/4] slim version
+
+---
+ jekyll/_config.yml | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/jekyll/_config.yml b/jekyll/_config.yml
+index 131aa3d06..065be4c48 100755
+--- a/jekyll/_config.yml
++++ b/jekyll/_config.yml
+@@ -143,7 +143,7 @@ analytics:
+ rollbar_env: development
+ 
+ blogsearch:
+-  output: circleci-docs.jekyll-example.db.wasm
++  output: circleci-docs.jekyll-example.slim.db.wasm
+   fields:
+     title:
+       enabled: true
+@@ -152,14 +152,14 @@ blogsearch:
+     body:
+       enabled: true
+       indexed: true
+-      hasContent: true
++      hasContent: false
+     url:
+       base: https://circleci.com/docs
+       enabled: true
+       indexed: false
+       hasContent: true
+     categories:
+-      enabled: true
++      enabled: false
+       indexed: true
+       hasContent: true
+     tags:
+-- 
+2.26.2
+

@@ -19,6 +19,10 @@ git config user.email "k.bumsik@gmail.com"
 git config user.name "Bumsik Kim"
 git stash
 git checkout -b "patch-$DATE" "$VERSION"
-git am $CUR_DIR/*.patch
+# Apply patches
+find $CUR_DIR -maxdepth 1 -type f \
+  -name *.patch \
+  ! -name *slim*.patch \
+  -exec git am {} +
 
 cd "$CUR_DIR"

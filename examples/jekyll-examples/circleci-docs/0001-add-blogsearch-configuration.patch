@@ -1,7 +1,7 @@
-From 1c62b7cd8ca08ecdc0ed9f06359913e837a73560 Mon Sep 17 00:00:00 2001
+From 881da525bf24976a4e5f742bda86d99f51ddc88c Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Mon, 4 May 2020 17:56:40 +0900
-Subject: [PATCH 2/3] add blogsearch configuration
+Subject: [PATCH 1/4] add blogsearch configuration
 
 ---
  jekyll/_config.yml | 28 +++++++++++++++++++++++++++-
@@ -11,7 +11,7 @@ Subject: [PATCH 2/3] add blogsearch configuration
 diff --git a/jekyll/_config.yml b/jekyll/_config.yml
 old mode 100644
 new mode 100755
-index fef6cd39d..4fca3e2fd
+index fef6cd39d..131aa3d06
 --- a/jekyll/_config.yml
 +++ b/jekyll/_config.yml
 @@ -14,6 +14,7 @@ plugins:
@@ -28,7 +28,7 @@ index fef6cd39d..4fca3e2fd
  
 -# server_version: "2.18.4"
 +blogsearch:
-+  output: _site/circleci-docs.jekyll-example.db.wasm
++  output: circleci-docs.jekyll-example.db.wasm
 +  fields:
 +    title:
 +      enabled: true

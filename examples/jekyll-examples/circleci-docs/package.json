@@ -4,7 +4,7 @@
   "description": "jekyll-blogsearch usage example with circleci-docs",
   "private": true,
   "scripts": {
-    "build": "./download.sh && ./build-database.sh",
+    "build": "./download.sh && ./build.sh && ./build-slim.sh",
     "clean": "rm -rf circleci-docs *.db.wasm",
     "update-patches": "./update-patches"
   }

@@ -1,7 +1,7 @@
-From 76b65f8a5c761730391aad607e0df820399c84a2 Mon Sep 17 00:00:00 2001
+From bdccc0aa533da9ca9644a2e92849a4cb2f4a22e8 Mon Sep 17 00:00:00 2001
 From: Bumsik Kim <k.bumsik@gmail.com>
 Date: Thu, 30 Apr 2020 00:52:44 +0900
-Subject: [PATCH 3/3] IGNORE: configure build script
+Subject: [PATCH 3/4] IGNORE: configure build script
 
 ---
  docker-compose.yml | 11 +++++++++--
