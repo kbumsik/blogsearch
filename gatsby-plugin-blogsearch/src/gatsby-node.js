@@ -1,24 +1,24 @@
 const fs = require('fs');
 const path = require('path');
 const { Database } = require('blogsearch-crawler/lib/database');
-const { defaultFields } = require('blogsearch-crawler/lib/defaultFields');
+const { checkFields } = require('blogsearch-crawler/lib/checkers');
 
 // Implement the Gatsby API “createPages”. This is called once the
 // data layer is bootstrapped to let plugins create pages from data.
 exports.createPages = async ({ graphql, reporter }, options) => {
   // Override existing database
-  const filename = options.output;
-  if (!fs.existsSync(path.dirname(filename))) {
-    fs.mkdirSync(path.dirname(filename))
+  const { output } = options;
+  if (!fs.existsSync(path.dirname(output))) {
+    fs.mkdirSync(path.dirname(output))
   }
-  if (fs.existsSync(filename)) {
-    fs.unlinkSync(filename);
+  if (fs.existsSync(output)) {
+    fs.unlinkSync(output);
   }
 
   // Create database
   const db = await Database.create({
-    filename,
-    columns: defaultFields,
+    filename: output,
+    columns: checkFields(options),
   });
 
   // Query for markdown nodes to use in creating pages.
