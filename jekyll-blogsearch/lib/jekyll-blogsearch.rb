@@ -34,7 +34,7 @@ begin
     db.execute <<-SQL
       CREATE TABLE blogsearch_ext_content (
         rowid INTEGER PRIMARY KEY,
-        #{fields_config.keys.join(',')}
+        #{fields_config.keys.map{ |field| field + (fields_config[field]['indexed'] ? '' : ' UNINDEXED')}.join(',')}
       );
     SQL
 
