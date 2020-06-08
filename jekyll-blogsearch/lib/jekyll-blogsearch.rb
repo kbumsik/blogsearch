@@ -3,7 +3,7 @@ require 'jekyll/plugin'
 require 'jekyll/generator'
 require 'sqlite3'
 require 'jekyll/blogsearch/version'
-require "nokogiri"
+require 'nokogiri'
 
 begin
   fields_config = {}
@@ -15,7 +15,8 @@ begin
   Jekyll::Hooks.register(:site, :post_read) do |site|
     # https://www.rubydoc.info/github/jekyll/jekyll/Jekyll/Site
     fields_config = site.config['blogsearch']['fields']
-    
+                        .keep_if{ |_, config| config['enabled'] }
+
     db_path = site.config['blogsearch']['output']
     db_dir = File.dirname(db_path)
     Dir.mkdir(db_dir) if not Dir.exist?(db_dir)
@@ -33,11 +34,7 @@ begin
     db.execute <<-SQL
       CREATE TABLE blogsearch_ext_content (
         rowid INTEGER PRIMARY KEY,
-        title,
-        body,
-        url,
-        categories,
-        tags
+        #{fields_config.keys.join(',')}
       );
     SQL
 
@@ -45,16 +42,15 @@ begin
     db.execute <<-SQL
       CREATE VIRTUAL TABLE blogsearch
       USING fts5 (
-        title,
-        body,
-        url,
-        categories,
-        tags,
+        #{fields_config.keys.join(',')},
         tokenize = 'porter unicode61 remove_diacritics 1',
         content=blogsearch_ext_content,
         content_rowid=rowid
       );
     SQL
+
+    # Add 'rowid' block to match contents hash when inserted to the db.
+    fields_config['rowid'] = {}
   end
 
   # End
@@ -70,47 +66,34 @@ begin
     next if not document.published?
     rowid_counter += 1
 
-    rowid = rowid_counter
-    title = document.data['title']
-    body = Nokogiri::HTML(document.content).text.to_s.gsub(/\s+/, ' ')
-    url = baseurl + document.url
-    categories = document.data['categories'].join(' , ')
-    tags = document.data['tags'].join(' , ')
+    contents = {
+      'rowid' => rowid_counter,
+      'title' => document.data['title'],
+      'body' => Nokogiri::HTML(document.content).text.to_s.gsub(/\s+/, ' '),
+      'url' => baseurl + document.url,
+      'categories' => document.data['categories'].join(' , '),
+      'tags' => document.data['tags'].join(' , ')
+    }.keep_if{ |key, _| fields_config.has_key?(key) }
 
     # External content table
     db.execute <<-SQL,
       INSERT INTO blogsearch_ext_content
       VALUES (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
+        #{contents.keys.map{ |_| '?' }.join(',')}
       );
     SQL
-    [rowid, title, body, url, categories, tags]
-    
+    contents.values
+
     # FTS5 virtual table
     db.execute <<-SQL,
       INSERT INTO blogsearch (
-        rowid,
-        title,
-        body,
-        url,
-        categories,
-        tags
+        #{contents.keys.join(',')}
       )
       VALUES (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
+        #{contents.keys.map{ |_| '?' }.join(',')}
       );
     SQL
-    [rowid, title, body, url, categories, tags]
+    contents.values
   end
 
 rescue => e
