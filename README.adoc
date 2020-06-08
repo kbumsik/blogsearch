@@ -219,16 +219,11 @@ For specific NodeJS versions used in thie project, please look at link:./Dockerf
 make install-in-docker
 ----
 
-==== Build
+==== Build libraries
 [source,bash]
 ----
-# Or make all, without docker
-make all-in-docker
-
-# Or
-
-# Parallel builds. This reduces the build time almost an half on my machine. 
-make all-in-docker -j4 --output-sync=target
+# Or yarn install, without docker
+make lib-in-docker
 ----
 
 ==== Run a demo server
@@ -250,10 +245,28 @@ make test-in-docker -j4 --output-sync=target
 ----
 
 ==== Rebuild example index files
+
+WARNING: This will take a lot of time! (~30 mintues)
+
 [source,bash]
 ----
 # It is highly recommended to use docker here
-make examples-in-docker
+make examples-in-docker && make demo-in-docker
+----
+
+==== Build everything
+
+WARNING: This will take a lot of time! (~30 mintues)
+
+[source,bash]
+----
+# Or make all, without docker
+make all-in-docker
+
+# Or
+
+# Parallel builds. This reduces the build time almost an half on my machine. 
+make all-in-docker -j4 --output-sync=target
 ----
 
 ==== Rebuild everything
