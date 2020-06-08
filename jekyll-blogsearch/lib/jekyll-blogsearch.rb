@@ -50,7 +50,11 @@ begin
     SQL
 
     # Add 'rowid' block to match contents hash when inserted to the db.
-    fields_config['rowid'] = {}
+    fields_config['rowid'] = {
+      'enabled' => true,
+      'indexed' => false,
+      'hasContent' => true,
+    }
   end
 
   # End
@@ -72,23 +76,24 @@ begin
       'body' => Nokogiri::HTML(document.content).text.to_s.gsub(/\s+/, ' '),
       'url' => baseurl + document.url,
       'categories' => document.data['categories'].join(' , '),
-      'tags' => document.data['tags'].join(' , ')
-    }.keep_if{ |key, _| fields_config.has_key?(key) }
+      'tags' => document.data['tags'].join(' , '),
+    }.keep_if { |field, _| fields_config.has_key?(field) }
 
-    # External content table
+    # FTS5 virtual table
     db.execute <<-SQL,
-      INSERT INTO blogsearch_ext_content
+      INSERT INTO blogsearch (
+        #{ contents.keys.join(',') }
+      )
       VALUES (
         #{contents.keys.map{ |_| '?' }.join(',')}
       );
     SQL
     contents.values
 
-    # FTS5 virtual table
+    contents = contents.map { |field, value| [field, fields_config[field]['hasContent'] ? value : ''] }.to_h
+    # External content table
     db.execute <<-SQL,
-      INSERT INTO blogsearch (
-        #{contents.keys.join(',')}
-      )
+      INSERT INTO blogsearch_ext_content
       VALUES (
         #{contents.keys.map{ |_| '?' }.join(',')}
       );
