@@ -10,11 +10,13 @@ BLOGSEARCH_ROOT = $(addprefix ../../blogsearch/dist/, $(BLOGSEARCH))
 BLOGSEARCH_PUBLIC = $(addprefix ./public/, $(BLOGSEARCH))
 
 DB = \
-	reactjs.org.crawler-example.db.wasm \
-	reactjs.org.gatsby-example.db.wasm \
-	circleci-docs.jekyll-example.db.wasm \
-	kubernetes.io.crawler-example.db.wasm
-DB_PUBLIC = $(addprefix ./public/, $(DB))
+	reactjs.org.crawler-example \
+	reactjs.org.gatsby-example \
+	circleci-docs.jekyll-example \
+	kubernetes.io.crawler-example
+DB_FILES = $(addsuffix .db.wasm, $(DB))
+DB_FILES += $(addsuffix .slim.db.wasm, $(DB))
+DB_PUBLIC = $(addprefix ./public/, $(DB_FILES))
 
 # Build targests
 all: blogsearch database
@@ -35,16 +37,16 @@ blogsearch_root:
 	cd ../../blogsearch && yarn build
 
 # Database build
-./public/reactjs.org.crawler-example.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.crawler-example.db.wasm
+./public/reactjs.org.crawler-example%.db.wasm: ../crawler-examples/reactjs.org/reactjs.org.crawler-example%.db.wasm
 	cp $< $@
 
-./public/kubernetes.io.crawler-example.db.wasm: ../crawler-examples/kubernetes.io/kubernetes.io.crawler-example.db.wasm
+./public/kubernetes.io.crawler-example%.db.wasm: ../crawler-examples/kubernetes.io/kubernetes.io.crawler-example%.db.wasm
 	cp $< $@
 
-./public/reactjs.org.gatsby-example.db.wasm: ../gatsby-examples/reactjs.org/reactjs.org.gatsby-example.db.wasm
+./public/reactjs.org.gatsby-example%.db.wasm: ../gatsby-examples/reactjs.org/reactjs.org.gatsby-example%.db.wasm
 	cp $< $@
 
-./public/circleci-docs.jekyll-example.db.wasm: ../jekyll-examples/circleci-docs/circleci-docs.jekyll-example.db.wasm
+./public/circleci-docs.jekyll-example%.db.wasm: ../jekyll-examples/circleci-docs/circleci-docs.jekyll-example%.db.wasm
 	cp $< $@
 
 ../%.db.wasm:

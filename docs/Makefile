@@ -1,13 +1,15 @@
-INDEX_FILES = \
-	circleci-docs.jekyll-example.db.wasm \
-	reactjs.org.crawler-example.db.wasm \
-	reactjs.org.gatsby-example.db.wasm \
-	kubernetes.io.crawler-example.db.wasm
+DB = \
+	reactjs.org.crawler-example \
+	reactjs.org.gatsby-example \
+	circleci-docs.jekyll-example \
+	kubernetes.io.crawler-example
+DB_FILES = $(addsuffix .db.wasm, $(DB))
+DB_FILES += $(addsuffix .slim.db.wasm, $(DB))
 
 ASSET_FILES = \
 	bootstrap-litera.css
 
-all: $(INDEX_FILES) $(ASSET_FILES)
+all: $(DB_FILES) $(ASSET_FILES)
 
 %.db.wasm:
 	make -C ../examples/demo public/$@
