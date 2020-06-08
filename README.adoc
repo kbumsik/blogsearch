@@ -249,6 +249,13 @@ make test-in-docker
 make test-in-docker -j4 --output-sync=target
 ----
 
+==== Rebuild example index files
+[source,bash]
+----
+# It is highly recommended to use docker here
+make examples-in-docker
+----
+
 ==== Rebuild everything
 [source,bash]
 ----
