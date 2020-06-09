@@ -1,4 +1,4 @@
-all: lib-in-docker examples-in-docker docs
+all: lib-in-docker examples-in-docker demo docs
 
 # override -in-docker commond
 .PHONY: all-in-docker
@@ -36,7 +36,7 @@ test: blogsearch
 	cd blogsearch && yarn test
 
 start:
-	cd examples/demo && yarn start
+	cd examples/demo && yarn build && yarn start
 # Port 9000 is used by the webserver of examples/demo
 start-in-docker: DOCKER_OPT += -p 9000:9000
 
@@ -49,7 +49,7 @@ examples-in-docker: crawler-reactjs-in-docker crawler-kubernetes-in-docker gatsb
 .PHONY: docs
 docs: examples-in-docker
 	cd docs && make all
-
+# override -in-docker command
 .PHONY: docs-in-docker
 docs-in-docker:
 	cd docs && make all
@@ -83,7 +83,12 @@ jekyll-circleci:
 .PHONY: jekyll-circleci-in-docker
 jekyll-circleci-in-docker: jekyll-circleci
 
-demo: blogsearch
+.PHONY: demo
+demo: blogsearch examples-in-docker
+	cd examples/demo && yarn build
+# override -in-docker command
+.PHONY: demo-in-docker
+demo-in-docker: blogsearch
 	cd examples/demo && yarn build
 
 ######

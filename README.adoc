@@ -229,7 +229,7 @@ make lib-in-docker
 ==== Run a demo server
 [source,bash]
 ----
-make demo-in-docker && make start-in-docker
+make start-in-docker
 
 # You can access the demo page via 0.0.0.0:9000
 ----
