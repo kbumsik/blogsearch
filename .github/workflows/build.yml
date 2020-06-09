@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - run: make -C ${{ github.workspace }} clean
     - run: make -C ${{ github.workspace }} install-in-docker
     - run: make -C ${{ github.workspace }} blogsearch-in-docker
     - run: make -C ${{ github.workspace }} blogsearch-crawler-in-docker
@@ -27,6 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - run: make -C ${{ github.workspace }} clean
     - run: make -C ${{ github.workspace }} install-in-docker
     - run: make -C ${{ github.workspace }} examples-in-docker
     - run: make -C ${{ github.workspace }} demo-in-docker
@@ -36,6 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - run: make -C ${{ github.workspace }} clean
     - run: make -C ${{ github.workspace }} install-in-docker
     - run: make -C ${{ github.workspace }} all-in-docker -j4 --output-sync=target
 
