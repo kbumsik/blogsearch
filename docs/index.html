@@ -30,39 +30,57 @@
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarColor03" aria-controls="navbarColor03" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-    
-      <div class="collapse navbar-collapse" id="navbarColor03">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="https://github.com/kbumsik/blogsearch">Home <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="https://github.com/kbumsik/blogsearch">Features</a>
-          </li>
-        </ul>
-      </div>
     </nav>
 
     <div class="container">
-      Precompiled databases:
-      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-primary active">
-          <input type="radio" checked="" dbPath="reactjs.org.crawler-example.db.wasm">
-            reactjs.org (using blogsearch-crawler)
-          </input>
-        </label>
-        <label class="btn btn-primary">
-          <input type="radio" dbPath="reactjs.org.gatsby-example.db.wasm">
-            reactjs.org (using gatsby-plugin-blogsearch)
-          </input>
-        </label>
-        <label class="btn btn-primary">
-          <input type="radio" dbPath="circleci-docs.jekyll-example.db.wasm">
-            CircleCI documentation (using jekyll-blogsearch)
-          </input>
-        </label>
+      <h2>
+        Example Index files
+      </h2>
+
+      <div class="row mb-3">
+        <div class="col-sm">
+          <a href="https://github.com/reactjs/reactjs.org">React JS Documentation</a>, 255 Pages, Gatsby<br>
+          <small>
+            built by <a href="https://github.com/kbumsik/blogsearch/tree/master/gatsby-plugin-blogsearch">the gatsby plugin for BlogSearch</a>
+          </small>
+        </div>
+        <div class="col-sm btn-group">
+          <button type="button" class="btn btn-primary" dbPath="reactjs.org.gatsby-example.db.wasm">Full<br><small>1.09MB (2.57MB uncompressed)</small></button>
+          <button type="button" class="btn btn-primary" dbPath="reactjs.org.gatsby-example.slim.db.wasm">Slim<br><small>644KB (980KB uncompressed)</small></button>
+        </div>
       </div>
-      <label>Your own BlogSearch database file: <input type='file' id='dbfile'></label>
+
+      <div class="row mb-3">
+        <div class="col-sm">
+          <a href="https://github.com/kubernetes/website">Kubernetes Documentation</a>, 626 Pages, Hugo<br>
+          <small>
+            built by <a href="https://github.com/kbumsik/blogsearch/tree/master/blogsearch-crawler">the generic crawler for BlogSearch</a>
+          </small>
+        </div>
+        <div class="col-sm btn-group">
+          <button type="button" class="btn btn-primary" dbPath="kubernetes.io.crawler-example.db.wasm">Full<br><small>3.43MB (8.31MB uncompressed)</small></button>
+          <button type="button" class="btn btn-primary" dbPath="kubernetes.io.crawler-example.slim.db.wasm">Slim<br><small>1.82MB (2.71MB uncompressed)</small></button>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm">
+          <a href="https://github.com/circleci/circleci-docs">CircleCI documentation</a>, 645 Pages, Jekyll<br>
+          <small>
+            built by <a href="https://github.com/kbumsik/blogsearch/tree/master/jekyll-blogsearch">the Jekyll plugin for BlogSearch</a>
+          </small>
+        </div>
+        <div class="col-sm btn-group">
+          <button type="button" class="btn btn-primary" dbPath="circleci-docs.jekyll-example.db.wasm">Full<br><small>2.05MB (5.76MB uncompressed)</small></button>
+          <button type="button" class="btn btn-primary" dbPath="circleci-docs.jekyll-example.slim.db.wasm">Slim<br><small>1MB (2.04MB uncompressed)</small></button>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-sm input-group">
+          <label>Your own BlogSearch index file (for testing): <input type='file' id='dbfile' aria-describedby="btnGroupAddon"></label>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/blogsearch@latest/dist/blogsearch.umd.js"></script>
@@ -88,15 +106,14 @@ const updateDB = (() => {
 })();
 
 // Update database when clicked
-for (const el of document.querySelectorAll('input:not(#q)')) {
-  el.onchange = function (event) {
+for (const el of document.querySelectorAll('input:not(#q), .btn-primary')) {
+  function changeDB (event) {
     const dbPath = getDBPath(this);
-    if (!dbPath) {
-      console.log('No file selected.');
-      return;
-    }
+    if (!dbPath) return;
     updateDB(dbPath);
   }
+  el.onclick = changeDB;
+  el.onchange = changeDB;
 }
 
 function getDBPath(element) {
@@ -111,8 +128,8 @@ function getDBPath(element) {
 }
 
 // Manually trigger the first button to load the first database
-const firstEvent = new Event("change");
-const firstElement = document.querySelector('input:not(#q)');
+const firstEvent = new Event("click");
+const firstElement = document.querySelector('.btn-primary');
 firstElement.dispatchEvent(firstEvent);
 
     </script>
