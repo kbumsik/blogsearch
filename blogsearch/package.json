@@ -1,6 +1,6 @@
 {
   "name": "blogsearch",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A search engine for blogs without any external services",
   "repository": "https://github.com/kbumsik/blogsearch",
   "author": "Bumsik Kim <k.bumsik@gmail.com>",

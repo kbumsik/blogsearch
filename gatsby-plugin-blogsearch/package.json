@@ -1,6 +1,6 @@
 {
   "name": "gatsby-plugin-blogsearch",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "BlogSearch index building tool for Gatsby",
   "main": "./index.js",
   "files": [
