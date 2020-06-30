@@ -288,10 +288,7 @@ make bash-in-docker
 
 == Credits & License
 
-This project is inspired by https://docsearch.algolia.com/[DocSearch] and is
-a reimplementation of it in TypeScript with SQLite backend. (MIT license)
+This project is inspired by https://docsearch.algolia.com/[DocSearch] and has
+a reimplementation of it in TypeScript.
 
-The SQLite backend has a reimplementation of https://github.com/sql-js/sql.js[sql.js]
-in TypeScript. (MIT license)
-
-Other than the above two, the project is MIT License. See link:./LICENSE[LICENSE]
+Other than that, the project is MIT License. See link:./LICENSE[LICENSE]
