@@ -11,12 +11,11 @@
     "build": "make dist",
     "build:dev": "make debug",
     "build:ts": "tsc",
-    "build:ts-test": "tsc --build tsconfig.test.json",
     "watch": "tsc -w",
     "clean": "make clean",
     "deploy": "make dist",
     "lint": "eslint --ext .js,.ts,.tsx ./src",
-    "test": "yarn build:ts-test && jest --no-cache",
+    "test": "yarn build && jest --no-cache",
     "test:watch": "jest --no-cache --watch --no-watchman"
   },
   "files": [

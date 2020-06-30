@@ -1,7 +1,7 @@
 /* eslint-disable import/no-commonjs */
 module.exports = {
   roots: [
-    '<rootDir>/lib-test'
+    '<rootDir>/lib'
   ],
   testMatch: [
     '**/__tests__/**/*.js'

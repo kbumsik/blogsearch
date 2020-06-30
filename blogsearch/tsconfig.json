@@ -8,12 +8,6 @@
   },
   "include": [
     "src/lib/**/*.ts",
-    "src/lib/**/index.js"
-  ],
-  "exclude": [
-    "lib",
-    "lib-test",
-    "**/__tests__/*",
-    "**/__mocks__/*"
+    "src/lib/**/*.js"
   ]
 }

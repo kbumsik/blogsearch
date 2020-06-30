@@ -57,7 +57,7 @@ jest.mock('autocomplete.js', () => {
 /**
  * Mocks for Web Worker
  */
-const mockWorker: Worker = {
+const mockWorker = {
   postMessage: jest.fn(),
   onmessage: jest.fn(),
   onerror: jest.fn(),
@@ -86,34 +86,34 @@ describe('BlogSearch', () => {
   });
 
   afterEach(() => {
-    (SQLite as jest.Mock).mockClear();
+    SQLite.mockClear();
     mockSQLiteLoad.mockClear();
     mockSQLiteSearch.mockClear();
     mockSQLiteRun.mockClear();
 
-    ((autocomplete as unknown) as jest.Mock).mockClear();
+    autocomplete.mockClear();
     mockAutoCompleteOn.mockClear();
 
-    ((Hogan.compile as unknown) as jest.Mock).mockClear();
+    Hogan.compile.mockClear();
     mockHoganRender.mockClear();
   });
 
-  describe('constructor', () => {
-    let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
+  describe('create()', () => {
+    let defaultOptions;
     const mockWorkerFactory = jest.fn(() => {
       return {};
     });
-    let getInputFromSelector: jest.SpyInstance;
+    let getInputFromSelector;
 
     beforeEach(() => {
       defaultOptions = {
-        workerFactory: mockWorkerFactory as any,
+        workerFactory: mockWorkerFactory,
         dbPath: 'test.db.wasm',
         wasmPath: 'test.wasm',
         inputSelector: '#input',
       };
       // @ts-ignore
-      getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector') as jest.SpyInstance;
+      getInputFromSelector = jest.spyOn(BlogSearch, 'getInputFromSelector');
     });
 
     afterEach(() => {
@@ -121,12 +121,12 @@ describe('BlogSearch', () => {
       mockWorkerFactory.mockClear();
     });
 
-    it('should pass main options to SQLite constructor', () => {
+    it('should pass main options to SQLite constructor', async () => {
       // Given
       const options = defaultOptions;
 
       // When
-      new BlogSearch(options);
+      await BlogSearch.create(options);
 
       // Then
       expect(SQLite).toHaveBeenLastCalledWith({
@@ -146,12 +146,12 @@ describe('BlogSearch', () => {
       getInputFromSelector.mockImplementation(() => $input);
 
       // When
-      await (new BlogSearch(options as any)).load();
+      await BlogSearch.create(options);
 
       // Then
       expect(autocomplete).toBeCalledTimes(1);
-      expect(((autocomplete as unknown) as jest.Mock).mock.calls[0][0]).toBe($input);
-      expect(((autocomplete as unknown) as jest.Mock).mock.calls[0][1]).toStrictEqual({
+      expect(autocomplete.mock.calls[0][0]).toBe($input);
+      expect(autocomplete.mock.calls[0][1]).toStrictEqual({
         anOption: '44',
         cssClasses: {
           root: 'blogsearch-autocomplete',
@@ -159,73 +159,106 @@ describe('BlogSearch', () => {
         },
         debug: false,
         ariaLabel: 'search input',
-      } as any);
+      });
+    });
+    it('should initialize this.sqlite object', async () => {
+      // Given
+      const options = defaultOptions;
+
+      // When
+      const blogsearch = await BlogSearch.create(options);
+
+      // Then
+      // @ts-ignore
+      expect(typeof blogsearch.sqlite).toBe('object');
+    });
+    it('should not run any query', async () => {
+      // Given
+      const options = defaultOptions;
+
+      // When
+      const blogsearch = await BlogSearch.create(options);
+
+      // Then
+      // @ts-ignore
+      expect(mockSQLiteRun).toBeCalledTimes(0);
+    });
+    it('should listen to the selected and shown event of autocomplete', async () => {
+      // Given
+      const options = { ...defaultOptions, handleSelected () { return; } };
+
+      // When
+      const blogsearch = await BlogSearch.create(options);
+
+      // Then
+      expect(mockAutoCompleteOn).toBeCalledTimes(2);
+      expect(mockAutoCompleteOn.mock.calls[0][0]).toBe('autocomplete:selected');
     });
 
-    describe('checkArguments', () => {
-      it('should throw an error if no dbPath defined', () => {
+    describe('Arguments', () => {
+      it('should throw an error if no dbPath defined', async () => {
         // Given
         const options = defaultOptions;
         delete options.dbPath;
 
         // When
-        expect(() => {
-          new BlogSearch(options);
+        expect(async () => {
+          await BlogSearch.create(options);
         }).toThrow(/^Usage:/);
       });
-      it('should use the default wasmPath if no wasmPath defined', () => {
+      it('should use the default wasmPath if no wasmPath defined', async () => {
         // Given
         const options = defaultOptions;
         delete options.wasmPath;
 
         // When
-        new BlogSearch(options);
+        await BlogSearch.create(options);
 
         // Then
-        expect((SQLite as jest.Mock).mock.calls[0][0].wasmPath).toMatch(/\/\/localhost\/blogsearch.wasm/);
+        expect(SQLite.mock.calls[0][0].wasmPath).toMatch(/\/\/localhost\/blogsearch.wasm/);
       });
-      it('should pass if no workerFactory defined', () => {
+      it('should pass if no workerFactory defined', async () => {
         // Given
         const options = defaultOptions;
         delete options.workerFactory;
 
         // When
-        expect(() => {
-          new BlogSearch(options);
+        expect(async () => {
+          await BlogSearch.create(options);
         }).not.toThrow(/^Usage:/);
       });
-      it('should throw an error if workerFactory is not function', () => {
+      it('should throw an error if workerFactory is not function', async () => {
         // Given
-        const options = { ...defaultOptions, workerFactory: {} as any };
+        const options = { ...defaultOptions, workerFactory: {}};
 
         // When
-        expect(() => {
-          new BlogSearch(options);
+        expect(async () => {
+          await BlogSearch.create(options);
         }).toThrow(/^Usage:/);
       });
-      it('should throw an error if no selector matches', () => {
+      it('should throw an error if no selector matches', async () => {
         // Given
         const options = { ...defaultOptions, inputSelector: 'noMatch' };
 
         // When
-        expect(() => {
-          new BlogSearch(options);
+        expect(async () => {
+          await BlogSearch.create(options);
         }).toThrow(/^Error:/);
       });
     });
 
     describe('getWorkerFactory', () => {
-      it("should call new Worker('.../worker.umd.js') by default", () => {
+      it("should call new Worker('.../worker.umd.js') by default", async () => {
         // Given
         const options = defaultOptions;
         delete options.workerFactory;
 
         // When
-        new BlogSearch(options);
+        await BlogSearch.create(options);
 
         // Then
-        expect((SQLite as jest.Mock).mock.calls[0][0].worker).toBe(mockWorker);
-        expect((Worker as jest.Mock).mock.calls[0][0]).toMatch(/\/\/localhost\/worker.umd.js/);
+        expect(SQLite.mock.calls[0][0].worker).toBe(mockWorker);
+        expect(Worker.mock.calls[0][0]).toMatch(/\/\/localhost\/worker.umd.js/);
       });
       it('should call new Worker(window.blogsearch.worker) if exists', () => {
         // [TODO] URL.createObjectURL() not provided by JSDOM figure out a workaround.
@@ -246,132 +279,83 @@ describe('BlogSearch', () => {
     // })
   });
 
-  describe('load', () => {
-    let defaultOptions: ConstructorParameters<typeof BlogSearch>[0];
+  // describe('getInputFromSelector', () => {
+  //   // @ts-ignore
+  //   let getInputFromSelector;
 
-    beforeEach(() => {
-      defaultOptions = {
-        dbPath: 'test.db.wasm',
-        wasmPath: 'test.wasm',
-        inputSelector: '#input',
-      };
-    });
+  //   beforeEach(() => {
+  //     // @ts-ignore
+  //     getInputFromSelector = BlogSearch.getInputFromSelector;
+  //   });
 
-    it('should initialize this.sqlite object', async () => {
-      // Given
-      const options = defaultOptions;
+  //   it('should throw an error if no element matches the selector', () => {
+  //     // Given
+  //     const selector = '.i-do-not-exist > at #all';
 
-      // When
-      const blogsearch = new BlogSearch(options);
-      await blogsearch.load();
+  //     // When
+  //     expect(() => {
+  //       getInputFromSelector(selector);
+  //     }).toThrow(/^Error: No input element in the page matches/);
+  //   });
+  //   it('should throw an error if the matched element is not an input', () => {
+  //     // Given
+  //     const selector = '.i-am-a-span';
 
-      // Then
-      // @ts-ignore
-      expect(typeof blogsearch.sqlite).toBe('object');
-    });
-    it('should not run any query', async () => {
-      // Given
-      const options = defaultOptions;
+  //     // When
+  //     expect(() => {
+  //       getInputFromSelector(selector);
+  //     }).toThrow(/^Error: No input element in the page matches/);
+  //   });
+  //   it('should return a Zepto wrapped element if it matches', () => {
+  //     // Given
+  //     const selector = '#input';
 
-      // When
-      const blogsearch = new BlogSearch(options);
-      await blogsearch.load();
+  //     // When
+  //     const actual = getInputFromSelector(selector);
 
-      // Then
-      // @ts-ignore
-      expect(mockSQLiteRun).toBeCalledTimes(0);
-    });
-    it('should listen to the selected and shown event of autocomplete', async () => {
-      // Given
-      const options = { ...defaultOptions, handleSelected () { return; } };
+  //     // Then
+  //     // @ts-ignore
+  //     expect($.zepto.isZ(actual)).toBe(true);
+  //   });
+  // });
 
-      // When
-      const blogsearch = new BlogSearch(options);
-      await blogsearch.load();
+  // describe('searchSource', () => {
+  //   let blogsearch;
+  //   beforeEach(async () => {
+  //     blogsearch = new BlogSearch({
+  //       dbPath: 'test.db.wasm',
+  //       wasmPath: 'test.wasm',
+  //       inputSelector: '#input',
+  //     });
+  //     await blogsearch.load();
+  //   });
 
-      // Then
-      expect(mockAutoCompleteOn).toBeCalledTimes(2);
-      expect(mockAutoCompleteOn.mock.calls[0][0]).toBe('autocomplete:selected');
-    });
-  });
+  //   it('returns a function', () => {
+  //     // Given
+  //     // @ts-ignore
+  //     const actual = blogsearch.getAutocompleteSource();
 
-  describe('getInputFromSelector', () => {
-    // @ts-ignore
-    let getInputFromSelector: typeof BlogSearch.getInputFromSelector;
+  //     // When
 
-    beforeEach(() => {
-      // @ts-ignore
-      getInputFromSelector = BlogSearch.getInputFromSelector;
-    });
+  //     // Then
+  //     expect(actual).toBeInstanceOf(Function);
+  //   });
 
-    it('should throw an error if no element matches the selector', () => {
-      // Given
-      const selector = '.i-do-not-exist > at #all';
+  //   describe('the returned function', () => {
+  //     it('calls the sqlite client with the correct parameters', async () => {
+  //       // Given
+  //       // @ts-ignore
+  //       const actual = blogsearch.getAutocompleteSource();
 
-      // When
-      expect(() => {
-        getInputFromSelector(selector);
-      }).toThrow(/^Error: No input element in the page matches/);
-    });
-    it('should throw an error if the matched element is not an input', () => {
-      // Given
-      const selector = '.i-am-a-span';
+  //       // When
+  //       await actual('query', () => {});
 
-      // When
-      expect(() => {
-        getInputFromSelector(selector);
-      }).toThrow(/^Error: No input element in the page matches/);
-    });
-    it('should return a Zepto wrapped element if it matches', () => {
-      // Given
-      const selector = '#input';
-
-      // When
-      const actual = getInputFromSelector(selector);
-
-      // Then
-      // @ts-ignore
-      expect($.zepto.isZ(actual)).toBe(true);
-    });
-  });
-
-  describe('getAutocompleteSource', () => {
-    let blogsearch: BlogSearch;
-    beforeEach(async () => {
-      blogsearch = new BlogSearch({
-        dbPath: 'test.db.wasm',
-        wasmPath: 'test.wasm',
-        inputSelector: '#input',
-      });
-      await blogsearch.load();
-    });
-
-    it('returns a function', () => {
-      // Given
-      // @ts-ignore
-      const actual = blogsearch.getAutocompleteSource();
-
-      // When
-
-      // Then
-      expect(actual).toBeInstanceOf(Function);
-    });
-
-    describe('the returned function', () => {
-      it('calls the sqlite client with the correct parameters', async () => {
-        // Given
-        // @ts-ignore
-        const actual = blogsearch.getAutocompleteSource();
-
-        // When
-        await actual('query', () => {});
-
-        // Then
-        expect(mockSQLiteSearch).toBeCalledTimes(1);
-        expect(mockSQLiteSearch).toHaveBeenLastCalledWith('query', 5);
-      });
-    });
-  });
+  //       // Then
+  //       expect(mockSQLiteSearch).toBeCalledTimes(1);
+  //       expect(mockSQLiteSearch).toHaveBeenLastCalledWith('query', 5);
+  //     });
+  //   });
+  // });
 
   // describe('getSuggestionTemplate', () => {
   //   it('should return a function', () => {
