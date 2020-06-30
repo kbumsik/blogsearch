@@ -23,8 +23,8 @@
     "lib/"
   ],
   "dependencies": {
-    "autocomplete.js": "^0.37.1",
-    "hogan.js": "^3.0.2",
+    "autocomplete.js": "0.37.1",
+    "hogan.js": "3.0.2",
     "sqlite-wasm": "^0.0.2"
   },
   "devDependencies": {
@@ -36,6 +36,7 @@
     "@types/emscripten": "^1.39.3",
     "@types/hogan.js": "^3.0.0",
     "@types/jest": "^26.0.3",
+    "@types/jquery": "3.3.33",
     "@types/sinon": "^7.5.2",
     "autoprefixer": "^9.7.6",
     "babel-loader": "^8.1.0",
