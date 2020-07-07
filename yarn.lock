@@ -1889,6 +1889,16 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+blogsearch-crawler@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/blogsearch-crawler/-/blogsearch-crawler-0.0.2.tgz#7ddeb5608449591e4621452c85dbf5b00f97b826"
+  integrity sha512-mySZ+CaSTh4ock3NIoF+5gB15PuZhgr+6I90c/mKjh1FbrVdD6syFMMUz4qqK3AdMHHa40GAGzlV9mLsSginXw==
+  dependencies:
+    glob "^7.1.6"
+    puppeteer "^2.0.0"
+    sqlite "^3.0.3"
+    sqlite3 "^4.1.1"
+
 bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
@@ -9200,9 +9210,9 @@ websocket-driver@>=0.5.1:
     websocket-extensions ">=0.1.1"
 
 websocket-extensions@>=0.1.1:
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.3.tgz#5d2ff22977003ec687a4b87073dfbbac146ccf29"
-  integrity sha512-nqHUnMXmBzT0w570r2JpJxfiSD1IzoI+HGVdd3aZ0yNi3ngvQ4jv1dtHt5VGxfI2yj5yqImPhOK4vmIh2xMbGg==
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/websocket-extensions/-/websocket-extensions-0.1.4.tgz#7f8473bc839dfd87608adb95d7eb075211578a42"
+  integrity sha512-OqedPIGOfsDlo31UNwYbCFMSaO9m9G/0faIHj5/dZFDMFqPTcx6UwqyOy3COEaEOg/9VsGIpdqn62W5KhoKSpg==
 
 whatwg-encoding@^1.0.1, whatwg-encoding@^1.0.3:
   version "1.0.5"
