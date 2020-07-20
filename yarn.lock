@@ -1889,6 +1889,16 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+blogsearch-crawler@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/blogsearch-crawler/-/blogsearch-crawler-0.0.2.tgz#7ddeb5608449591e4621452c85dbf5b00f97b826"
+  integrity sha512-mySZ+CaSTh4ock3NIoF+5gB15PuZhgr+6I90c/mKjh1FbrVdD6syFMMUz4qqK3AdMHHa40GAGzlV9mLsSginXw==
+  dependencies:
+    glob "^7.1.6"
+    puppeteer "^2.0.0"
+    sqlite "^3.0.3"
+    sqlite3 "^4.1.1"
+
 bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
@@ -5677,9 +5687,9 @@ lodash.uniq@^4.5.0:
   integrity sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=
 
 lodash@^4.0.0, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.15, lodash@~4.17.12:
-  version "4.17.15"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
-  integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
+  version "4.17.19"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.19.tgz#e48ddedbe30b3321783c5b4301fbd353bc1e4a4b"
+  integrity sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==
 
 log-symbols@^2.2.0:
   version "2.2.0"
