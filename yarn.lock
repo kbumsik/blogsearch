@@ -1889,6 +1889,16 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+blogsearch-crawler@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/blogsearch-crawler/-/blogsearch-crawler-0.0.2.tgz#7ddeb5608449591e4621452c85dbf5b00f97b826"
+  integrity sha512-mySZ+CaSTh4ock3NIoF+5gB15PuZhgr+6I90c/mKjh1FbrVdD6syFMMUz4qqK3AdMHHa40GAGzlV9mLsSginXw==
+  dependencies:
+    glob "^7.1.6"
+    puppeteer "^2.0.0"
+    sqlite "^3.0.3"
+    sqlite3 "^4.1.1"
+
 bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
@@ -9357,9 +9367,9 @@ xtend@^4.0.0, xtend@~4.0.1:
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
 y18n@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/y18n/-/y18n-3.2.1.tgz#6d15fba884c08679c0d77e88e7759e811e07fa41"
-  integrity sha1-bRX7qITAhnnA136I53WegR4H+kE=
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/y18n/-/y18n-3.2.2.tgz#85c901bd6470ce71fc4bb723ad209b70f7f28696"
+  integrity sha512-uGZHXkHnhF0XeeAPgnKfPv1bgKAYyVvmNL1xlKsPYZPaIHxGti2hHqvOCQv71XMsLxu1QjergkqogUnms5D3YQ==
 
 "y18n@^3.2.1 || ^4.0.0", y18n@^4.0.0:
   version "4.0.0"
