@@ -44,7 +44,7 @@
     "core-js": "^3.6.5",
     "cssnano": "4.1.10",
     "jest": "24.9.0",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "postcss-cli": "^7.1.0",
     "sinon": "^8.1.0",
     "wrapper-webpack-plugin": "^2.1.0"
