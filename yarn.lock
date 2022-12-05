@@ -1889,6 +1889,16 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
+blogsearch-crawler@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/blogsearch-crawler/-/blogsearch-crawler-0.0.2.tgz#7ddeb5608449591e4621452c85dbf5b00f97b826"
+  integrity sha512-mySZ+CaSTh4ock3NIoF+5gB15PuZhgr+6I90c/mKjh1FbrVdD6syFMMUz4qqK3AdMHHa40GAGzlV9mLsSginXw==
+  dependencies:
+    glob "^7.1.6"
+    puppeteer "^2.0.0"
+    sqlite "^3.0.3"
+    sqlite3 "^4.1.1"
+
 bluebird@^3.5.5:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
@@ -2861,9 +2871,9 @@ decamelize@^1.1.1, decamelize@^1.1.2, decamelize@^1.2.0:
   integrity sha1-9lNNFRSCabIDUue+4m9QH5oZEpA=
 
 decode-uri-component@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.0.tgz#eb3913333458775cb84cd1a1fae062106bb87545"
-  integrity sha1-6zkTMzRYd1y4TNGh+uBiEGu4dUU=
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/decode-uri-component/-/decode-uri-component-0.2.2.tgz#e69dbe25d37941171dd540e024c444cd5188e1e9"
+  integrity sha512-FqUYQ+8o158GyGTrMFJms9qh3CqTKvAqgqsTnkLI8sKu0028orqBhxNMFkFen0zGyg6epACD32pjVk58ngIErQ==
 
 deep-equal@^1.0.1:
   version "1.1.1"
